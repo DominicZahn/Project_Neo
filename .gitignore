@@ -1,4 +1,4 @@
-# Project specific
+# Project and ROS specific
 build/
 devel/
 logs/
@@ -7,6 +7,7 @@ pal_packages/
 # ROS-generated files
 *.pyc
 *.swp
+.catkin_tools
 
 # Ignore other temporary files
 *.bak
