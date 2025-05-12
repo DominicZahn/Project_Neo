@@ -1,0 +1,17 @@
+# Project specific
+build/
+devel/
+logs/
+pal_packages/
+
+# ROS-generated files
+*.pyc
+*.swp
+
+# Ignore other temporary files
+*.bak
+*.tmp
+*.~*~
+
+# vs code
+.vscode/
