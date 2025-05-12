@@ -1,0 +1,38 @@
+{
+  "name": "Locomotion Development Container",
+  "privileged": true,
+  "remoteUser": "robot",
+  "build": { "dockerfile": "Dockerfile" },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "version": "latest",
+      "configureZshAsDefaultShell": true,
+      "username": "robot",
+      "userUid": "1000",
+      "userGid": "1000"
+    }
+  },
+  "workspaceFolder": "/home/robot/ws",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/robot/ws,type=bind",
+  "containerEnv": {
+    "LANG": "en_US.UTF-8",
+    "LANGUAGE": "en_US:en",
+    "LC_ALL": "en_US.UTF-8"
+  },
+  "runArgs": [
+    "--net=host",
+    "-e",
+    "DISPLAY=${env:DISPLAY}"
+  ],
+  "mounts": [
+    {
+      "source": "/tmp/.X11-unix",
+      "target": "/tmp/.X11-unix",
+      "type": "bind",
+      "consistency": "cached"
+    }
+  ],
+  "postCreateCommand": {
+    "chown-ws": "sudo chown -R robot /home/robot/ws/"
+  }
+}
