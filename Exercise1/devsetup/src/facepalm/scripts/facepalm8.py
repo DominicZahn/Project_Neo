@@ -5,7 +5,7 @@ import subprocess #import Popen
 
 from std_msgs.msg import String
 
-gazebo = subprocess.Popen("roslaunch reemc_gazebo reemc_empty_world.launch".split()
+gazebo = subprocess.Popen("roslaunch reemc_gazebo reemc_empty_world.launch".split())
 
 gazebo = subprocess.Popen("roslaunch reemc_controller_configuration joint_trajectory_controllers.launch".split())
 
