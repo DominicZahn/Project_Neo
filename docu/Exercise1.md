@@ -1,9 +1,10 @@
 # Exercise 1
-## 1.1 - The Reem-C model
-
 **Prof. Dr. Katja Mombaur**
+
 **Humanoid Robotics ‑ Locomotion and Whole‑Body Control (SS 2025)**
+
 **Exercise Sheet No. 1**
+
 **Due: May 19, 2025**
 
 ---
