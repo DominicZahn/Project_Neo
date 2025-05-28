@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+
+import rospy
+import numpy as np
+from urdf_parser_py.urdf import URDF
+import tf2_ros, tf2_geometry_msgs
+from geometry_msgs.msg import Point
+
+from center_points.utils import PointCommunicator, Point_to_numpy, numpy_to_Point, urdf_link_map # type: ignore
+
+def calc_com():
+    buffer = tf2_ros.Buffer()
+    listener = tf2_ros.TransformListener(buffer)
+
+    total_mass = 0.0
+    weighted_origin = np.array([0.0, 0.0, 0.0])
+    # link_dict = URDF.from_parameter_server().link_map
+    link_dict = urdf_link_map()
+    for link in link_dict:
+        if link_dict[link].inertial is None or link_dict[link].inertial.origin is None:
+            continue
+        mass = link_dict[link].inertial.mass
+        origin = np.array(link_dict[link].inertial.origin.xyz)
+
+        try:
+            tf_trans = buffer.lookup_transform('base_link', link, rospy.Time())
+        except (Exception) as e:
+            # print('TRANSFORM ERROR: ', str(e))
+            continue
+        tf_origin = tf2_geometry_msgs.PointStamped()
+        tf_origin.header.stamp = rospy.Time.now()
+        tf_origin.header.frame_id = link
+        tf_origin.point = Point(origin[0], origin[1], origin[2])
+        tf_origin_base = tf2_geometry_msgs.do_transform_point(tf_origin, tf_trans)
+        
+        weighted_origin += Point_to_numpy(tf_origin_base.point) * mass
+        total_mass += mass
+
+    com = weighted_origin / total_mass
+    print(total_mass, 'kg', com)
+    return com
+
+def main():
+    communicator = PointCommunicator('center_of_mass')
+    while not rospy.is_shutdown():
+        com = calc_com()
+        try:
+            communicator.publish_point(com)
+        except rospy.ROSInterruptException:
+            pass
+
+if __name__ == '__main__':
+    main()

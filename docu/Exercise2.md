@@ -9,6 +9,19 @@
 
 ---
 
+### 0.0 General Questions
+> *Better way to structure package? So that intellisense works!*
+
+> *Why is the full tf chain not loaded at the start of the programm?*
+
+> *How to set the start position correctly?*
+
+> *How to reset rviz from python? Good rviz api?*
+
+> *Best way to retrieve robot info URDF, tf, when to use what?*
+
+> *Second run always results in wrong tf tree. Restart of sim is necessary!*
+
 ### 2.1 – Reem-C’s center of mass
 
 Write a program that:
