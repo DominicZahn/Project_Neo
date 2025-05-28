@@ -1,14 +1,13 @@
-import rospy, logging
+import rospy, os, sys
 from geometry_msgs.msg import PointStamped, Point
 from urdf_parser_py.urdf import URDF
 import numpy as np
 
 def urdf_link_map() -> dict:
-    logger = logging.getLogger('urdf_parser_py')
-    prev_level = logger.level
-    logger.setLevel(logging.CRITICAL)
+    prev_stdout = sys.stderr
+    sys.stderr = open(os.devnull, 'w')
     link_dict = URDF.from_parameter_server().link_map
-    logger.setLevel(prev_level)
+    sys.stderr = prev_stdout
     return link_dict
 
 def Point_to_numpy(p : Point) -> np.ndarray:
@@ -33,5 +32,4 @@ class PointCommunicator:
         msg.header.frame_id = "base_link"
         msg.point = Point(pt[0], pt[1], pt[2])
         self.pub.publish(msg)
-        # rospy.loginfo(msg)
         self.rate.sleep()
