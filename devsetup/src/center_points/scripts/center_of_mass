@@ -38,7 +38,8 @@ def calc_com():
         total_mass += mass
 
     com = weighted_origin / total_mass
-    print(total_mass, 'kg', com, '\r')
+    pelvis_dist = np.linalg.norm(com) # pelvis = base_link
+    print(total_mass, 'kg', com, '|', pelvis_dist, '\r')
     return com
 
 def main():
