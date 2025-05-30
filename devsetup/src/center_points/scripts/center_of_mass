@@ -11,11 +11,10 @@ from center_points.utils import PointCommunicator, Point_to_numpy, numpy_to_Poin
 
 def calc_com():
     buffer = tf2_ros.Buffer()
-    listener = tf2_ros.TransformListener(buffer)
+    tf2_ros.TransformListener(buffer)
 
     total_mass = 0.0
     weighted_origin = np.array([0.0, 0.0, 0.0])
-    # link_dict = URDF.from_parameter_server().link_map
     link_dict = urdf_link_map()
     for link in link_dict:
         if link_dict[link].inertial is None or link_dict[link].inertial.origin is None:
@@ -43,11 +42,14 @@ def calc_com():
     return com
 
 def main():
-    communicator = PointCommunicator('center_of_mass')
+    rospy.init_node('center_of_mass', anonymous=False)
+    com_communicator = PointCommunicator('center_of_mass')
+    pelvis_communicator = PointCommunicator('pelvis_center')
     while not rospy.is_shutdown():
         com = calc_com()
         try:
-            communicator.publish_point(com)
+            com_communicator.publish_point(com)
+            pelvis_communicator.publish_point(np.array([0,0,0]))
         except rospy.ROSInterruptException:
             pass
 

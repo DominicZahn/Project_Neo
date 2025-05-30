@@ -23,7 +23,6 @@ def numpy_to_Point(p : np.ndarray) -> Point:
 class PointCommunicator:
     def __init__(self, name : str , rate : int = 10) -> None:
         self.pub = rospy.Publisher(name+'_pub', PointStamped, queue_size=10)
-        rospy.init_node(name+'_node', anonymous=False)
         self.rate = rospy.Rate(rate)
 
     def publish_point(self, pt : np.ndarray):
