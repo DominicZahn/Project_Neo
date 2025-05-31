@@ -22,6 +22,8 @@
 
 > *Second run always results in wrong tf tree. Restart of sim is necessary!*
 
+> *Is the `base_link` center also the pelvis center?*
+
 ### 2.1 – Reem-C’s center of mass
 
 Write a program that:

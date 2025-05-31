@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+
+import rospy, sys
+import numpy as np
+from urdf_parser_py.urdf import URDF
+import tf2_ros, tf2_geometry_msgs
+from geometry_msgs.msg import Point
+
+from center_points.utils import PointCommunicator, Point_to_numpy, numpy_to_Point, urdf_link_map # type: ignore
+
+def calc_zmp():
+    buffer = tf2_ros.Buffer()
+    tf2_ros.TransformListener(buffer)
+
+    zmp = np.array([0,0,0])
+    return zmp
+
+def main():
+    rospy.init_node('zero_moment_point', anonymous=False)
+    zmp_communicator = PointCommunicator('zero_moment_point')
+    while not rospy.is_shutdown():
+        zmp = calc_zmp()
+        try:
+            zmp_communicator.publish_point(zmp)
+        except rospy.ROSInterruptException:
+            pass
+
+if __name__ == '__main__':
+    main()
