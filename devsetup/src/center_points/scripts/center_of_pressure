@@ -1,26 +1,57 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
-import rospy, sys
+from typing import Union
+import rospy
 import numpy as np
-from urdf_parser_py.urdf import URDF
-import tf2_ros, tf2_geometry_msgs
-from geometry_msgs.msg import Point
+import tf2_ros
+from geometry_msgs.msg import WrenchStamped, Wrench, PointStamped, Point, TransformStamped, Vector3
 
 from center_points.utils import PointCommunicator, Point_to_numpy, numpy_to_Point, urdf_link_map # type: ignore
 
-def calc_cop():
+"""
+    left_ankle_ft => leg_left_6_link
+    right_ankle_ft => leg_right_6_link
+    floor ?=>? base_footprint
+"""
+
+def rel_sensor_position(sensorLinkName : str) -> Union[Vector3, None]:
     buffer = tf2_ros.Buffer()
     tf2_ros.TransformListener(buffer)
+    check = buffer.can_transform('base_footprint', sensorLinkName, rospy.Time())
+    if not check:
+        return None
+    transform : TransformStamped = buffer.lookup_transform('base_footprint', sensorLinkName, rospy.Time())
+    return transform.transform.translation
 
-    cop = np.array([0,0,0])
-    return cop
+def calc_cop(left_wrench : WrenchStamped, right_wrench : WrenchStamped) -> Union[np.ndarray, None]:
+    fl = left_wrench.wrench.force
+    fr = right_wrench.wrench.force
+
+    tl = left_wrench.wrench.torque
+    tr = right_wrench.wrench.torque
+
+    pl = rel_sensor_position('leg_left_6_link')
+    pr = rel_sensor_position('leg_right_6_link')
+
+    if pr is None or pl is None:
+        return None
+
+    #           TBD
+    # px = (pr.x*fr.z+pl.x*fl.z) / (fr.z+fl.z)
+    # py = (pr.y*fr.z+pl.y*fl.z) / (fr.z+fl.z)
+
+    return np.array([px, py ,-1])
 
 def main():
     rospy.init_node('center_of_pressure', anonymous=False)
     cop_communicator = PointCommunicator('center_of_pressure')
     while not rospy.is_shutdown():
-        cop = calc_cop()
+        left_wrench = rospy.wait_for_message('/left_ankle_ft', WrenchStamped)
+        right_wrench = rospy.wait_for_message('/right_ankle_ft', WrenchStamped)
+        if left_wrench is None or right_wrench is None:
+            continue
+        cop = calc_cop(left_wrench, right_wrench)
         try:
             cop_communicator.publish_point(cop)
         except rospy.ROSInterruptException:
