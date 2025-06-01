@@ -3,6 +3,7 @@
 <launch>
   <arg name="robot"  default="full_ft_hey5"/>          <!-- full, lower_body, foot, full_ft_hey5 -->
   <arg name="gzpose" default="-x 0.0 -y 0.0 -z 0.85 -R 0.0 -P 0.0 -Y 0.0"/>
+  <param name="/use_sim_time" value="true"/>
 
   <!-- Robot model -->
   <include file="$(find reemc_description)/robots/upload_reemc.launch">

@@ -24,6 +24,13 @@
 
 > *Is the `base_link` center also the pelvis center?*
 
+> *One foot is under $z=0$ of `odom` and `base_footprint`.*
+
+### 0.1 Knowledge gained
+#### 0.1.1 Fixing extrapolation error in Rviz
+- set to `\use_sim_time` param to `true`
+- execute `rosbag` with `--clock` to publish rosbag time to `/clock` topic
+
 ### 2.1 – Reem-C’s center of mass
 
 Write a program that:
