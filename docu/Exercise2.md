@@ -22,6 +22,12 @@
 
 > *Second run always results in wrong tf tree. Restart of sim is necessary!*
 
+> *Is it correct that the force-torque-sensor is located in the ankle?*
+> `<!--xacro:reemc_force_torque_sensor name="leg_left_6_link"  update_rate="100.0"/-->`
+> ![21.png](resources/ex2/21.png)
+> top to bottom: `leg_left_6_link`, `base_footprint`, `left_sole_link`
+>
+
 > *Is the `base_link` center also the pelvis center?*
 
 > *One foot is under $z=0$ of `odom` and `base_footprint`.*
