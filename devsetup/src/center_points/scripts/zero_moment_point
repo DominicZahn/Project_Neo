@@ -1,30 +1,94 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
-import rospy, sys
+import rospy, sys, argparse
 import numpy as np
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from urdf_parser_py.urdf import URDF
-import tf2_ros
+import tf2_ros, tf2_geometry_msgs
 from sensor_msgs.msg import Imu, JointState
+from geometry_msgs.msg import (
+    WrenchStamped, Wrench,
+    PointStamped, Point,
+    TransformStamped,
+    Vector3, Vector3Stamped)
 
 from center_points.utils import PointCommunicator, Point_to_numpy, numpy_to_Point, urdf_link_map # type: ignore
 
-imu = Imu()
+@dataclass
+class CalcData:
+    pass
 
-def calc_zmp(imu : Imu):
+class ZMP_Calculator(ABC):
+    @abstractmethod
+    def __init__(self, frame : str = 'base_link'):
+        self.frame = frame
+        self.buffer = tf2_ros.Buffer()
+        self._listener = tf2_ros.TransformListener(self.buffer)
+    @abstractmethod
+    def gather_data(self) -> CalcData:
+        return CalcData()
+    @abstractmethod
+    def calc(self, data : CalcData) -> PointStamped:
+        return PointStamped()
+    
+class ZMP_Calc_Point(ZMP_Calculator):
+    def __init__(self, frame = 'base_link'):
+        super().__init__(frame)
+    def gather_data(self) -> CalcData:
+        return CalcData()
+    def calc(self, data : CalcData) -> np.ndarray:
+        return np.array([0,0,0])
+    
+class ZMP_Calc_Linear(ZMP_Calculator):
+    def __init__(self, frame = 'base_link'):
+        super().__init__(frame)
+        rospy.logerr_once('This mode is not implemented yet!')
+    def gather_data(self) -> CalcData:
+        return CalcData()
+    def calc(self, data : CalcData) -> np.ndarray:
+        return np.array([0,0,0])
+    
+class ZMP_Calc_Full(ZMP_Calculator):
+    def __init__(self, frame = 'base_link'):
+        super().__init__(frame)
+        rospy.logerr_once('This mode is not implemented yet!')
+    def gather_data(self) -> CalcData:
+        return CalcData()
+    def calc(self, data : CalcData) -> np.ndarray:
+        return np.array([0,0,0])
 
-    zmp = np.array([0,0,0])
-    return zmp
-
-def publish_zmp(imu : Imu, com : PointCommunicator):
-    com.publish_point(calc_zmp(imu))
-    rospy.loginfo(imu)
-
-def main():
+def main(args):
+    mode = args.mode
     rospy.init_node('zero_moment_point', anonymous=False)
-    zmp_communicator = PointCommunicator('zero_moment_point')
-    sub = rospy.Subscriber('base_imu', Imu, publish_zmp, zmp_communicator)
-    rospy.spin()
+    zmp_communicator = PointCommunicator('zmp_'+mode, frame='odom')
+    zmp_calcer = None
+    if mode == 'point':
+        zmp_calcer = ZMP_Calc_Point(zmp_communicator.frame)
+    elif mode == 'linear':
+        pass
+    elif mode == 'full':
+        pass
+    else:
+        rospy.logerr('No Mode was selected. Choose between: full, linear or point')
+        return -1
+    rospy.loginfo_once('Created ZMP Calculator of type '+str(type(zmp_calcer)))
+    
+    while not rospy.is_shutdown():
+        imu = rospy.wait_for_message('/base_imu', Imu)
+        if imu is None:
+            continue
+        com = rospy.wait_for_message('/center_of_mass_pub', PointStamped)
+        if com is None:
+            continue
+        data : CalcData = zmp_calcer.gather_data()
+        zmp : np.ndarray = zmp_calcer.calc(data)
+        
+        zmp_communicator.publish_point(zmp)
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--mode', type=str, help='full, linear, point', default='point')
+    args = parser.parse_args()
+    main(args)

@@ -6,8 +6,8 @@ import rospy
 import numpy as np
 import tf2_ros, tf2_geometry_msgs
 from geometry_msgs.msg import (
-    WrenchStamped, Wrench,
-    PointStamped, Point,
+    WrenchStamped,
+    PointStamped,
     TransformStamped,
     Vector3, Vector3Stamped)
 

@@ -10,6 +10,8 @@
 ---
 
 ### 0.0 General Questions
+> *Controller Manager does not seem to launch properly in rviv launch file!*
+
 > *Better way to structure package? So that intellisense works!*
 
 > *Why is the full tf chain not loaded at the start of the programm?*
@@ -17,10 +19,11 @@
 > *How to set the start position correctly?*
 
 > *How to reset rviz from python? Good rviz api?*
+> -> not necessary if sim time used
 
-> *Best way to retrieve robot info URDF, tf, when to use what?*
+> *Best way to retrieve robot info URDF?*
 
-> *Second run always results in wrong tf tree. Restart of sim is necessary!*
+> *Second run always results in wrong tf tree. Or not????ß*
 
 > *Is it correct that the force-torque-sensor is located in the ankle?*
 > `<!--xacro:reemc_force_torque_sensor name="leg_left_6_link"  update_rate="100.0"/-->`
@@ -36,6 +39,9 @@
 #### 0.1.1 Fixing extrapolation error in Rviz
 - set to `\use_sim_time` param to `true`
 - execute `rosbag` with `--clock` to publish rosbag time to `/clock` topic
+
+#### 0.1.2 Fixing reset after each execution
+- use sim time (0.1.1)
 
 ### 2.1 – Reem-C’s center of mass
 
