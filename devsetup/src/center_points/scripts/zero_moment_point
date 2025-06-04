@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 
-import rospy, sys, argparse
+import rospy, sys, argparse, os
+from typing import Union, List
 import numpy as np
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -14,11 +15,14 @@ from geometry_msgs.msg import (
     TransformStamped,
     Vector3, Vector3Stamped)
 
-from center_points.utils import PointCommunicator, Point_to_numpy, numpy_to_Point, urdf_link_map # type: ignore
+from center_points.utils import PointCommunicator, Point_to_numpy, numpy_to_Point, Vector3_to_numpy, numpy_to_Vector3, Vector3Stamped_to_PointStamped, urdf_link_map # type: ignore
 
 @dataclass
 class CalcData:
-    pass
+    linear_a : np.ndarray = np.zeros(3)
+    angular_v : np.ndarray = np.zeros(3)
+    com : np.ndarray = np.zeros(3) # in odom
+    stamp : rospy.Time = rospy.Time(0)
 
 class ZMP_Calculator(ABC):
     @abstractmethod
@@ -30,16 +34,38 @@ class ZMP_Calculator(ABC):
     def gather_data(self) -> CalcData:
         return CalcData()
     @abstractmethod
-    def calc(self, data : CalcData) -> PointStamped:
-        return PointStamped()
+    def calc(self, data_list : List[CalcData]) -> np.ndarray:
+        return np.array([])
     
 class ZMP_Calc_Point(ZMP_Calculator):
     def __init__(self, frame = 'base_link'):
         super().__init__(frame)
     def gather_data(self) -> CalcData:
-        return CalcData()
-    def calc(self, data : CalcData) -> np.ndarray:
-        return np.array([0,0,0])
+        imu = rospy.wait_for_message('/base_imu', Imu)
+        if imu is None:
+            return CalcData()
+        angular_v = Vector3_to_numpy(imu.angular_velocity)
+        linear_a = Vector3_to_numpy(imu.linear_acceleration)
+        com = rospy.wait_for_message('/center_of_mass_pub', PointStamped)
+        if com is None:
+            return CalcData()
+        if not self.buffer.can_transform(self.frame, com.header.frame_id, rospy.Time()):
+            return CalcData()
+        com_frame = self.buffer.transform(com, self.frame)
+        data = CalcData(
+            linear_a=linear_a,
+            angular_v=angular_v,
+            com=Point_to_numpy(com_frame.point),
+            stamp=rospy.Time())
+        return data
+    def calc(self, data_list : List[CalcData]) -> np.ndarray:
+        com = data_list[0].com
+        linear_a = data_list[0].linear_a
+        # compute zmp
+        g = 9.181 # m/s²
+        px = com[0] - (com[2] * linear_a[0]) / (linear_a[2] + g)
+        py = com[1] - (com[2] * linear_a[1]) / (linear_a[2] + g)
+        return np.array([px, py, 0])
     
 class ZMP_Calc_Linear(ZMP_Calculator):
     def __init__(self, frame = 'base_link'):
@@ -47,7 +73,7 @@ class ZMP_Calc_Linear(ZMP_Calculator):
         rospy.logerr_once('This mode is not implemented yet!')
     def gather_data(self) -> CalcData:
         return CalcData()
-    def calc(self, data : CalcData) -> np.ndarray:
+    def calc(self, data_list : List[CalcData]) -> np.ndarray:
         return np.array([0,0,0])
     
 class ZMP_Calc_Full(ZMP_Calculator):
@@ -56,7 +82,7 @@ class ZMP_Calc_Full(ZMP_Calculator):
         rospy.logerr_once('This mode is not implemented yet!')
     def gather_data(self) -> CalcData:
         return CalcData()
-    def calc(self, data : CalcData) -> np.ndarray:
+    def calc(self, data_list : List[CalcData]) -> np.ndarray:
         return np.array([0,0,0])
 
 def main(args):
@@ -70,21 +96,15 @@ def main(args):
         pass
     elif mode == 'full':
         pass
-    else:
+    if zmp_calcer is None:
         rospy.logerr('No Mode was selected. Choose between: full, linear or point')
         return -1
     rospy.loginfo_once('Created ZMP Calculator of type '+str(type(zmp_calcer)))
     
     while not rospy.is_shutdown():
-        imu = rospy.wait_for_message('/base_imu', Imu)
-        if imu is None:
-            continue
-        com = rospy.wait_for_message('/center_of_mass_pub', PointStamped)
-        if com is None:
-            continue
-        data : CalcData = zmp_calcer.gather_data()
-        zmp : np.ndarray = zmp_calcer.calc(data)
-        
+        data0 : CalcData = zmp_calcer.gather_data()
+        data1 : CalcData = zmp_calcer.gather_data()
+        zmp : np.ndarray = zmp_calcer.calc([data0, data1])
         zmp_communicator.publish_point(zmp)
 
 if __name__ == '__main__':

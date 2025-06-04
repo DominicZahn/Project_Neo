@@ -35,6 +35,10 @@
 
 > *One foot is under $z=0$ of `odom` and `base_footprint`.*
 
+> *What is the best way to do numerical integration? rt vs. precision*
+
+>
+
 ### 0.1 Knowledge gained
 #### 0.1.1 Fixing extrapolation error in Rviz
 - set to `\use_sim_time` param to `true`
