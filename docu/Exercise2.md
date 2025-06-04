@@ -32,12 +32,12 @@
 >
 
 > *Is the `base_link` center also the pelvis center?*
-
+/
 > *One foot is under $z=0$ of `odom` and `base_footprint`.*
 
 > *What is the best way to do numerical integration? rt vs. precision*
 
->
+> *Is there a good way to use Vector3, Point, etc?*
 
 ### 0.1 Knowledge gained
 #### 0.1.1 Fixing extrapolation error in Rviz

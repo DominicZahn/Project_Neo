@@ -9,7 +9,7 @@ from geometry_msgs.msg import Point, PointStamped
 
 from center_points.utils import PointCommunicator, Point_to_numpy, numpy_to_Point, urdf_link_map # type: ignore
 
-def calc_com(buffer : tf2_ros.Buffer):
+def calc_com(buffer : tf2_ros.Buffer) -> np.ndarray:
     total_mass = 0.0
     weighted_origin = np.array([0.0, 0.0, 0.0])
     link_dict = urdf_link_map()

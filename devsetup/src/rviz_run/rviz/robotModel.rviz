@@ -7,6 +7,8 @@ Panels:
         - /Global Options1
         - /Status1
         - /PointStamped1
+        - /PointStamped2
+        - /PointStamped3
       Splitter Ratio: 0.5
     Tree Height: 555
   - Class: rviz/Selection
@@ -716,28 +718,28 @@ Visualization Manager:
       Name: PointStamped
       Queue Size: 10
       Radius: 0.15000000596046448
-      Topic: /center_of_mass_pub
+      Topic: /com_ground_pub
       Unreliable: false
       Value: true
     - Alpha: 1
       Class: rviz/PointStamped
-      Color: 204; 41; 204
+      Color: 255; 0; 255
       Enabled: true
       History Length: 1
       Name: PointStamped
       Queue Size: 10
       Radius: 0.20000000298023224
-      Topic: ""
+      Topic: /com_pub
       Unreliable: false
       Value: true
     - Alpha: 1
       Class: rviz/PointStamped
-      Color: 204; 41; 204
+      Color: 170; 0; 0
       Enabled: true
       History Length: 1
       Name: PointStamped
       Queue Size: 10
-      Radius: 0.20000000298023224
+      Radius: 0.10000000149011612
       Topic: ""
       Unreliable: false
       Value: true
@@ -1215,7 +1217,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.814720153808594
+      Distance: 6.355100631713867
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -1231,9 +1233,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.785398006439209
+      Pitch: 0.46039825677871704
       Target Frame: <Fixed Frame>
-      Yaw: 0.785398006439209
+      Yaw: 2.015397548675537
     Saved: ~
 Window Geometry:
   Displays:
@@ -1251,5 +1253,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 2068
-  Y: 74
+  X: 1954
+  Y: 17
