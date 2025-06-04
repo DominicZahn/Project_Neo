@@ -5,14 +5,11 @@ import rospy, sys
 import numpy as np
 from urdf_parser_py.urdf import URDF
 import tf2_ros, tf2_geometry_msgs
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point, PointStamped
 
 from center_points.utils import PointCommunicator, Point_to_numpy, numpy_to_Point, urdf_link_map # type: ignore
 
-def calc_com():
-    buffer = tf2_ros.Buffer()
-    tf2_ros.TransformListener(buffer)
-
+def calc_com(buffer : tf2_ros.Buffer):
     total_mass = 0.0
     weighted_origin = np.array([0.0, 0.0, 0.0])
     link_dict = urdf_link_map()
@@ -43,15 +40,39 @@ def calc_com():
 
 def main():
     rospy.init_node('center_of_mass', anonymous=False)
-    com_communicator = PointCommunicator('center_of_mass')
-    pelvis_communicator = PointCommunicator('pelvis_center')
+
+    buffer = tf2_ros.Buffer()
+    tf2_ros.TransformListener(buffer)
+
+    com_communicator = PointCommunicator('com', frame='base_link')
+    pelvis_communicator = PointCommunicator('pelvis_center', frame='base_link')
+    com_ground_communicator = PointCommunicator('com_ground', frame='odom')
     while not rospy.is_shutdown():
-        com = calc_com()
+        com = calc_com(buffer)
         try:
             com_communicator.publish_point(com)
             pelvis_communicator.publish_point(np.array([0,0,0]))
         except rospy.ROSInterruptException:
             pass
+        if not buffer.can_transform(
+            com_communicator.frame,
+            com_ground_communicator.frame,
+            rospy.Time()):
+            continue
+        com_stamped = PointStamped()
+        com_stamped.header.frame_id = 'base_link'
+        com_stamped.header.stamp = rospy.Time()
+        com_stamped.point = numpy_to_Point(com)
+        com_ground_stamped = buffer.transform(com_stamped, 'odom')
+        if com_ground_stamped is None:
+            continue
+        com_ground = Point_to_numpy(com_ground_stamped.point)
+        com_ground[2] = 0
+        try:
+            com_ground_communicator.publish_point(com_ground)
+        except rospy.ROSInterruptException:
+            pass
+        
 
 if __name__ == '__main__':
     main()
