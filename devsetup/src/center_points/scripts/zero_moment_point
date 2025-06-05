@@ -27,7 +27,7 @@ class CalcData:
     stamp : rospy.Time = rospy.Time(0)
     joint_names : List[str] = field(default_factory=list)
     joint_velocities : List[float] = field(default_factory=list)
-    joint_accelerations : List[float] = field(default_factory=list)
+    joint_accelerations : List[np.ndarray] = field(default_factory=list)
     link_masses : List[float] = field(default_factory=list)
     link_coordinates : List[np.ndarray] = field(default_factory=list) # in odm
 
@@ -142,8 +142,6 @@ class ZMP_Calc_Linear(ZMP_Calculator):
             ddx = 0.0
             ddy = 0.0
             ddz = 0.0
-
-            breakpoint()
 
             px_num = m*((ddz+g)*x-z*ddx)
             px_den = m*(ddz+g)

@@ -8,13 +8,16 @@
 **Due: June 5, 2025**
 
 ---
+| | done | working |
+|-|:-:|:-:|
+| :heavy_check_mark: | **X** | **X** |
+| :heavy_minus_sign: | **X** |  | 
+| :heavy_multiplication_x: | **X** |  |
 
 ### 0.0 General Questions
 > *Controller Manager does not seem to launch properly in rviv launch file!*
 
 > *Better way to structure package? So that intellisense works!*
-
-> *Why is the full tf chain not loaded at the start of the programm?*
 
 > *How to set the start position correctly?*
 
@@ -32,12 +35,30 @@
 >
 
 > *Is the `base_link` center also the pelvis center?*
-/
+
 > *One foot is under $z=0$ of `odom` and `base_footprint`.*
 
 > *What is the best way to do numerical integration? rt vs. precision*
+> Current useage: Trapezoid rule -> drawback: two datapoints necessary
 
 > *Is there a good way to use Vector3, Point, etc?*
+
+#### 0.0.1 H1 Research
+- controller code exists ([github](https://github.com/unitreerobotics/unitree_ros/tree/master/robots/h1_description))
+- they recommend [MuJoCo](https://github.com/google-deepmind/mujoco)
+>  - is it any good?
+- resources for own devcontainer setup ([github](https://github.com/Eruvae/ROS-devcontainer))
+
+#### 0.0.2 NVIDIA GPU in devcontainer (from [devcontainer setup](https://github.com/Eruvae/ROS-devcontainer?tab=readme-ov-file#nvidia-gpu-acceleration))
+To enable GPU acceleration in the containers, make sure you also install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). Note: If you already have the CUDA apt repository set up, it includes the nvidia-container-toolkit package, so you don't need to add the nvidia-container apt repository. Run:
+
+```
+sudo apt-get install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+```
+
+In devcontainer.json, make sure "--gpus", "all" is added to runArgs (this is already the case for the workspaces in this repository), or configure it to use a specific device.
 
 ### 0.1 Knowledge gained
 #### 0.1.1 Fixing extrapolation error in Rviz
@@ -47,7 +68,7 @@
 #### 0.1.2 Fixing reset after each execution
 - use sim time (0.1.1)
 
-### 2.1 – Reem-C’s center of mass
+### 2.1 – Reem-C’s center of mass :heavy_check_mark:
 
 Write a program that:
 
@@ -64,7 +85,7 @@ Prepare a video or live demo of this visualization, the results of the printouts
 
 ---
 
-### 2.2 – Center of pressure
+### 2.2 – Center of pressure :heavy_check_mark:
 
 Write a program that computes the center of pressure location based on the measurements of the force torque sensors, and prints out x,y coordinates of the COP. All relevant parameters can be found in the Reem-C model.
 
@@ -74,11 +95,11 @@ Prepare a video or live demo of this visualization, the results of the printouts
 
 ---
 
-### 2.3 – Zero moment point
+### 2.3 – Zero moment point :heavy_minus_sign:
 
 Write a program that computes the zero moment point from the motion of the robot following the three approaches discussed in the class and prints them out:
 
-1. exact computation of ZMP taking all contributions into account  
+1. exact computation of ZMP taking all contributions into account
 2. simplified computation of ZMP taking only translations of segments into account  
 3. even more simplified computation of the ZMP approximating the robot by a single mass point.  
    Assume here that this mass point (total mass of the robot) is aligned with the pelvis motion of the robot.
