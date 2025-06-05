@@ -18,15 +18,10 @@
 > *Controller Manager does not seem to launch properly in rviv launch file!*
 
 > *Better way to structure package? So that intellisense works!*
+> We dont like python
 
 > *How to set the start position correctly?*
-
-> *How to reset rviz from python? Good rviz api?*
-> -> not necessary if sim time used
-
-> *Best way to retrieve robot info URDF?*
-
-> *Second run always results in wrong tf tree. Or not????ß*
+> Would need to use joint_state_publishers. So no!
 
 > *Is it correct that the force-torque-sensor is located in the ankle?*
 > `<!--xacro:reemc_force_torque_sensor name="leg_left_6_link"  update_rate="100.0"/-->`
@@ -35,13 +30,6 @@
 >
 
 > *Is the `base_link` center also the pelvis center?*
-
-> *One foot is under $z=0$ of `odom` and `base_footprint`.*
-
-> *What is the best way to do numerical integration? rt vs. precision*
-> Current useage: Trapezoid rule -> drawback: two datapoints necessary
-
-> *Is there a good way to use Vector3, Point, etc?*
 
 #### 0.0.1 H1 Research
 - controller code exists ([github](https://github.com/unitreerobotics/unitree_ros/tree/master/robots/h1_description))
