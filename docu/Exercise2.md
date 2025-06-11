@@ -12,7 +12,7 @@
 |-|:-:|:-:|
 | :heavy_check_mark: | **X** | **X** |
 | :heavy_minus_sign: | **X** |  | 
-| :heavy_multiplication_x: | **X** |  |
+| :heavy_multiplication_x: |  |  |
 
 ### 0.0 General Questions
 > *Controller Manager does not seem to launch properly in rviv launch file!*

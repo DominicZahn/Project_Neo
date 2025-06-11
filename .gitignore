@@ -2,17 +2,16 @@
 build/
 devel/
 logs/
-pal_packages/
 
-# ROS-generated files
+pal_packages/
+unitree_*/
+
 *.pyc
 *.swp
 .catkin_tools
 
-# Ignore other temporary files
 *.bak
 *.tmp
 *.~*~
 
-# vs code
 .vscode/
