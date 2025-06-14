@@ -5,6 +5,7 @@ logs/
 
 pal_packages/
 unitree_*/
+robots/
 
 *.pyc
 *.swp

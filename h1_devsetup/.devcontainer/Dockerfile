@@ -15,10 +15,7 @@ RUN apt update && export DEBIAN_FRONTEND=noninteractive && \
     ros-noetic-joint-trajectory-controller \
     tmux \
     htop \
+    nvtop \
     git
 
 RUN pip3 install vcstool catkin_tools mujoco
-
-#  Unitree stuff
-RUN git clone https://github.com/unitreerobotics/unitree_ros.git src/unitree_ros --recursive
-RUN git clone https://github.com/unitreerobotics/unitree_sdk2.git src/unitree_sdk2 --recursive

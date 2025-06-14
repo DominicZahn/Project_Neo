@@ -22,9 +22,9 @@
   "runArgs": [
     "--net=host",
     "-e", "DISPLAY=${env:DISPLAY}",
-    // "--gpus", "all",
-    // "-e", "NVIDIA_DRIVER_CAPABILITIES=all",
-    // "-e", "NVIDIA_VISIBLE_DEVICES=all"
+    "--gpus", "all",
+    "-e", "NVIDIA_DRIVER_CAPABILITIES=all",
+    "-e", "NVIDIA_VISIBLE_DEVICES=all"
   ],
   "mounts": [
     {
@@ -35,6 +35,9 @@
     }
   ],
   "postCreateCommand": {
+    "zshrc_0": "echo 'source /opt/ros/noetic/setup.zsh' >> /home/robot/.zshrc",
+    "zshrc_1": "echo 'source devel/setup.zsh' >> /home/robot/.zshrc",
+    "clone_unitree_ros": "git clone https://github.com/unitreerobotics/unitree_ros.git src --recursive",
     "chown-ws": "sudo chown -R robot /home/robot/ws/"
   }
 }
