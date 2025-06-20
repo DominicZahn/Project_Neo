@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+
+import rospy
+import tf2_ros, tf2_geometry_msgs
+
+def main():
+    rospy.init_node('lipm', anonymous=False)
+    buffer = tf2_ros.Buffer()
+    tf2_ros.TransformListener(buffer)
+
+    pub = rospy.Publisher('lipm', )
+
+if __name__ == '__main__':
+    main()
