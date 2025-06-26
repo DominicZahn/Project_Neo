@@ -2,6 +2,8 @@ FROM osrf/ros:noetic-desktop-full
 
 RUN apt update && export DEBIAN_FRONTEND=noninteractive && \
   apt install -y \
+    x11-apps \
+    mesa-utils \
     python3-pip \
     python-is-python3 \
     ros-noetic-four-wheel-steering-msgs \

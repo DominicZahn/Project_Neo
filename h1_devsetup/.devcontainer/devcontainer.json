@@ -21,10 +21,10 @@
   },
   "runArgs": [
     "--net=host",
-    "-e", "DISPLAY=${env:DISPLAY}",
-    "--gpus", "all",
-    "-e", "NVIDIA_DRIVER_CAPABILITIES=all",
-    "-e", "NVIDIA_VISIBLE_DEVICES=all"
+    "-e", "DISPLAY=${env:DISPLAY}"
+    // "--gpus", "all",
+    // "-e", "NVIDIA_DRIVER_CAPABILITIES=all",
+    // "-e", "NVIDIA_VISIBLE_DEVICES=all"
   ],
   "mounts": [
     {
