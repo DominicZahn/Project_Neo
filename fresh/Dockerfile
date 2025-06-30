@@ -36,9 +36,7 @@ RUN rm -rf /var/lib/apt/lists/*
 RUN pip3 install catkin_tools
 
 # oh-my-zsh install
-ENV ZSH_THEME="powerlevel10k/powerlevel10k"
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh)" \
-    -x \
     -p git \
     -p ssh-agent \
     -p https://github.com/zsh-users/zsh-autosuggestions \

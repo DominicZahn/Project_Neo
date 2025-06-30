@@ -12,9 +12,7 @@ run:
 		--gpus all \
 		--env="DISPLAY" \
 		--env="QT_X11_NO_MITSHM=1" \
-		--env="XAUTHORITY=/tmp/.docker.xauth" \
 		--mount type=bind,src=/tmp/.X11-unix,dst=/tmp/.X11-unix \
-		--mount type=bind,src=$$XAUTHORITY,dst=/tmp/.docker.xauth \
 		--mount type=bind,src=$(CURDIR)/ws,dst=/home/robot/ws \
 		--privileged \
 		--name $(CONTAINER_NAME) \
