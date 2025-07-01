@@ -1,5 +1,5 @@
 CONTAINER_NAME=ros-noetic_unitree
-
+GPU:=$(shell command -v nvidia-smi >/dev/null 2>&1 && echo true || echo false)
 build:
 	docker build -t $(CONTAINER_NAME) .
 
@@ -9,7 +9,7 @@ run:
 	docker run -it \
 		--user robot \
 		--hostname $(CONTAINER_NAME) \
-		--gpus all \
+		$(if $(filter true, $(GPU)),--gpus all,) \
 		--env="DISPLAY" \
 		--env="QT_X11_NO_MITSHM=1" \
 		--mount type=bind,src=/tmp/.X11-unix,dst=/tmp/.X11-unix \
