@@ -11,7 +11,7 @@ run:
 	docker run -it \
 		--user robot \
 		--hostname $(CONTAINER_NAME) \
-		$(if $(filter true, $(GPU)),--gpus all,) \
+		$(if $(filter true, $(GPU)),--gpus all --runtime=nvidia --env="NVIDIA_VISIBLE_DEVICES=all" --env="NVIDIA_DRIVER_CAPABILITIES=all",) \
 		--env="DISPLAY" \
 		--env="QT_X11_NO_MITSHM=1" \
 		--net=host \

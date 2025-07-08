@@ -47,6 +47,10 @@ source /home/robot/ws/install/setup.bash\n\
 alias build='cd /home/robot/ws/ && colcon build --symlink-install && source install/setup.bash'\n\
 " >> /home/robot/.bashrc
 
+# GPU plugins in Gazebo
+ENV IGN_RENDER_ENGINE=ogre2
+ENV OGRE2_RENDER_SYSTEM=gl
+
 # X11 forwarding
 ENV DISPLAY=:1
 ENV QT_X11_NO_MITSHM=1
