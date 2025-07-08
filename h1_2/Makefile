@@ -1,4 +1,4 @@
-CONTAINER_NAME=ros-jazzy_unitree
+CONTAINER_NAME=ros2-jazzy
 GPU:=$(shell command -v nvidia-smi >/dev/null 2>&1 && echo true || echo false)
 build:
 	docker build -t $(CONTAINER_NAME) .
@@ -21,12 +21,10 @@ run:
 stop:
 	-docker stop $(CONTAINER_NAME) || true
 
-shell:
-	docker exec -it $(CONTAINER_NAME) zsh
 clean:
-	rm -rf $(CURDIR)/ws/build/
-	rm -rf $(CURDIR)/ws/install/
-	rm -rf $(CURDIR)/ws/logs/
+	sudo rm -rf $(CURDIR)/ws/build/
+	sudo rm -rf $(CURDIR)/ws/install/
+	sudo rm -rf $(CURDIR)/ws/log/
 	-docker rmi -f $(CONTAINER_NAME) 2>/dev/null || true
 rebuild:
 	$(MAKE) clean
