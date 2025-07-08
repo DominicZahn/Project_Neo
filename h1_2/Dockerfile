@@ -41,11 +41,12 @@ WORKDIR /home/robot/ws
 RUN sudo chown -R robot /home/robot/ws
 
 # bashrc
-RUN echo '\
+RUN echo "\
 export TERM=xterm-256color\n\
 source /opt/ros/${ROS_DISTRO}/setup.bash\n\
 source /home/robot/ws/install/setup.bash\n\
-' >> /home/robot/.bashrc
+alias build='cd /home/robot/ws/ && colcon build --symlink-install'\n\
+" >> /home/robot/.bashrc
 
 # X11 forwarding
 ENV DISPLAY=:1
