@@ -1,15 +1,10 @@
 # Project and ROS specific
 build/
-devel/
-logs/
-
-pal_packages/
-unitree_*/
-robots/
+install/
+log/
 
 *.pyc
 *.swp
-.catkin_tools
 
 *.bak
 *.tmp
