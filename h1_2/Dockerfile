@@ -38,14 +38,13 @@ USER robot
 
 # Setup workspace
 WORKDIR /home/robot/ws
-RUN sudo chown -R robot /home/robot/ws
 
 # bashrc
 RUN echo "\
 export TERM=xterm-256color\n\
 source /opt/ros/${ROS_DISTRO}/setup.bash\n\
 source /home/robot/ws/install/setup.bash\n\
-alias build='cd /home/robot/ws/ && colcon build --symlink-install'\n\
+alias build='cd /home/robot/ws/ && colcon build --symlink-install && source install/setup.bash'\n\
 " >> /home/robot/.bashrc
 
 # X11 forwarding

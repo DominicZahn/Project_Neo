@@ -48,3 +48,6 @@ This Docker container was set up to fit the needs of ROS2 projects that were cre
 You can put all your projects and ROS2 packages inside the [src](/ws/src/) directory.
 
 To build everything, the alias `build` can be used inside the container to move to the parent workspace folder (`ws`) and then execute `colcon build --symlink-install`. With this setup, the problem of creating random colcon artifacts is a thing of the past.
+
+# Issues
+- [ ] gpu passthrough not working in gazebo
