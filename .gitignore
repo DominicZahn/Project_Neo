@@ -2,6 +2,8 @@
 build/
 install/
 log/
+devel/
+logs/
 
 *.pyc
 *.swp
