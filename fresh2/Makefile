@@ -1,4 +1,4 @@
-CONTAINER_NAME=ros-noetic_unitree
+CONTAINER_NAME=ros-kilted_unitree
 GPU:=$(shell command -v nvidia-smi >/dev/null 2>&1 && echo true || echo false)
 build:
 	docker build -t $(CONTAINER_NAME) .

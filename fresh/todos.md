@@ -1,2 +1,0 @@
-- [ ] make zsh great again
-- [ ] getting h1 or g1 to run (honestly dont know how)

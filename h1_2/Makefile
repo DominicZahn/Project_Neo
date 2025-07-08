@@ -1,5 +1,5 @@
-CONTAINER_NAME=ros-noetic_unitree
-
+CONTAINER_NAME=ros-jazzy_unitree
+GPU:=$(shell command -v nvidia-smi >/dev/null 2>&1 && echo true || echo false)
 build:
 	docker build -t $(CONTAINER_NAME) .
 
@@ -9,9 +9,10 @@ run:
 	docker run -it \
 		--user robot \
 		--hostname $(CONTAINER_NAME) \
-		--gpus all \
+		$(if $(filter true, $(GPU)),--gpus all,) \
 		--env="DISPLAY" \
 		--env="QT_X11_NO_MITSHM=1" \
+		--net=host \
 		--mount type=bind,src=/tmp/.X11-unix,dst=/tmp/.X11-unix \
 		--mount type=bind,src=$(CURDIR)/ws,dst=/home/robot/ws \
 		--privileged \
@@ -24,8 +25,7 @@ shell:
 	docker exec -it $(CONTAINER_NAME) zsh
 clean:
 	rm -rf $(CURDIR)/ws/build/
-	rm -rf $(CURDIR)/ws/devel/
-	rm -rf $(CURDIR)/ws/.catkin_tools/
+	rm -rf $(CURDIR)/ws/install/
 	rm -rf $(CURDIR)/ws/logs/
 	-docker rmi -f $(CONTAINER_NAME) 2>/dev/null || true
 rebuild:
