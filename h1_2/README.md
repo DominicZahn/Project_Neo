@@ -1,0 +1,50 @@
+# Template Docker for [ros_gz_project_template](https://github.com/gazebosim/ros_gz_project_template/tree/main)
+
+This is a docker setup for projects using ROS 2 and gazebo 2. It is tested and developed especially for the structure in [ros_gz_project_template](https://github.com/gazebosim/ros_gz_project_template/tree/main).
+
+It only uses docker and make to manage the docker. So this setup can be used directly from the commandline without requireing any additional software.
+
+## Prerequirements
+- Docker
+- make
+- (optional) [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+
+## Useage
+### Structure
+```
+.
++-- ws
+|   +-- src
+|   |   +-- (*)
+|   |
+|   +-- build
+|   +-- install
+|   +-- log
+|
++-- Dockerfile
++-- Makefile
++-- .gitignore
++-- README.md
+
+(*) your ROS2 project goes here
+```
+
+### Docker Management
+The docker is managed by the [Makefile](/Makefile). The four commands bundle some arguments and management commands together to create a more friendly docker experience.
+
+| Command | Description |
+|---------|-------------|
+| `run` | launches the docker with `docker run` and enalbes X11-forwarding on the host machine |
+| `build` | only calls `docker build` with the correct container name |
+| `clean` | removes colcon artifacts in `ws` and deletes docker from internal list (**this needs sudo privileges**, because docker had sudo permissions when creating those files). After cleaning up the docker a full `build` is necessary! |
+| `rebuild` | combination of `clean` and `build` without the use of cache |
+| `stop` | calls `docker stop`; can be used to stop the docker when the process, where `run` was called is not accessiable |
+
+Most of the time you will use `make build` once and than only launch the docker with `make run`.
+You only need to build or rebuild if you added some packages to the [Dockerfile](/Dockerfile).
+
+### Inside the Workspace
+This docker container was set up to fit the needs of ROS2 projects which were created from [ros_gz_project_template](https://github.com/gazebosim/ros_gz_project_template/tree/main).
+You can put all your projects and ROS2 packages inside the [src](/ws/src/) directory.
+
+To build everything the alias `build` can be used inside the container to move to the parent workspace folder (`ws`) and than execute `colcon build --symlink-install`. With this setup the problem of creating random colcon artifacts is a thing of the past.
