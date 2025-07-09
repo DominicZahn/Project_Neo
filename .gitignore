@@ -5,6 +5,8 @@ log/
 devel/
 logs/
 
+pal_packages/
+
 *.pyc
 *.swp
 
