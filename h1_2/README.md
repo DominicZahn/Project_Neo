@@ -49,5 +49,5 @@ You can put all your projects and ROS2 packages inside the [src](/ws/src/) direc
 
 To build everything, the alias `build` can be used inside the container to move to the parent workspace folder (`ws`) and then execute `colcon build --symlink-install`. With this setup, the problem of creating random colcon artifacts is a thing of the past.
 
-# Issues
-- [ ] gpu passthrough not working in gazebo
+### Testing
+To test if everything is setup a correctly, it is recommended to clone the [QuadrupedA1Controller](https://github.com/faoezg/QuadrupedA1Controller/tree/main) repository inside the [src](/ws/src/) directory. Follow the instructions of the repository to see if the workspace behaves as expected.
