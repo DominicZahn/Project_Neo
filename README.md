@@ -15,3 +15,12 @@ A repository holding all code regarding "Whole Body Locomotion".
     - [ ] cpp or python
     - [ ] build inverse kinematics component with *Optimal Control* framework
     - [ ] bring robot in evasion pose with inverse kinematics component
+
+### Optimal Control
+- equality of momenten
+- objective function: 
+    - maintain stability: high stability metric
+- constraint: moving out of collision
+- capture point
+- frame by frame statically stable
+    - move to position slowly
