@@ -1,6 +1,6 @@
 [submodule "h1_2"]
 	path = h1_2
-	url = https://github.com/DominicZahn/ROS2-Gazebo-Docker.git
+	url = git@github.com:DominicZahn/ROS2-Gazebo-Docker.git
 [submodule "pkgs/ros2_heinz"]
 	path = pkgs/ros2_heinz
 	url = https://github.com/K-d4wg/ros2_heinz.git
