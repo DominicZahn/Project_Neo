@@ -11,7 +11,9 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
-
+find_package(urdfdom REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
 
 add_executable(center_of_mass src/center_of_mass.cpp)
 target_include_directories(center_of_mass PUBLIC
@@ -23,6 +25,9 @@ ament_target_dependencies(
   "rclcpp"
   "std_msgs"
   "geometry_msgs"
+  "urdfdom"
+  "tf2_ros"
+  "tf2_geometry_msgs"
   "visualization_msgs"
 )
 
