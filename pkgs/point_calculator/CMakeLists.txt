@@ -15,24 +15,30 @@ find_package(urdfdom REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 
-add_executable(center_of_mass src/center_of_mass.cpp)
-target_include_directories(center_of_mass PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-target_compile_features(center_of_mass PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(
-  center_of_mass
-  "rclcpp"
-  "std_msgs"
-  "geometry_msgs"
-  "urdfdom"
-  "tf2_ros"
-  "tf2_geometry_msgs"
-  "visualization_msgs"
-)
+file(GLOB SRC_FILES src/*.cpp)
+foreach(file ${SRC_FILES})
+  get_filename_component(file_name ${file} NAME_WE)
+  add_executable(${file_name} src/${file_name}.cpp)
+  target_include_directories(${file_name} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+  target_compile_features(${file_name} PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+  ament_target_dependencies(
+    ${file_name}
+    "rclcpp"
+    "std_msgs"
+    "geometry_msgs"
+    "urdfdom"
+    "tf2_ros"
+    "tf2_geometry_msgs"
+    "visualization_msgs"
+  )
+  
+  install(TARGETS ${file_name}
+    DESTINATION lib/${PROJECT_NAME}) 
+endforeach()
 
-install(TARGETS center_of_mass
-  DESTINATION lib/${PROJECT_NAME})
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
