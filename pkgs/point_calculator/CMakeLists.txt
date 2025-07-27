@@ -14,6 +14,7 @@ find_package(visualization_msgs REQUIRED)
 find_package(urdfdom REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(ros_gz_interfaces REQUIRED)
 
 file(GLOB SRC_FILES src/*.cpp)
 foreach(file ${SRC_FILES})
@@ -32,6 +33,7 @@ foreach(file ${SRC_FILES})
     "tf2_ros"
     "tf2_geometry_msgs"
     "visualization_msgs"
+    "ros_gz_interfaces"
   )
   
   install(TARGETS ${file_name}
