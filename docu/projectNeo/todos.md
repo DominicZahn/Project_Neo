@@ -1,5 +1,6 @@
 # TODOs
  Preperation work
+- [ ] find suitable name (*projectNeo*)
 - [x] add docu for `pkgs` folder in docker repo
 - [x] fixed rviz in docker container
 - [x] write *com* calculator
