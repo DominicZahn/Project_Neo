@@ -1,7 +1,6 @@
 # Easy Implementation of Inverse Kinematics
 - NLOPT
 - as function use forward kinematics
-    - rbdl (C++)
-    - biorbd (python)
-- reward function is distance ZMP to center of support polygon
+    - biorbd (C++ / python)
+- objective function is staic stability
 - as algorithm use BOBYQA -> gradient will be approximated
