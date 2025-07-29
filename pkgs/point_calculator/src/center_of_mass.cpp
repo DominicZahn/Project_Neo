@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
 
     urdf::ModelInterfaceSharedPtr urdfPtr = readURDF();
     std::shared_ptr<RVizPublisher> rivzPub =
-        std::make_shared<RVizPublisher>("com");
+        std::make_shared<RVizPublisher>("CoM");
     while (true) {
         auto com = calcCOM(urdfPtr);
         rclcpp::Duration d = rivzPub->publishPoint(com);

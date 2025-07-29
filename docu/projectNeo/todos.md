@@ -8,12 +8,13 @@
 - [ ] find joint angles for statically stable matrix pose
 - [ ] write package to replicate joint_angles (from echo of topic)
 - [ ] write static stability checker
-    - [ ] calculate support polygon from feet (generating polygon from multiple points)
-    - [ ] check if center of mass is inside polygon of support (point inside polyon problem)
+    - [x] calculate support polygon from feet (generating polygon from multiple points)
+    - [x] check if center of mass is inside polygon of support (point inside polyon problem)
+- [ ] select suitable ground position -> *Karsten*
 - [x] check if robot could perform evasion strategies (from joint perspective); can be done in rviz
 - [ ] move robot step by step into statically stable position
     - [ ] get example from Karsten running
-    - [ ] install conda and nlopt, biorbd in docker
+    - [x] install conda and nlopt, biorbd in docker
     - [ ] use nlopt (optimization) to keep static stability
 ### Optimal Control
 - [ ] write pseudo formulation for optimal control problem

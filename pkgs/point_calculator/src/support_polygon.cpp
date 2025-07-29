@@ -3,6 +3,7 @@
 namespace bg = boost::geometry;
 typedef bg::model::point<double, 2, bg::cs::cartesian> Point;
 typedef bg::model::polygon<Point> Polygon;
+typedef bg::model::segment<Point> Segment;
 
 #include <geometry_msgs/msg/point_stamped.hpp>
 #include <iostream>
@@ -84,8 +85,28 @@ class SupportPolygon : public Polygon {
         return bg::covered_by(com, this->hullPolygon);
     }
 
+    /**
+     * Calculate static stability based on the distance to the nearest segment.
+     * If the CoM is outside of the supportPolygon the distance is negative.
+     */
+    double calculateStaticStability(Point com) {
+        double d = toEdgeDistance(com);
+        return centerOfMassInside(com) ? d : -d;
+    }
+
    private:
     Polygon hullPolygon;
+
+    double toEdgeDistance(Point pt) {
+        std::vector<Point> polyPts = this->hullPolygon.outer();
+        const size_t polyPtsCount = polyPts.size();
+        double dist = MAXFLOAT;
+        for (uint i = 1; i < polyPtsCount; i++) {
+            const Segment seg = Segment(polyPts[i-1], polyPts[i]);
+            dist = std::min(bg::distance(seg, pt), dist);
+        }
+        return dist;
+    }
 };
 
 void writeToBuffer(ros_gz_interfaces::msg::Contacts contacts, PointQueue &pts) {
@@ -125,17 +146,17 @@ int main(int argc, char **argv) {
                 com = Point(msgPt.point.x, msgPt.point.y);
             });
 
-    auto publisher = node->create_publisher<visualization_msgs::msg::Marker>(
-        "supportPolygon", 10);
+    auto visPub =
+        node->create_publisher<visualization_msgs::msg::Marker>("vis_PoS", 10);
     while (rclcpp::ok()) {
         rclcpp::spin_some(node);
         if (pts.read_available() <= 4) continue;
 
         SupportPolygon supPolygon = SupportPolygon(pts);
-        supPolygon.visualize(publisher);
+        supPolygon.visualize(visPub);
 
-        RCLCPP_INFO(node->get_logger(), "CoM inside PoS: %d",
-                    supPolygon.centerOfMassInside(com));
+        RCLCPP_INFO(node->get_logger(), "Static Stability: %f",
+                    supPolygon.calculateStaticStability(com));
     }
 
     rclcpp::shutdown();
