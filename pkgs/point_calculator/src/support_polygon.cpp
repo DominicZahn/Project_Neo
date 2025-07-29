@@ -4,16 +4,21 @@ namespace bg = boost::geometry;
 typedef bg::model::point<double, 2, bg::cs::cartesian> Point;
 typedef bg::model::polygon<Point> Polygon;
 
+#include <geometry_msgs/msg/point_stamped.hpp>
 #include <iostream>
 #include <map>
 #include <rclcpp/rclcpp.hpp>
 #include <ros_gz_interfaces/msg/contacts.hpp>
+#include <visualization_msgs/msg/marker.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
 
 #define NOT_IMPLEMENTED                                                \
     std::cerr << "This function is not implemented yet!" << std::endl; \
     assert(false);
-#define PTS_PER_POLYGON 8 // 4 for each feet
-typedef boost::lockfree::spsc_queue<Point, boost::lockfree::capacity<PTS_PER_POLYGON>> PointQueue;
+#define PTS_PER_POLYGON 8  // 4 for each feet
+typedef boost::lockfree::spsc_queue<Point,
+                                    boost::lockfree::capacity<PTS_PER_POLYGON>>
+    PointQueue;
 
 bool comparePoints(Point pt0, Point pt1) {
     return bg::get<0>(pt0) == bg::get<0>(pt1) &&
@@ -35,7 +40,45 @@ class SupportPolygon : public Polygon {
         bg::convex_hull(polygon, this->hullPolygon);
     }
 
-    void visualize() { NOT_IMPLEMENTED }
+    void visualize(
+        std::shared_ptr<rclcpp::Publisher<visualization_msgs::msg::Marker>>
+            publisher) {
+        visualization_msgs::msg::Marker marker;
+        marker.header.frame_id = "odom";
+        marker.type = 11;  // TRIANGLE_LIST
+        marker.scale.x = 1;
+        marker.scale.y = 1;
+        marker.scale.z = 1;
+
+        Point centroid = Point(0, 0);
+        bg::centroid(this->hullPolygon, centroid);
+        geometry_msgs::msg::Point geoCentroid;
+        geoCentroid.x = bg::get<0>(centroid);
+        geoCentroid.y = bg::get<1>(centroid);
+        geoCentroid.z = 0;
+        geometry_msgs::msg::Point geoLastPt;
+        geoLastPt.z = -1;
+        for (const Point &pt : this->hullPolygon.outer()) {
+            // triangulate polygon
+            geometry_msgs::msg::Point geoPt;
+            geoPt.x = bg::get<0>(pt);
+            geoPt.y = bg::get<1>(pt);
+            geoPt.z = 0.0;
+
+            if (geoLastPt.z != -1) {  // z=-1 signals unbound value
+                marker.points.push_back(geoCentroid);
+                marker.points.push_back(geoPt);
+                marker.points.push_back(geoLastPt);
+            }
+            geoLastPt = geoPt;
+        }
+        marker.color.r = 0;
+        marker.color.g = 0;
+        marker.color.b = 1;
+        marker.color.a = 0.7;
+
+        publisher->publish(marker);
+    }
 
     bool centerOfMassInside(Point com) {
         return bg::covered_by(com, this->hullPolygon);
@@ -45,8 +88,7 @@ class SupportPolygon : public Polygon {
     Polygon hullPolygon;
 };
 
-void writeToBuffer(ros_gz_interfaces::msg::Contacts contacts,
-                   PointQueue &pts) {
+void writeToBuffer(ros_gz_interfaces::msg::Contacts contacts, PointQueue &pts) {
     for (auto c : contacts.contacts) {
         for (auto pos : c.positions) {
             Point pt = Point(pos.x, pos.y);
@@ -62,24 +104,38 @@ int main(int argc, char **argv) {
     std::list<std::string> contactTopicList = {"/h1/left_contact_force",
                                                "/h1/right_contact_force"};
     PointQueue pts;
-    std::vector<std::shared_ptr<rclcpp::Subscription<ros_gz_interfaces::msg::Contacts>>> subscriptions;
+    std::vector<
+        std::shared_ptr<rclcpp::Subscription<ros_gz_interfaces::msg::Contacts>>>
+        contactSubscriptions;
     for (const std::string &topic : contactTopicList) {
         auto callback = [&pts](ros_gz_interfaces::msg::Contacts c) -> void {
             writeToBuffer(c, pts);
         };
 
-        auto subscription = rclcpp::create_subscription<ros_gz_interfaces::msg::Contacts>(
-            node, topic, 10, callback);
-        subscriptions.push_back(subscription);
+        auto subscription =
+            rclcpp::create_subscription<ros_gz_interfaces::msg::Contacts>(
+                node, topic, 10, callback);
+        contactSubscriptions.push_back(subscription);
     }
-    std::cout << "test" << std::endl;
 
+    Point com = Point(0, 0);
+    auto comSubscription =
+        rclcpp::create_subscription<geometry_msgs::msg::PointStamped>(
+            node, "/com", 10, [&com](geometry_msgs::msg::PointStamped msgPt) {
+                com = Point(msgPt.point.x, msgPt.point.y);
+            });
+
+    auto publisher = node->create_publisher<visualization_msgs::msg::Marker>(
+        "supportPolygon", 10);
     while (rclcpp::ok()) {
         rclcpp::spin_some(node);
         if (pts.read_available() <= 4) continue;
 
         SupportPolygon supPolygon = SupportPolygon(pts);
-        supPolygon.visualize();
+        supPolygon.visualize(publisher);
+
+        RCLCPP_INFO(node->get_logger(), "CoM inside PoS: %d",
+                    supPolygon.centerOfMassInside(com));
     }
 
     rclcpp::shutdown();
