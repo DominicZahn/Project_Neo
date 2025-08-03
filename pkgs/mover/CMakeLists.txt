@@ -5,26 +5,29 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# enable Find*.cmake to be found
+LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+
 # find dependencies
+SET(CUSTOM_RBDL_PATH "" CACHE PATH "Path to specific RBDL Installation")
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(RBDL COMPONENTS URDFREADER REQURIED)
+find_package(RBDL COMPONENTS URDFREADER REQUIRED)
 
 add_executable(staticJointMover src/staticJointMover.cpp)
-target_include_directories(staticJointMover PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
-target_compile_features(staticJointMover PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_include_directories(staticJointMover PUBLIC ${RBDL_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR})
+
+target_link_libraries(staticJointMover ${RBDL_LIBRARY})
 ament_target_dependencies(
   staticJointMover
-  "rclcpp"
-  "std_msgs"
-  "geometry_msgs"
-  "sensor_msgs"
-  "RBDL"
+  rclcpp
+  std_msgs
+  geometry_msgs
+  sensor_msgs
+  RBDL
 )
 
 install(TARGETS staticJointMover
