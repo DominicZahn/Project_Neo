@@ -22,7 +22,12 @@ find_package(Eigen3 3.0.0 REQUIRED)
 add_executable(staticJointMover src/staticJointMover.cpp)
 target_include_directories(staticJointMover PUBLIC ${RBDL_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR})
 
-target_link_libraries(staticJointMover ${RBDL_LIBRARY} nlopt m)
+target_link_libraries(staticJointMover
+  ${RBDL_LIBRARY}
+  ${RBDL_URDFREADER_LIBRARY}
+  nlopt
+  m
+)
 ament_target_dependencies(
   staticJointMover
   rclcpp

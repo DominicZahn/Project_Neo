@@ -1,11 +1,21 @@
-#include <math.h>
 #include <rbdl/rbdl.h>
+#include <rbdl/rbdl_utils.h>
 
 #include <cstdio>
 #include <iostream>
-#include <nlopt.hpp>
-
+#include <rclcpp/parameter_client.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <string>
+#ifndef RBDL_BUILD_ADDON_URDFREADER
+#error "Error: RBDL Addon URDFReader not enabled."
+#endif
+#include <rbdl/addons/urdfreader/urdfreader.h>
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
+
+#include <math.h>
+
+#include <nlopt.hpp>
 
 typedef struct {
     double a, b;
@@ -31,12 +41,26 @@ double constraintFunc(uint n, const double *x, double *grad,
 }
 
 int main(int argc, char **argv) {
-    (void)argc;
-    (void)argv;
+    rclcpp::init(argc, argv);
 
     // RBDL check
     rbdl_check_api_version(RBDL_API_VERSION);
-    rbdl_print_version();
+
+    auto readerNode = std::make_shared<rclcpp::Node>("urdf_reader");
+    auto paramClientNode = std::make_shared<rclcpp::SyncParametersClient>(
+        readerNode, "robot_state_publisher");
+    while (!paramClientNode->wait_for_service(std::chrono::seconds(1))) {
+    }
+    const std::string urdfStr =
+        paramClientNode->get_parameter<std::string>("robot_description");
+    Model *model = new Model();
+    Addons::URDFReadFromString(urdfStr.c_str(), model, false);
+    if (!model) {
+        std::cerr << "Model could not be read by rbdl!" << std::endl;
+        return -1;
+    }
+    std::cout << "Degree of freedom overview:" << std::endl;
+    std::cout << Utils::GetModelDOFOverview(*model);
 
     // nlopt example
     double lowerBounds[2] = {-HUGE_VAL, 0};  // lower bounds for a and b
@@ -60,5 +84,7 @@ int main(int argc, char **argv) {
     else
         std::cout << "found minimum at (" << x[0] << " | " << x[1]
                   << ") = " << minf << std::endl;
+
+    rclcpp::shutdown();
     return 0;
 }
