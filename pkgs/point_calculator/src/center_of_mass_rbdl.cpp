@@ -7,6 +7,7 @@
 #include <memory>
 #include <rclcpp/parameter_client.hpp>
 #include <rclcpp/rclcpp.hpp>
+using namespace std::chrono_literals;
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <string>
 #include <visualization_msgs/msg/marker.hpp>
@@ -17,7 +18,7 @@
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-using namespace std::chrono_literals;
+#include <boost/bimap.hpp>
 
 class RVizPublisher : public rclcpp::Node {
    public:
@@ -30,7 +31,7 @@ class RVizPublisher : public rclcpp::Node {
     rclcpp::Duration publishPoint(Math::Vector3d p) {
         rclcpp::Time currTimestamp = this->get_clock()->now();
         geometry_msgs::msg::PointStamped pt;
-        pt.header.frame_id = "odom";
+        pt.header.frame_id = "pelvis";
         pt.header.stamp = currTimestamp;
         pt.point.x = p[0];
         pt.point.y = p[1];
@@ -63,29 +64,54 @@ const std::string readURDF(std::shared_ptr<rclcpp::Node> node = nullptr) {
     return urdfStr;
 }
 
-/*
-rbdl:           *_link
-joint_states:   *_joint
-*/
 void updateQ(std::shared_ptr<Model> model,
              sensor_msgs::msg::JointState jointState, Math::VectorNd& q,
              Math::VectorNd& qdot) {
-    for (auto p : model->mBodyNameMap) {
-        std::string name = p.first;
-        int wordPos = name.find_last_of("link", 0);
-        name.replace(wordPos, std::string("link").length(), "joint");
+    // int jointStateIdx = 0;
+    // for (Joint j : model->mJoints) {
+    //     if (j.mDoFCount < 1) continue;
+    //     int rbdlIdx = j.q_index;
+    //     if (jointStateIdx >= jointState.name.size()) continue;
 
-        int jointStateIdx =
-            std::find(jointState.name.begin(), jointState.name.end(), name) -
-            jointState.name.end();
-        if (jointStateIdx == 0) continue;
-        const int uid = p.second;
-        q[uid] = jointState.position[jointStateIdx];
-        qdot[uid] = jointState.velocity[jointStateIdx];
-    }
+    //    q[rbdlIdx] = jointState.position[jointStateIdx];
+    //    qdot[rbdlIdx] =
+    //        jointState.velocity.size() > 0 ?
+    //        jointState.velocity[jointStateIdx] : 0.0;
+    //    std::cout << std::left << std::setw(2) << rbdlIdx << ": "
+    //              << jointState.name[jointStateIdx] << std::setw(10) <<
+    //              std::right
+    //              << q[rbdlIdx] << std::endl;
+    //
+    //    jointStateIdx++;
+    //}
+
+    // for (auto p : model->mBodyNameMap) {
+    //     std::string name = p.first;
+    //     int wordPos = name.find("link");
+    //     if (wordPos >= 0) {
+    //         name.replace(wordPos, std::string("link").length(), "joint");
+    //     }
+    //     int jointStateIdx =
+    //         jointState.name.end() -
+    //         std::find(jointState.name.begin(), jointState.name.end(), name);
+    //     if (jointStateIdx <= 0) continue;
+    //     uint rbdlIdx = model->mJoints[p.second].q_index;
+    //     q[rbdlIdx] = jointState.position[jointStateIdx];
+    //     if (jointState.velocity.size() != 0)  // rviz case
+    //         qdot[rbdlIdx] = jointState.velocity[jointStateIdx];
+    //     else
+    //         qdot[rbdlIdx] = 0.0;
+    //     std::cout << name << std::right << q[rbdlIdx] << std::endl;
+    // }
+    std::cout << "--------------------\n" << std::endl;
 }
 
 int main(int argc, char** argv) {
+    // rbdl index <-> gazebo joint name
+    boost::bimap<int, std::string> idx2JointName;
+    // idx2JointName.insert({});
+    //
+
     rbdl_check_api_version(RBDL_API_VERSION);
     rclcpp::init(argc, argv);
 
@@ -98,7 +124,6 @@ int main(int argc, char** argv) {
     Math::VectorNd q, qdot;
     q = Math::VectorNd::Zero(model->q_size);
     qdot = Math::VectorNd::Zero(model->qdot_size);
-    std::cout << q << " " << qdot << std::endl;
     auto jointStateSub =
         jointReaderNode->create_subscription<sensor_msgs::msg::JointState>(
             "/joint_states", 10,
@@ -106,8 +131,10 @@ int main(int argc, char** argv) {
                 updateQ(model, j, q, qdot);
             });
     std::shared_ptr<RVizPublisher> rivzPub =
-        std::make_shared<RVizPublisher>("CoM");
+        std::make_shared<RVizPublisher>("CoM_rbdl");
+
     while (rclcpp::ok()) {
+        rclcpp::spin_some(jointReaderNode);
         // calculate CoM
         Math::Scalar totalMass;
         Math::Vector3d com;
