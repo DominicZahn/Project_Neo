@@ -18,8 +18,6 @@ using namespace std::chrono_literals;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-#include <boost/bimap.hpp>
-
 class RVizPublisher : public rclcpp::Node {
    public:
     RVizPublisher(const std::string topicName) : Node("rviz_pub_" + topicName) {
@@ -67,57 +65,30 @@ const std::string readURDF(std::shared_ptr<rclcpp::Node> node = nullptr) {
 void updateQ(std::shared_ptr<Model> model,
              sensor_msgs::msg::JointState jointState, Math::VectorNd& q,
              Math::VectorNd& qdot) {
-    // int jointStateIdx = 0;
-    // for (Joint j : model->mJoints) {
-    //     if (j.mDoFCount < 1) continue;
-    //     int rbdlIdx = j.q_index;
-    //     if (jointStateIdx >= jointState.name.size()) continue;
+    for (uint jointStateIdx = 0; jointStateIdx < jointState.name.size(); jointStateIdx++) {
+        std::string name = jointState.name[jointStateIdx];
+        int wordPos = name.find("joint");
+        if (wordPos >= 0) {
+            name.replace(wordPos, std::string("joint").length(), "link");
+        }
+        // find body with same name, without "joint", to select correct link
+        // link and joint have the same id in rbdl => bodyId = jointId
+        uint bodyId = model->GetBodyId(name.c_str());
+        if (bodyId > model->mBodies.size()) continue;
+        uint q_idx = model->mJoints[bodyId].q_index;
 
-    //    q[rbdlIdx] = jointState.position[jointStateIdx];
-    //    qdot[rbdlIdx] =
-    //        jointState.velocity.size() > 0 ?
-    //        jointState.velocity[jointStateIdx] : 0.0;
-    //    std::cout << std::left << std::setw(2) << rbdlIdx << ": "
-    //              << jointState.name[jointStateIdx] << std::setw(10) <<
-    //              std::right
-    //              << q[rbdlIdx] << std::endl;
-    //
-    //    jointStateIdx++;
-    //}
-
-    // for (auto p : model->mBodyNameMap) {
-    //     std::string name = p.first;
-    //     int wordPos = name.find("link");
-    //     if (wordPos >= 0) {
-    //         name.replace(wordPos, std::string("link").length(), "joint");
-    //     }
-    //     int jointStateIdx =
-    //         jointState.name.end() -
-    //         std::find(jointState.name.begin(), jointState.name.end(), name);
-    //     if (jointStateIdx <= 0) continue;
-    //     uint rbdlIdx = model->mJoints[p.second].q_index;
-    //     q[rbdlIdx] = jointState.position[jointStateIdx];
-    //     if (jointState.velocity.size() != 0)  // rviz case
-    //         qdot[rbdlIdx] = jointState.velocity[jointStateIdx];
-    //     else
-    //         qdot[rbdlIdx] = 0.0;
-    //     std::cout << name << std::right << q[rbdlIdx] << std::endl;
-    // }
-    std::cout << "--------------------\n" << std::endl;
+        q[q_idx] = jointState.position[jointStateIdx];
+        qdot[q_idx] = jointState.velocity.size() > 0 ? jointState.velocity[jointStateIdx] : 0.0;
+    }
 }
 
 int main(int argc, char** argv) {
-    // rbdl index <-> gazebo joint name
-    boost::bimap<int, std::string> idx2JointName;
-    // idx2JointName.insert({});
-    //
-
     rbdl_check_api_version(RBDL_API_VERSION);
     rclcpp::init(argc, argv);
 
     const std::string urdf = readURDF();
     std::shared_ptr<Model> model = std::make_shared<Model>();
-    Addons::URDFReadFromString(urdf.c_str(), model.get(), true);
+    Addons::URDFReadFromString(urdf.c_str(), model.get(), false);
 
     std::shared_ptr<rclcpp::Node> jointReaderNode =
         std::make_shared<rclcpp::Node>("jointReaderNode");
