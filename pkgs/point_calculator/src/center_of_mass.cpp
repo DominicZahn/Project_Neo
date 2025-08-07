@@ -1,18 +1,23 @@
-#include <tf2_ros/buffer.h>
-#include <tf2_ros/transform_listener.h>
-#include <urdfdom/urdf_parser/urdf_parser.h>
+#include <rbdl/rbdl.h>
 
 #include <cstdio>
 #include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/point_stamped.hpp>
 #include <iostream>
 #include <memory>
 #include <rclcpp/parameter_client.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <string>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <visualization_msgs/msg/marker.hpp>
-
+#include <unordered_map>
 using namespace std::chrono_literals;
+#include <sensor_msgs/msg/joint_state.hpp>
+#include <string>
+#include <visualization_msgs/msg/marker.hpp>
+#ifndef RBDL_BUILD_ADDON_URDFREADER
+#error "Error: RBDL Addon URDFReader not enabled."
+#endif
+#include <rbdl/addons/urdfreader/urdfreader.h>
+using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
 
 class RVizPublisher : public rclcpp::Node {
    public:
@@ -22,8 +27,14 @@ class RVizPublisher : public rclcpp::Node {
         this->lastPublishedTimestamp_ = this->get_clock()->now();
     }
 
-    rclcpp::Duration publishPoint(geometry_msgs::msg::PointStamped pt) {
+    rclcpp::Duration publishPoint(Math::Vector3d p) {
         rclcpp::Time currTimestamp = this->get_clock()->now();
+        geometry_msgs::msg::PointStamped pt;
+        pt.header.frame_id = "pelvis";
+        pt.header.stamp = currTimestamp;
+        pt.point.x = p[0];
+        pt.point.y = p[1];
+        pt.point.z = p[2];
         this->publisher_->publish(pt);
 
         auto timeSinceLastPublish =
@@ -37,70 +48,97 @@ class RVizPublisher : public rclcpp::Node {
     rclcpp::Time lastPublishedTimestamp_;
 };
 
-urdf::ModelInterfaceSharedPtr readURDF() {
-    auto readerNode = std::make_shared<rclcpp::Node>("urdf_reader");
+class JointStateReader : public rclcpp::Node {
+   public:
+    VectorNd q, qdot;
+    JointStateReader(const std::shared_ptr<Model> model)
+        : Node("joint_state_reader") {
+        this->subscription =
+            this->create_subscription<sensor_msgs::msg::JointState>(
+                "joint_states", 10,
+                [this](sensor_msgs::msg::JointState j) { this->update(j); });
+        this->q = VectorNd::Zero(model->q_size);
+        this->qdot = VectorNd::Zero(model->qdot_size);
+        this->model = model;
+    }
+    VectorNd *get_q() { return &q; }
+    VectorNd *get_qdot() { return &qdot; }
+
+   private:
+    std::shared_ptr<rclcpp::Subscription<sensor_msgs::msg::JointState>>
+        subscription;
+    std::shared_ptr<Model> model;
+    std::unordered_map<std::string, uint> jointState2JointIdx;
+
+    void update(sensor_msgs::msg::JointState jointState) {
+        for (uint jointStateIdx = 0; jointStateIdx < jointState.name.size();
+             jointStateIdx++) {
+            std::string name = jointState.name[jointStateIdx];
+            auto mapIter = jointState2JointIdx.find(name);
+            uint q_idx = -1;
+            if (mapIter != jointState2JointIdx.end()) {
+                // retrive from map
+                q_idx = mapIter->second;
+            } else {
+                // retrive from mBodies and save to map
+                int wordPos = name.find("joint");
+                if (wordPos >= 0) {
+                    name.replace(wordPos, std::string("joint").length(),
+                                 "link");
+                }
+                // find body with same name, without "joint", to select correct
+                // link link and joint have the same id in rbdl => bodyId =
+                // jointId
+                uint bodyId = model->GetBodyId(name.c_str());
+                if (bodyId > model->mBodies.size()) continue;
+                q_idx = model->mJoints[bodyId].q_index;
+
+                jointState2JointIdx.insert(
+                    {jointState.name[jointStateIdx], q_idx});
+            }
+            q[q_idx] = jointState.position[jointStateIdx];
+            qdot[q_idx] = jointState.velocity.size() > 0
+                              ? jointState.velocity[jointStateIdx]
+                              : 0.0;
+        }
+    }
+};
+
+const std::string readURDF(std::shared_ptr<rclcpp::Node> node = nullptr) {
+    std::shared_ptr<rclcpp::Node> fallbackNode = nullptr;
+    if (!node) {
+        fallbackNode = std::make_shared<rclcpp::Node>("urdf_reader");
+        node = fallbackNode;
+    }
     auto paramClientNode = std::make_shared<rclcpp::SyncParametersClient>(
-        readerNode, "robot_state_publisher");
+        node, "robot_state_publisher");
     while (!paramClientNode->wait_for_service(std::chrono::seconds(1))) {
     }
     std::string urdfStr =
         paramClientNode->get_parameter<std::string>("robot_description");
-    return urdf::parseURDF(urdfStr);
+    return urdfStr;
 }
 
-geometry_msgs::msg::PointStamped calcCOM(urdf::ModelInterfaceSharedPtr urdf) {
-    urdf::LinkConstSharedPtr rootLink = urdf->getRoot();
-    std::vector<urdf::LinkSharedPtr> links = {};
-    urdf->getLinks(links);
-
-    auto tf2node = rclcpp::Node::make_shared("tf2_node");
-    std::shared_ptr<tf2_ros::Buffer> buffer =
-        std::make_shared<tf2_ros::Buffer>(tf2node->get_clock());
-    std::shared_ptr<tf2_ros::TransformListener> listener =
-        std::make_shared<tf2_ros::TransformListener>(*buffer);
-    rclcpp::sleep_for(std::chrono::seconds(1));
-    rclcpp::Time timestamp = rclcpp::Time(0);
-
-    geometry_msgs::msg::PointStamped com;
-    com.header.frame_id = rootLink->name;
-    com.header.stamp = timestamp;
-    double totalMass = 0.0;
-    for (urdf::LinkSharedPtr link : links) {
-        geometry_msgs::msg::TransformStamped transform;
-        try {
-            transform =
-                buffer->lookupTransform(rootLink->name, link->name, timestamp,
-                                        rclcpp::Duration::from_seconds(1.0));
-        } catch (const std::exception& e) {
-            RCLCPP_ERROR(tf2node->get_logger(), e.what());
-            com.point.x = 0;
-            com.point.y = 0;
-            com.point.z = 0;
-            return com;
-        }
-        if (!link->inertial) continue;
-        double mass = link->inertial->mass;
-        com.point.x += transform.transform.translation.x * mass;
-        com.point.y += transform.transform.translation.y * mass;
-        com.point.z += transform.transform.translation.z * mass;
-        totalMass += mass;
-        // RCLCPP_INFO(tf2node->get_logger(), ("Checking " + link->name).c_str());
-    }
-
-    com.point.x /= totalMass;
-    com.point.y /= totalMass;
-    com.point.z /= totalMass;
-    return com;
-}
-
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
+    rbdl_check_api_version(RBDL_API_VERSION);
     rclcpp::init(argc, argv);
 
-    urdf::ModelInterfaceSharedPtr urdfPtr = readURDF();
+    const std::string urdf = readURDF();
+    std::shared_ptr<Model> model = std::make_shared<Model>();
+    Addons::URDFReadFromString(urdf.c_str(), model.get(), false);
+
+    auto jointReaderNode = std::make_shared<JointStateReader>(model);
     std::shared_ptr<RVizPublisher> rivzPub =
         std::make_shared<RVizPublisher>("CoM");
-    while (true) {
-        auto com = calcCOM(urdfPtr);
+
+    while (rclcpp::ok()) {
+        rclcpp::spin_some(jointReaderNode);
+        //  calculate CoM
+        Math::Scalar totalMass;
+        Math::Vector3d com;
+        Utils::CalcCenterOfMass(*model, jointReaderNode->q,
+                                jointReaderNode->qdot, NULL, totalMass, com);
+        // publish CoM
         rclcpp::Duration d = rivzPub->publishPoint(com);
     }
 
