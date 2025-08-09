@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
     Point com = Point(0, 0);
     auto comSubscription =
         rclcpp::create_subscription<geometry_msgs::msg::PointStamped>(
-            node, "/com", 10, [&com](geometry_msgs::msg::PointStamped msgPt) {
+            node, "/CoM", 10, [&com](geometry_msgs::msg::PointStamped msgPt) {
                 com = Point(msgPt.point.x, msgPt.point.y);
             });
 
