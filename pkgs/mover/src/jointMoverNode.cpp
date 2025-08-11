@@ -1,12 +1,5 @@
-#include <rbdl/rbdl.h>
-#include <rbdl/rbdl_utils.h>
-
 #include <chrono>
 #include <cmath>
-#include <cstdio>
-#include <iostream>
-#include <memory>
-#include <rclcpp/parameter_client.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float64.hpp>
 typedef std_msgs::msg::Float64 msg_Float64;

@@ -1,18 +1,8 @@
 #include <rbdl/rbdl.h>
 #include <rbdl/rbdl_utils.h>
-
-#include <chrono>
-#include <cmath>
-#include <cstdio>
-#include <iostream>
 #include <memory>
 #include <rclcpp/parameter_client.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <std_msgs/msg/float64.hpp>
-typedef std_msgs::msg::Float64 msg_Float64;
-#include <sensor_msgs/msg/joint_state.hpp>
-typedef sensor_msgs::msg::JointState msg_JointState;
-#include <string>
 #ifndef RBDL_BUILD_ADDON_URDFREADER
 #error "Error: RBDL Addon URDFReader not enabled."
 #endif

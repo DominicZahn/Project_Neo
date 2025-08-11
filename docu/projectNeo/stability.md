@@ -4,3 +4,5 @@
 - value
     - minimal distance to edge
     - distance to centroid (difficult to determine outside)
+
+**TODO:** move handwritten notes in her
