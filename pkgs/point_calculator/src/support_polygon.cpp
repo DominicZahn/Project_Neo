@@ -12,6 +12,7 @@ typedef bg::model::segment<Point> Segment;
 #include <ros_gz_interfaces/msg/contacts.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
+#include <std_msgs/msg/float32.hpp>
 
 #define NOT_IMPLEMENTED                                                \
     std::cerr << "This function is not implemented yet!" << std::endl; \
@@ -148,6 +149,7 @@ int main(int argc, char **argv) {
 
     auto visPub =
         node->create_publisher<visualization_msgs::msg::Marker>("vis_PoS", 10);
+    auto stabilityPub = node->create_publisher<std_msgs::msg::Float32>("stability", 10);
     while (rclcpp::ok()) {
         rclcpp::spin_some(node);
         if (pts.read_available() <= 4) continue;
@@ -155,8 +157,13 @@ int main(int argc, char **argv) {
         SupportPolygon supPolygon = SupportPolygon(pts);
         supPolygon.visualize(visPub);
 
+        float stabilityMetric = supPolygon.calculateStaticStability(com);
+        std_msgs::msg::Float32 stabilityMsg;
+        stabilityMsg.data = stabilityMetric;
+        stabilityPub->publish<std_msgs::msg::Float32>(stabilityMsg);
+
         RCLCPP_INFO(node->get_logger(), "Static Stability: %f",
-                    supPolygon.calculateStaticStability(com));
+                    stabilityMetric);
     }
 
     rclcpp::shutdown();

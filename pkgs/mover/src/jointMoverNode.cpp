@@ -26,7 +26,7 @@ class JointMoverNode : public rclcpp::Node {
      * @param radPerSec joint speed in Radians per Second
      */
     JointMoverNode(const std::vector<std::string>& topicNameList,
-               const std::string topicNamePrefix = "",
+               const std::string topicNamePrefix = "/",
                const std::string topicNameSuffix = "",
                const uint updateFrequency = 100, float radPerSec = 5)
         : rclcpp::Node("jointMover") {
@@ -111,10 +111,13 @@ class JointMoverNode : public rclcpp::Node {
 
             msg_Float64 msg;
             msg.data = nextTargetPostion;
+            //RCLCPP_INFO(
+            //    this->get_logger(), "%s: (%f -> %f, %f, %f)", topicName.c_str(),
+            //    jointTopic.currentPostion, jointTopic.targetPosition,
+            //    std::copysign(this->radPerUpdate, delta), nextTargetPostion);
             RCLCPP_INFO(
-                this->get_logger(), "%s: (%f -> %f, %f, %f)", topicName.c_str(),
-                jointTopic.currentPostion, jointTopic.targetPosition,
-                std::copysign(this->radPerUpdate, delta), nextTargetPostion);
+                this->get_logger(), "%s: (%f -> %f)", topicName.c_str(),
+                jointTopic.currentPostion, jointTopic.targetPosition);
             jointTopic.publisher->publish(msg);
         }
     }

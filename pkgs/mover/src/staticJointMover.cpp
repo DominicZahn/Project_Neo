@@ -1,8 +1,13 @@
 #include <rbdl/rbdl.h>
 #include <rbdl/rbdl_utils.h>
+
+#include <fstream>
 #include <memory>
 #include <rclcpp/parameter_client.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <sstream>
+#include <std_msgs/msg/float32.hpp>
+#include <unordered_map>
 #ifndef RBDL_BUILD_ADDON_URDFREADER
 #error "Error: RBDL Addon URDFReader not enabled."
 #endif
@@ -16,6 +21,8 @@ using namespace RigidBodyDynamics::Math;
 using namespace std::chrono_literals;
 
 #include "jointMoverNode.cpp"
+#define NAME_MODE 0
+#define POSITION_MODE 1
 
 // typedef struct
 //{
@@ -45,35 +52,69 @@ using namespace std::chrono_literals;
 //     return ((a * x[0] + b) * (a * x[0] + b) * (a * x[0] + b) - x[1]);
 // }
 
-int main(int argc, char** argv) {
+bool jointPositionsFromTxt(const std::string &filePath,
+                           std::vector<std::string> &outNames,
+                           std::vector<double> &outPositions) {
+    std::ifstream file(filePath);
+    if (!file) {
+        return false;
+    }
+
+    std::string line;
+    uint mode = -1;
+    while (std::getline(file, line) &&
+           (outNames.size() == 0 || outPositions.size() < outNames.size())) {
+        if (line.find("name") == 0) {
+            mode = NAME_MODE;
+            continue;
+        } else if (line.find("position") == 0) {
+            mode = POSITION_MODE;
+            outPositions.reserve(outNames.size());
+            continue;
+        }
+
+        line = line.substr(2);
+        switch (mode) {
+            case NAME_MODE:
+                outNames.push_back(line);
+                break;
+            case POSITION_MODE:
+                outPositions.push_back(std::stod(line));
+                break;
+            default:
+                break;
+        }
+    }
+    file.close();
+    return true;
+}
+
+int main(int argc, char **argv) {
     rclcpp::init(argc, argv);
 
-    std::vector<std::string> topicNameList = {"left_ankle_pitch_joint",
-                                              "left_ankle_roll_joint",
-                                              "left_elbow_joint",
-                                              "left_hip_pitch_joint",
-                                              "left_hip_roll_joint",
-                                              "left_hip_yaw_joint",
-                                              "left_knee_joint",
-                                              "left_shoulder_pitch_joint",
-                                              "left_shoulder_roll_joint",
-                                              "left_shoulder_yaw_joint",
-                                              "right_ankle_joint",
-                                              "right_ankle_pitch_joint",
-                                              "right_ankle_roll_joint",
-                                              "right_elbow_joint",
-                                              "right_hip_pitch_joint",
-                                              "right_hip_roll_joint",
-                                              "right_hip_yaw_joint",
-                                              "right_knee_joint",
-                                              "right_shoulder_pitch_joint",
-                                              "right_shoulder_roll_joint",
-                                              "right_shoulder_yaw_joint",
-                                              "torso_joint"};
+    std::vector<std::string> names;
+    std::vector<double> positions;
+    if (!jointPositionsFromTxt(argv[1], names, positions)) return -1;
     auto jointMover =
-        std::make_shared<JointMoverNode>(topicNameList, "/h1/", "/cmd_pos");
-    jointMover->update(topicNameList[2], 0.5);
-    rclcpp::spin(jointMover);
+        std::make_shared<JointMoverNode>(names, "/h1/", "/cmd_pos", 1, 0.01);
+    for (uint i = 0; i < names.size(); i++) {
+        jointMover->update(names[i], positions[i]);
+    }
+
+    auto posNode = std::make_shared<rclcpp::Node>("PoS_node");
+    float stability = 1.0;
+    auto stabilitySub = posNode->create_subscription<std_msgs::msg::Float32>(
+        "/stability", 10,
+        [&stability](std_msgs::msg::Float32 m) { stability = m.data; });
+    while (rclcpp::ok()) {
+        rclcpp::spin_some(jointMover);
+        rclcpp::spin_some(posNode);
+        if (stability < 0.05) {
+            RCLCPP_INFO(posNode->get_logger(), "!!! UNSTABLE CONFIGURATION !!! %f", stability);
+            rclcpp::shutdown();
+            return -1;
+        }
+    }
 
     // RBDL check
     // rbdl_check_api_version(RBDL_API_VERSION);
