@@ -18,6 +18,13 @@ find_package(sensor_msgs REQUIRED)
 find_package(RBDL COMPONENTS URDFREADER REQUIRED)
 find_package(Eigen3 3.0.0 REQUIRED)
 
+# Install project launch files
+install(
+  DIRECTORY
+  launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+)
+
 add_executable(staticJointMover src/staticJointMover.cpp)
 target_include_directories(staticJointMover PUBLIC ${RBDL_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR})
 
