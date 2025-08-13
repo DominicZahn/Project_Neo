@@ -97,25 +97,30 @@ int main(int argc, char **argv) {
     if (!jointPositionsFromTxt(argv[1], names, positions)) return -1;
     auto jointMover =
         std::make_shared<JointMoverNode>(names, "/h1/", "/cmd_pos");
-    
-    for (uint i = 0; i < names.size(); i++) {
-        jointMover->update(names[i], positions[i]);
-    }
+    rclcpp::spin_some(jointMover);
+    std::unordered_map<std::string, double> lastJointStates =
+        jointMover->getCurrentJointStates();
 
     auto posNode = std::make_shared<rclcpp::Node>("PoS_node");
     float stability = 1.0;
     auto stabilitySub = posNode->create_subscription<std_msgs::msg::Float32>(
         "/stability", 10,
         [&stability](std_msgs::msg::Float32 m) { stability = m.data; });
-    while (rclcpp::ok()) {
+    while (stability > 0.01) {
         rclcpp::spin_some(jointMover);
-        jointMover->execute();
+        if (jointMover->getNumberOfMovingJoints() == 0) {
+            for (uint i = 0; i < names.size(); i++) {
+                const double delta = positions[i] - lastJointStates[names[i]];
+                const double newPosition =
+                    lastJointStates[names[i]] + delta * 0.05;
+                jointMover->update(names[i], newPosition);
+                lastJointStates[names[i]] = newPosition;
+            }
+            jointMover->execute();
+            rclcpp::sleep_for(10ms);
+        }
+
         rclcpp::spin_some(posNode);
-       // if (stability < 0.001) {
-       //     RCLCPP_INFO(posNode->get_logger(), "!!! UNSTABLE CONFIGURATION !!! %f", stability);
-       //     rclcpp::shutdown();
-       //     return -1;
-       // }
     }
 
     // RBDL check

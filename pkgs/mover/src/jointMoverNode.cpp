@@ -5,9 +5,8 @@
 typedef std_msgs::msg::Float64 msg_Float64;
 #include <sensor_msgs/msg/joint_state.hpp>
 typedef sensor_msgs::msg::JointState msg_JointState;
+#include <atomic>
 #include <string>
-
-#define STATIC_DELTA 0.05
 
 class JointMoverNode : public rclcpp::Node {
     class JointTopic {
@@ -28,8 +27,10 @@ class JointMoverNode : public rclcpp::Node {
      */
     JointMoverNode(const std::vector<std::string>& topicNameList,
                    const std::string topicNamePrefix = "/",
-                   const std::string topicNameSuffix = "")
+                   const std::string topicNameSuffix = "",
+                   const double epsilon = 0.05)
         : rclcpp::Node("jointMover") {
+        this->epsilon = epsilon;
         this->topicNamePrefix = topicNamePrefix;
         this->topicNameSuffix = topicNameSuffix;
         // create map of joints
@@ -44,16 +45,18 @@ class JointMoverNode : public rclcpp::Node {
         // setup /joint_state subscriber
         auto jointPositionCallback = [this](msg_JointState js) {
             size_t jointStateSize = js.name.size();
+            this->numberOfMovingJoints = 0;
             for (uint i = 0; i < jointStateSize; i++) {
                 const std::string jointName = js.name[i];
                 auto it = this->jointMap.find(jointName);
                 if (it == this->jointMap.end()) continue;
                 const double jointPosition = js.position[i];
                 it->second.currentPostion = jointPosition;
-                
-                const double delta = it->second.targetPosition - it->second.currentPostion;
-                if (delta < STATIC_DELTA) {
-                    this->numberOfMovingJoints--;
+
+                const double delta =
+                    it->second.targetPosition - it->second.currentPostion;
+                if (delta > this->epsilon) {
+                    this->numberOfMovingJoints++;
                 }
             }
         };
@@ -67,6 +70,7 @@ class JointMoverNode : public rclcpp::Node {
     void update(const std::string topicName, double position) {
         this->jointMap[topicName].targetPosition = position;
     }
+
     /**
      * joint values need to be set before calling execute()
      */
@@ -79,23 +83,32 @@ class JointMoverNode : public rclcpp::Node {
                 continue;
             const double delta =
                 std::abs(jointTopic.targetPosition - jointTopic.currentPostion);
-            if (delta < STATIC_DELTA) continue;
+            if (delta < this->epsilon) continue;
             msg_Float64 msg;
             msg.data = jointTopic.targetPosition;
             RCLCPP_INFO(this->get_logger(), "%s: (%f -> %f)", topicName.c_str(),
                         jointTopic.currentPostion, jointTopic.targetPosition);
             jointTopic.publisher->publish(msg);
-            this->numberOfMovingJoints++;
         }
     }
 
     int getNumberOfMovingJoints() { return this->numberOfMovingJoints; }
 
+    std::unordered_map<std::string, double> getCurrentJointStates() {
+        std::unordered_map<std::string, double> map;
+        for (const auto& p : this->jointMap) {
+            if (!std::isnan(p.second.currentPostion))
+                map.insert({p.first, p.second.currentPostion});
+        }
+        return map;
+    }
+
    private:
     rclcpp::TimerBase::SharedPtr timer;
     std::shared_ptr<rclcpp::Subscription<msg_JointState>> jointStateSub;
 
-    int numberOfMovingJoints = 0;
+    std::atomic_int numberOfMovingJoints = 0;
+    double epsilon = 0.0;
     std::string topicNamePrefix = "";
     std::string topicNameSuffix = "";
     std::unordered_map<std::string, JointTopic> jointMap;
