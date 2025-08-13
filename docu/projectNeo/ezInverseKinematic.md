@@ -4,3 +4,6 @@
     - biorbd (C++ / python)
 - objective function is staic stability
 - as algorithm use BOBYQA -> gradient will be approximated
+
+### Formulation
+TBD -> *handwritten notes*

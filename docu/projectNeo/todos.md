@@ -21,14 +21,16 @@
     - [x] install and nlopt in docker and rbdl
     - [x] read position from txt file
     - [x] move robot to that postion and stop if stability is insufficient
+    - [x] formulate optimization problem
+    - [ ] use optimization to find new joint configurations and move slowly towards it
     - [ ] update static stability criteria
-        - [x] fix PoS
-            - [x] make more stable over time -> *more points more stable*
-            - [ ] project to ground CoM and PoS -> *to test*
-    - [ ] use nlopt to calculate best joint to move next
+
     - [ ] fix to small increment problem (**if thats even possible**)
 ### Stability Criteria
 - [ ] visualize different criteria (heatmap of a given PoS)
+- [x] fix PoS
+    - [x] make more stable over time -> *more points more stable*
+    - [ ] project to ground CoM and PoS -> *to test*
 ### Optimal Control
 - [ ] write pseudo formulation for optimal control problem
 - [ ] build inverse kinematics component with *Optimal Control* framework
