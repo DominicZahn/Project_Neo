@@ -26,7 +26,9 @@
             - [ ] project to ground CoM and PoS
         - [ ] implement what was discussed
     - [ ] use nlopt to calculate best joint to move next
-    - [ ] fix to small increment problem
+    - [ ] fix to small increment problem (**if thats even possible**)
+### Stability Criteria
+- [ ] visualize different criteria (heatmap of a given PoS)
 ### Optimal Control
 - [ ] write pseudo formulation for optimal control problem
 - [ ] build inverse kinematics component with *Optimal Control* framework
