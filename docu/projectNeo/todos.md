@@ -15,16 +15,16 @@
     - [x] check if center of mass is inside polygon of support (point inside polyon problem)
 - [x] check if robot could perform evasion strategies (from joint perspective); can be done in rviz
 - [ ] move robot step by step while keeping static stability
+    -> *we need nlopt*
     - [x] get rbdl and nlopt running with minimal functional example
     - [x] get Heinz moving
     - [x] install and nlopt in docker and rbdl
     - [x] read position from txt file
     - [x] move robot to that postion and stop if stability is insufficient
     - [ ] update static stability criteria
-        - [ ] fix PoS
-            - [ ] make more stable over time
-            - [ ] project to ground CoM and PoS
-        - [ ] implement what was discussed
+        - [x] fix PoS
+            - [x] make more stable over time -> *more points more stable*
+            - [ ] project to ground CoM and PoS -> *to test*
     - [ ] use nlopt to calculate best joint to move next
     - [ ] fix to small increment problem (**if thats even possible**)
 ### Stability Criteria

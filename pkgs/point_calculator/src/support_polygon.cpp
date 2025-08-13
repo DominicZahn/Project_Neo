@@ -10,14 +10,14 @@ typedef bg::model::segment<Point> Segment;
 #include <map>
 #include <rclcpp/rclcpp.hpp>
 #include <ros_gz_interfaces/msg/contacts.hpp>
+#include <std_msgs/msg/float32.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
-#include <std_msgs/msg/float32.hpp>
 
 #define NOT_IMPLEMENTED                                                \
     std::cerr << "This function is not implemented yet!" << std::endl; \
     assert(false);
-#define PTS_PER_POLYGON 8  // 4 for each feet
+#define PTS_PER_POLYGON 2048 // just cause that makes it more stable
 typedef boost::lockfree::spsc_queue<Point,
                                     boost::lockfree::capacity<PTS_PER_POLYGON>>
     PointQueue;
@@ -103,7 +103,7 @@ class SupportPolygon : public Polygon {
         const size_t polyPtsCount = polyPts.size();
         double dist = MAXFLOAT;
         for (uint i = 1; i < polyPtsCount; i++) {
-            const Segment seg = Segment(polyPts[i-1], polyPts[i]);
+            const Segment seg = Segment(polyPts[i - 1], polyPts[i]);
             dist = std::min(bg::distance(seg, pt), dist);
         }
         return dist;
@@ -114,7 +114,7 @@ void writeToBuffer(ros_gz_interfaces::msg::Contacts contacts, PointQueue &pts) {
     for (auto c : contacts.contacts) {
         for (auto pos : c.positions) {
             Point pt = Point(pos.x, pos.y);
-            pts.push(pt);
+            while (!pts.push(pt)) { pts.reset(); }
         }
     }
 }
@@ -149,10 +149,11 @@ int main(int argc, char **argv) {
 
     auto visPub =
         node->create_publisher<visualization_msgs::msg::Marker>("vis_PoS", 10);
-    auto stabilityPub = node->create_publisher<std_msgs::msg::Float32>("stability", 10);
+    auto stabilityPub =
+        node->create_publisher<std_msgs::msg::Float32>("stability", 10);
     while (rclcpp::ok()) {
         rclcpp::spin_some(node);
-        if (pts.read_available() <= 4) continue;
+        if (pts.read_available() < PTS_PER_POLYGON) continue;
 
         SupportPolygon supPolygon = SupportPolygon(pts);
         supPolygon.visualize(visPub);
