@@ -7,6 +7,8 @@ typedef std_msgs::msg::Float64 msg_Float64;
 typedef sensor_msgs::msg::JointState msg_JointState;
 #include <string>
 
+#define STATIC_DELTA 0.05
+
 class JointMoverNode : public rclcpp::Node {
     class JointTopic {
        public:
@@ -23,18 +25,13 @@ class JointMoverNode : public rclcpp::Node {
      *                      - name in /joint_state topic
      *                      - topic with $topicNamePrefix+THIS+$topicNameSuffix
      *                        moves joints
-     * @param radPerSec joint speed in Radians per Second
-     *                  (if set to -1 there is no limit)
      */
     JointMoverNode(const std::vector<std::string>& topicNameList,
                    const std::string topicNamePrefix = "/",
-                   const std::string topicNameSuffix = "",
-                   const uint updateFrequency = 100, float radPerSec = 5)
+                   const std::string topicNameSuffix = "")
         : rclcpp::Node("jointMover") {
         this->topicNamePrefix = topicNamePrefix;
         this->topicNameSuffix = topicNameSuffix;
-        this->updateFrequency = updateFrequency;
-        this->setJointSpeed(radPerSec);
         // create map of joints
         this->jointMap.reserve(topicNameList.size());
         for (std::string topicName : topicNameList) {
@@ -53,77 +50,57 @@ class JointMoverNode : public rclcpp::Node {
                 if (it == this->jointMap.end()) continue;
                 const double jointPosition = js.position[i];
                 it->second.currentPostion = jointPosition;
+                
+                const double delta = it->second.targetPosition - it->second.currentPostion;
+                if (delta < STATIC_DELTA) {
+                    this->numberOfMovingJoints--;
+                }
             }
         };
         this->jointStateSub = this->create_subscription<msg_JointState>(
             "/joint_states", 10, jointPositionCallback);
-
-        // setup repeated publishing
-        std::chrono::milliseconds timerRevokeDuration(
-            (uint)(1000 / this->updateFrequency));
-        this->timer = this->create_wall_timer(
-            timerRevokeDuration, [this]() { this->publish_all(); });
-    }
-
-    void update(const std::string topicName, double position) {
-        this->jointMap[topicName].targetPosition = position;
     }
 
     /**
-     * Sets the jointSpeed in Radian per Seconds.
-     * If the value is negative there is no limit and the Joint will be moved as
-     * fast as posible.
+     * new joint states are not published unitl execute is called
      */
-    void setJointSpeed(double radPerSec) {
-        this->radPerUpdate =
-            radPerSec > 0 ? radPerSec / this->updateFrequency : -1;
+    void update(const std::string topicName, double position) {
+        this->jointMap[topicName].targetPosition = position;
     }
-    double getJointSpeed() { return this->radPerUpdate; }
-
-   private:
-    rclcpp::TimerBase::SharedPtr timer;
-    std::shared_ptr<rclcpp::Subscription<msg_JointState>> jointStateSub;
-
-    double radPerUpdate;
-    uint updateFrequency;  // in Hz
-    std::string topicNamePrefix = "";
-    std::string topicNameSuffix = "";
-    std::unordered_map<std::string, JointTopic> jointMap;
-
-    const std::string getFullTopicName(const std::string topicName) {
-        return topicNamePrefix + topicName + topicNameSuffix;
-    }
-
-    void publish_all() {
+    /**
+     * joint values need to be set before calling execute()
+     */
+    void execute() {
         for (const auto& p : jointMap) {
             const std::string topicName = p.first;
             JointTopic jointTopic = p.second;
             if (std::isnan(jointTopic.currentPostion) ||
                 std::isnan(jointTopic.targetPosition))
                 continue;
-            
-            double nextTargetPosition = jointTopic.targetPosition;
-            if (this->radPerUpdate > 0.0) {
-                // position based linear interpolation
-                double delta =
-                    jointTopic.targetPosition - jointTopic.currentPostion;
-
-                if (std::abs(delta) > this->radPerUpdate)
-                    nextTargetPosition =
-                        std::copysign((double)this->radPerUpdate, delta) +
-                        jointTopic.currentPostion;
-            }
-
+            const double delta =
+                std::abs(jointTopic.targetPosition - jointTopic.currentPostion);
+            if (delta < STATIC_DELTA) continue;
             msg_Float64 msg;
-            msg.data = nextTargetPosition;
-            // RCLCPP_INFO(
-            //     this->get_logger(), "%s: (%f -> %f, %f, %f)",
-            //     topicName.c_str(), jointTopic.currentPostion,
-            //     jointTopic.targetPosition, std::copysign(this->radPerUpdate,
-            //     delta), nextTargetPostion);
+            msg.data = jointTopic.targetPosition;
             RCLCPP_INFO(this->get_logger(), "%s: (%f -> %f)", topicName.c_str(),
                         jointTopic.currentPostion, jointTopic.targetPosition);
             jointTopic.publisher->publish(msg);
+            this->numberOfMovingJoints++;
         }
+    }
+
+    int getNumberOfMovingJoints() { return this->numberOfMovingJoints; }
+
+   private:
+    rclcpp::TimerBase::SharedPtr timer;
+    std::shared_ptr<rclcpp::Subscription<msg_JointState>> jointStateSub;
+
+    int numberOfMovingJoints = 0;
+    std::string topicNamePrefix = "";
+    std::string topicNameSuffix = "";
+    std::unordered_map<std::string, JointTopic> jointMap;
+
+    const std::string getFullTopicName(const std::string topicName) {
+        return topicNamePrefix + topicName + topicNameSuffix;
     }
 };
