@@ -24,11 +24,12 @@ class JointMoverNode : public rclcpp::Node {
      *                      - topic with $topicNamePrefix+THIS+$topicNameSuffix
      *                        moves joints
      * @param radPerSec joint speed in Radians per Second
+     *                  (if set to -1 there is no limit)
      */
     JointMoverNode(const std::vector<std::string>& topicNameList,
-               const std::string topicNamePrefix = "/",
-               const std::string topicNameSuffix = "",
-               const uint updateFrequency = 100, float radPerSec = 5)
+                   const std::string topicNamePrefix = "/",
+                   const std::string topicNameSuffix = "",
+                   const uint updateFrequency = 100, float radPerSec = 5)
         : rclcpp::Node("jointMover") {
         this->topicNamePrefix = topicNamePrefix;
         this->topicNameSuffix = topicNameSuffix;
@@ -100,26 +101,29 @@ class JointMoverNode : public rclcpp::Node {
             if (std::isnan(jointTopic.currentPostion) ||
                 std::isnan(jointTopic.targetPosition))
                 continue;
-            // position based linear interpolation
-            double delta =
-                jointTopic.targetPosition - jointTopic.currentPostion;
-            double nextTargetPostion =
-                std::copysign((double)this->radPerUpdate, delta) +
-                jointTopic.currentPostion;
-            if (std::abs(delta) < this->radPerUpdate)
-                nextTargetPostion = jointTopic.targetPosition;
+            
+            double nextTargetPosition = jointTopic.targetPosition;
+            if (this->radPerUpdate > 0.0) {
+                // position based linear interpolation
+                double delta =
+                    jointTopic.targetPosition - jointTopic.currentPostion;
+
+                if (std::abs(delta) > this->radPerUpdate)
+                    nextTargetPosition =
+                        std::copysign((double)this->radPerUpdate, delta) +
+                        jointTopic.currentPostion;
+            }
 
             msg_Float64 msg;
-            msg.data = nextTargetPostion;
-            //RCLCPP_INFO(
-            //    this->get_logger(), "%s: (%f -> %f, %f, %f)", topicName.c_str(),
-            //    jointTopic.currentPostion, jointTopic.targetPosition,
-            //    std::copysign(this->radPerUpdate, delta), nextTargetPostion);
-            RCLCPP_INFO(
-                this->get_logger(), "%s: (%f -> %f)", topicName.c_str(),
-                jointTopic.currentPostion, jointTopic.targetPosition);
+            msg.data = nextTargetPosition;
+            // RCLCPP_INFO(
+            //     this->get_logger(), "%s: (%f -> %f, %f, %f)",
+            //     topicName.c_str(), jointTopic.currentPostion,
+            //     jointTopic.targetPosition, std::copysign(this->radPerUpdate,
+            //     delta), nextTargetPostion);
+            RCLCPP_INFO(this->get_logger(), "%s: (%f -> %f)", topicName.c_str(),
+                        jointTopic.currentPostion, jointTopic.targetPosition);
             jointTopic.publisher->publish(msg);
         }
     }
 };
-

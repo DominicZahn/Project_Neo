@@ -96,7 +96,9 @@ int main(int argc, char **argv) {
     std::vector<double> positions;
     if (!jointPositionsFromTxt(argv[1], names, positions)) return -1;
     auto jointMover =
-        std::make_shared<JointMoverNode>(names, "/h1/", "/cmd_pos", 1, 0.01);
+        std::make_shared<JointMoverNode>(names, "/h1/", "/cmd_pos", 1, -1);
+    
+    // set target incrementally
     for (uint i = 0; i < names.size(); i++) {
         jointMover->update(names[i], positions[i]);
     }
@@ -109,7 +111,7 @@ int main(int argc, char **argv) {
     while (rclcpp::ok()) {
         rclcpp::spin_some(jointMover);
         rclcpp::spin_some(posNode);
-        if (stability < 0.05) {
+        if (stability < 0.001) {
             RCLCPP_INFO(posNode->get_logger(), "!!! UNSTABLE CONFIGURATION !!! %f", stability);
             rclcpp::shutdown();
             return -1;
