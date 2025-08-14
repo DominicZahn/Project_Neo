@@ -1,5 +1,4 @@
 # TODOs
- Preperation work
 - [x] find suitable name (*projectNeo*)
         -> docker is **matrix**
         -> different stages have names of different characters
@@ -14,8 +13,7 @@
     - [x] calculate support polygon from feet (generating polygon from multiple points)
     - [x] check if center of mass is inside polygon of support (point inside polyon problem)
 - [x] check if robot could perform evasion strategies (from joint perspective); can be done in rviz
-- [ ] move robot step by step while keeping static stability
-    -> *we need nlopt*
+~- [ ] move robot step by step while keeping static stability~
     - [x] get rbdl and nlopt running with minimal functional example
     - [x] get Heinz moving
     - [x] install and nlopt in docker and rbdl
@@ -23,7 +21,6 @@
     - [x] move robot to that postion and stop if stability is insufficient
     - [x] formulate optimization problem
     - [ ] use optimization to find new joint configurations and move slowly towards it
-    - [ ] update static stability criteria
 
     - [ ] fix to small increment problem (**if thats even possible**)
 ### Stability Criteria
@@ -35,3 +32,13 @@
 - [ ] write pseudo formulation for optimal control problem
 - [ ] build inverse kinematics component with *Optimal Control* framework
 - [ ] bring robot in evasion pose with inverse kinematics component
+
+# Q&A
+- why incrementation problem????? -> integer arithmetic, multiplie of low double
+## New Project Target
+> Focus on the dodgin part!
+- find opitimal position for given position avoidance
+- definetly check if target position is stable -> for optimal control
+- outlook
+    - dynamic stability better
+    - optimal control better instead of step by step
