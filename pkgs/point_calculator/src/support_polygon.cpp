@@ -86,65 +86,7 @@ class SupportPolygon {
         marker.color.b = 1;
         marker.color.a = 0.7;
 
-        pubPolygon->publish(marker);
-    }
-
-    void visualizeStability(
-        std::shared_ptr<rclcpp::Publisher<msgPointCloud2>> pub,
-        const uint gridLength = 50) {
-        float x0 = 0;
-        float x1 = 0;
-        float y0 = 0;
-        float y1 = 0;
-        for (const Point &p : this->hullPolygon.outer()) {
-            minmaxSetter(bg::get<0>(p), x0, x1);
-            minmaxSetter(bg::get<1>(p), y0, y1);
-        }
-        const float stepSizeX = (x1 - x0) / gridLength;
-        const float stepSizeY = (y1 - y0) / gridLength;
-
-        msgPointCloud2 msgPcl;
-        msgPcl.width = gridLength;
-        msgPcl.height = gridLength;
-        msgPcl.header.frame_id = "pelvis";
-        msgPcl.is_dense = false;
-
-        sensor_msgs::PointCloud2Modifier modifier(msgPcl);
-        modifier.setPointCloud2Fields(
-            4, "x", 1, sensor_msgs::msg::PointField::FLOAT32, "y", 1,
-            sensor_msgs::msg::PointField::FLOAT32, "z", 1,
-            sensor_msgs::msg::PointField::FLOAT32, "intensity", 1,
-            sensor_msgs::msg::PointField::FLOAT32);
-
-        PointCloud2Iter xIt(msgPcl, "x");
-        PointCloud2Iter yIt(msgPcl, "y");
-        PointCloud2Iter zIt(msgPcl, "z");
-        PointCloud2Iter vIt(msgPcl, "intensity");
-
-        std::srand(std::time({}));
-
-        for (float i = 0; i < gridLength; i++) {
-            for (float j = 0; j < gridLength; j++) {
-                const float x = x0 + i * stepSizeX;
-                const float y = y0 + j * stepSizeY;
-
-                Point simulatedCoM = Point(x, y);
-                float v = neo_utils::Stability::minEdgeDist(simulatedCoM,
-                                                            this->hullPolygon);
-                if (v < 0) continue;
-                *vIt = v;
-                *xIt = x;
-                *yIt = y;
-                *zIt = 0.0;
-
-                ++xIt;
-                ++yIt;
-                ++zIt;
-                ++vIt;
-            }
-        }
-
-        pub->publish(msgPcl);
+        publisher->publish(marker);
     }
 
     bool centerOfMassInside(Point com) {
@@ -155,6 +97,11 @@ class SupportPolygon {
 
    private:
     Polygon hullPolygon;
+
+    static void minmaxSetter(const float &v, float &out_min, float &out_max) {
+        out_min = std::min(v, out_min);
+        out_max = std::max(v, out_max);
+    }
 
     static void minmaxSetter(const float &v, float &out_min, float &out_max) {
         out_min = std::min(v, out_min);

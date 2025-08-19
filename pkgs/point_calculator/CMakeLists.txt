@@ -17,6 +17,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(ros_gz_interfaces REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
@@ -35,9 +36,15 @@ foreach(file ${SRC_FILES})
       ${EIGEN3_INCLUDE_DIR}
       ${OpenCV_INCLUDE_DIRS}
   )
+  target_include_directories(${file_name} PUBLIC
+      ${RBDL_INCLUDE_DIR}
+      ${EIGEN3_INCLUDE_DIR}
+      ${OpenCV_INCLUDE_DIRS}
+  )
   target_link_libraries(${file_name}
     ${RBDL_LIBRARY}
     ${RBDL_URDFREADER_LIBRARY}
+    ${OpenCV_LIBS}
     ${OpenCV_LIBS}
   )
   ament_target_dependencies(
