@@ -29,12 +29,16 @@ typedef boost::lockfree::spsc_queue<Point,
                                     boost::lockfree::capacity<PTS_PER_POLYGON>>
     PointQueue;
 
+#include "neo_utils/stability.hpp"
+#define stabilityCriteria(CoM, PoS) \
+    (neo_utils::Stability::minEdgeDist(CoM, PoS))
+
 bool comparePoints(Point pt0, Point pt1) {
     return bg::get<0>(pt0) == bg::get<0>(pt1) &&
            bg::get<1>(pt0) == bg::get<1>(pt1);
 }
 
-class SupportPolygon : public Polygon {
+class SupportPolygon {
    public:
     /*
     This constructor also consumes ALL points in the queue!
@@ -125,7 +129,8 @@ class SupportPolygon : public Polygon {
                 const float y = y0 + j * stepSizeY;
 
                 Point simulatedCoM = Point(x, y);
-                float v = calculateStaticStability(simulatedCoM);
+                float v = neo_utils::Stability::minEdgeDist(simulatedCoM,
+                                                            this->hullPolygon);
                 if (v < 0) continue;
                 *vIt = v;
                 *xIt = x;
@@ -146,28 +151,10 @@ class SupportPolygon : public Polygon {
         return bg::covered_by(com, this->hullPolygon);
     }
 
-    /**
-     * Calculate static stability based on the distance to the nearest segment.
-     * If the CoM is outside of the supportPolygon the distance is negative.
-     */
-    double calculateStaticStability(Point com) {
-        double d = toEdgeDistance(com);
-        return centerOfMassInside(com) ? d : -d;
-    }
+    const Polygon &getHull() { return this->hullPolygon; }
 
    private:
     Polygon hullPolygon;
-
-    double toEdgeDistance(Point pt) {
-        std::vector<Point> polyPts = this->hullPolygon.outer();
-        const size_t polyPtsCount = polyPts.size();
-        double dist = MAXFLOAT;
-        for (uint i = 1; i < polyPtsCount; i++) {
-            const Segment seg = Segment(polyPts[i - 1], polyPts[i]);
-            dist = std::min(bg::distance(seg, pt), dist);
-        }
-        return dist;
-    }
 
     static void minmaxSetter(const float &v, float &out_min, float &out_max) {
         out_min = std::min(v, out_min);
@@ -227,7 +214,8 @@ int main(int argc, char **argv) {
         supPolygon.visualizePolygon(visPubPoly);
         supPolygon.visualizeStability(visPubStability);
 
-        float stabilityMetric = supPolygon.calculateStaticStability(com);
+        float stabilityMetric =
+            neo_utils::Stability::minEdgeDist(com, supPolygon.getHull());
         std_msgs::msg::Float32 stabilityMsg;
         stabilityMsg.data = stabilityMetric;
         stabilityPub->publish<std_msgs::msg::Float32>(stabilityMsg);

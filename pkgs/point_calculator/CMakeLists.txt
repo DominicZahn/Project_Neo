@@ -24,6 +24,7 @@ find_package(urdfdom REQUIRED)
 find_package(RBDL COMPONENTS URDFREADER REQUIRED)
 find_package(Eigen3 3.0.0 REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(neo_utils REQUIRED)
 
 file(GLOB SRC_FILES src/*.cpp)
 foreach(file ${SRC_FILES})
@@ -41,16 +42,17 @@ foreach(file ${SRC_FILES})
   )
   ament_target_dependencies(
     ${file_name}
-    "rclcpp"
-    "std_msgs"
-    "geometry_msgs"
-    "sensor_msgs"
-    "urdfdom"
-    "tf2_ros"
-    "tf2_geometry_msgs"
-    "visualization_msgs"
-    "ros_gz_interfaces"
+    rclcpp
+    std_msgs
+    geometry_msgs
+    sensor_msgs
+    urdfdom
+    tf2_ros
+    tf2_geometry_msgs
+    visualization_msgs
+    ros_gz_interfaces
     RBDL
+    neo_utils
   )
   
   install(TARGETS ${file_name}
