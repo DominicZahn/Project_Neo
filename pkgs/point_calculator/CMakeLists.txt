@@ -16,21 +16,28 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(ros_gz_interfaces REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(urdfdom REQUIRED)
 find_package(RBDL COMPONENTS URDFREADER REQUIRED)
 find_package(Eigen3 3.0.0 REQUIRED)
+find_package(OpenCV REQUIRED)
 
 file(GLOB SRC_FILES src/*.cpp)
 foreach(file ${SRC_FILES})
   get_filename_component(file_name ${file} NAME_WE)
   add_executable(${file_name} src/${file_name}.cpp)
-  target_include_directories(${file_name} PUBLIC ${RBDL_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR})
+  target_include_directories(${file_name} PUBLIC
+      ${RBDL_INCLUDE_DIR}
+      ${EIGEN3_INCLUDE_DIR}
+      ${OpenCV_INCLUDE_DIRS}
+  )
   target_link_libraries(${file_name}
     ${RBDL_LIBRARY}
     ${RBDL_URDFREADER_LIBRARY}
+    ${OpenCV_LIBS}
   )
   ament_target_dependencies(
     ${file_name}
