@@ -26,7 +26,7 @@
     - [ ] fix to small increment problem (**if thats even possible**)
     -> use integer arithmetic
 ### Stability Criteria
-- [ ] visualize different criteria (heatmap of a given PoS)
+- [x] visualize different criteria (heatmap of a given PoS)
 - [x] fix PoS
     - [x] make more stable over time -> *more points more stable*
 ### Dodge Control

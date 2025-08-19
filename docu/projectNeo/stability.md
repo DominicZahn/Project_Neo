@@ -8,6 +8,12 @@
 - does not take long PoS bias into account
 - faster in computation
 ### SUM Distance to Points of PoS
-### MIN Distance to Points of PoS
+- continous
+- stable even if PoS changes
 ### SUM Distance to Segments of PoS
+- not suitable
+- is always the same
+> -> constant value!!!
 ### MIN Distance to Segments of PoS
+- not continous
+- sometimes jumpy if the PoS changes
