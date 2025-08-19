@@ -20,6 +20,7 @@ namespace Stability {
 typedef std::function<const float(const Point &, const Polygon &)> CriteriaFunc;
 
 float minEdgeDist(const Point &CoM, const Polygon &PoS);
+float sumPtDist(const Point &CoM, const Polygon &PoS);
 }  // namespace Stability
 // -------------------------------------------------------------------
 }  // namespace neo_utils

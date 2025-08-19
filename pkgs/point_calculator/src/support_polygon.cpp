@@ -31,7 +31,7 @@ typedef boost::lockfree::spsc_queue<Point,
 
 #include "neo_utils/stability.hpp"
 #define stabilityCriteria(CoM, PoS) \
-    (neo_utils::Stability::minEdgeDist(CoM, PoS))
+    (neo_utils::Stability::sumPtDist(CoM, PoS))
 
 bool comparePoints(Point pt0, Point pt1) {
     return bg::get<0>(pt0) == bg::get<0>(pt1) &&

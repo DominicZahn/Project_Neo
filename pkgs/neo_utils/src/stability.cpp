@@ -19,3 +19,11 @@ float neo_utils::Stability::minEdgeDist(const Point &CoM, const Polygon &PoS) {
     const float d = minPtToEdgeDist(CoM, PoS);
     return CoM_in_PoS(CoM, PoS) ? d : -d;
 }
+
+float neo_utils::Stability::sumPtDist(const Point &CoM, const Polygon &PoS) {
+    float sum = 0.0;
+    for (const auto &c : PoS.outer()) {
+        sum += bg::distance(CoM, c);        
+    }
+    return CoM_in_PoS(CoM, PoS) ? sum : -sum;
+}
