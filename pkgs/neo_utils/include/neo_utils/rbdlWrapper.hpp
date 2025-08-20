@@ -23,6 +23,7 @@ typedef sensor_msgs::msg::JointState MsgJointState;
 #include <cmath>
 #include <memory>
 #include <unordered_map>
+#include <thread>
 
 using namespace std::chrono_literals;
 
@@ -48,6 +49,8 @@ class RBDLWrapper {
     std::shared_ptr<rclcpp::Node> node;
     std::shared_ptr<rclcpp::Subscription<MsgJointState>> jointStateSub;
     std::unordered_map<std::string, uint> jointState2JointIdx;
+    std::thread thread;
+    std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> exec;
     // ---------- exposed members --------------
     std::shared_ptr<Model> model;
     VectorNd q;

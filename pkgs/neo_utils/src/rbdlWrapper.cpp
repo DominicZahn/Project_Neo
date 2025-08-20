@@ -11,6 +11,13 @@ neo_utils::RBDLWrapper::RBDLWrapper(bool floatingBase) {
     };
     jointStateSub = node->create_subscription<MsgJointState>(
         "/joint_states", 10, jointStateUpdate);
+
+    q = VectorNd::Zero(100);
+    qdot = VectorNd::Zero(100);
+
+    exec = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    exec->add_node(node);
+    thread = std::thread([this]() { this->exec->spin(); });
 }
 
 neo_utils::RBDLWrapper::~RBDLWrapper() {}
