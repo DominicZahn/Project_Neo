@@ -17,3 +17,6 @@
 ### MIN Distance to Segments of PoS
 - not continous
 - sometimes jumpy if the PoS changes
+
+### Thoughts
+- is a distance to the ground important?

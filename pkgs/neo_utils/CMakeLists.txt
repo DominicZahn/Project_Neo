@@ -11,6 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(ros_gz_interfaces REQUIRED)
 find_package(Eigen3 3.0.0 REQUIRED)
+find_package(tinyxml2 REQUIRED)
 # enable Find*.cmake to be found
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 SET(CUSTOM_RBDL_PATH "" CACHE PATH "Path to specific RBDL Installation")
@@ -34,6 +35,7 @@ target_link_libraries(neo_utils
   Eigen3::Eigen
   ${RBDL_LIBRARY}
   ${RBDL_URDFREADER_LIBRARY}
+  tinyxml2::tinyxml2
 )
 
 ament_target_dependencies(
@@ -42,14 +44,8 @@ ament_target_dependencies(
   sensor_msgs
   ros_gz_interfaces
   RBDL
+  tinyxml2
 )  
-
-# install project launch files
-install(
-  DIRECTORY
-  launch/
-  DESTINATION share/${PROJECT_NAME}/launch
-)
 
 install(
   DIRECTORY include/

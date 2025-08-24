@@ -128,8 +128,10 @@ int main(int argc, char **argv) {
     Addons::URDFReadFromString(urdf.c_str(), model.get(), false);
 
     auto jointReaderNode = std::make_shared<JointStateReader>(model);
-    std::shared_ptr<RVizPublisher> rivzPub =
+    std::shared_ptr<RVizPublisher> rvizCoMPub =
         std::make_shared<RVizPublisher>("CoM");
+    std::shared_ptr<RVizPublisher> rvizCoPPub =
+        std::make_shared<RVizPublisher>("CoP");
 
     while (rclcpp::ok()) {
         rclcpp::spin_some(jointReaderNode);
@@ -139,7 +141,9 @@ int main(int argc, char **argv) {
         Utils::CalcCenterOfMass(*model, jointReaderNode->q,
                                 jointReaderNode->qdot, NULL, totalMass, com);
         // publish CoM
-        rclcpp::Duration d = rivzPub->publishPoint(com);
+        rclcpp::Duration d = rvizCoMPub->publishPoint(com);
+        Math::Vector3d cop = {com[0], com[1], 0.0};
+        rvizCoPPub->publishPoint(cop);
     }
 
     rclcpp::shutdown();

@@ -15,6 +15,13 @@ float neo_utils::minPtToEdgeDist(const Point &p, const Polygon &poly) {
     return dist;
 }
 
+float neo_utils::Stability::distCentroid(const Point &CoM, const Polygon &PoS) {
+    Point centroid = Point(0,0); 
+    bg::centroid(PoS, centroid);
+    float dist = bg::distance(centroid, CoM);
+    return dist;
+}
+
 float neo_utils::Stability::minEdgeDist(const Point &CoM, const Polygon &PoS) {
     const float d = minPtToEdgeDist(CoM, PoS);
     return CoM_in_PoS(CoM, PoS) ? d : -d;

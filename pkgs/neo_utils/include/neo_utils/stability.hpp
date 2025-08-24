@@ -19,6 +19,7 @@ static bool CoM_in_PoS(const Point &p, const Polygon &poly);
 namespace Stability {
 typedef std::function<const float(const Point &, const Polygon &)> CriteriaFunc;
 
+float distCentroid(const Point &CoM, const Polygon &PoS);
 float minEdgeDist(const Point &CoM, const Polygon &PoS);
 float sumPtDist(const Point &CoM, const Polygon &PoS);
 }  // namespace Stability

@@ -23,6 +23,18 @@ target_include_directories(smith PUBLIC
   ${EIGEN3_INCLUDE_DIR}
 )
 
+# install project launch files and configs
+install(
+  DIRECTORY
+  launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+)
+install(
+  DIRECTORY
+  config/
+  DESTINATION share/${PROJECT_NAME}/config
+)
+
 target_link_libraries(smith
   ${RBDL_LIBRARY}
   ${RBDL_URDFREADER_LIBRARY}

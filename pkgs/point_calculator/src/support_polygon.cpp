@@ -30,8 +30,7 @@ typedef boost::lockfree::spsc_queue<Point,
     PointQueue;
 
 #include "neo_utils/stability.hpp"
-#define stabilityCriteria(CoM, PoS) \
-    (neo_utils::Stability::sumPtDist(CoM, PoS))
+#define stabilityCriteria(CoM, PoS) (neo_utils::Stability::distCentroid(CoM, PoS))
 
 bool comparePoints(Point pt0, Point pt1) {
     return bg::get<0>(pt0) == bg::get<0>(pt1) &&
@@ -86,7 +85,64 @@ class SupportPolygon {
         marker.color.b = 1;
         marker.color.a = 0.7;
 
-        publisher->publish(marker);
+        pubPolygon->publish(marker);
+    }
+
+    void visualizeStability(
+        std::shared_ptr<rclcpp::Publisher<msgPointCloud2>> pub,
+        const uint gridLength = 50) {
+        float x0 = 0;
+        float x1 = 0;
+        float y0 = 0;
+        float y1 = 0;
+        for (const Point &p : this->hullPolygon.outer()) {
+            minmaxSetter(bg::get<0>(p), x0, x1);
+            minmaxSetter(bg::get<1>(p), y0, y1);
+        }
+        const float stepSizeX = (x1 - x0) / gridLength;
+        const float stepSizeY = (y1 - y0) / gridLength;
+
+        msgPointCloud2 msgPcl;
+        msgPcl.width = gridLength;
+        msgPcl.height = gridLength;
+        msgPcl.header.frame_id = "pelvis";
+        msgPcl.is_dense = false;
+
+        sensor_msgs::PointCloud2Modifier modifier(msgPcl);
+        modifier.setPointCloud2Fields(
+            4, "x", 1, sensor_msgs::msg::PointField::FLOAT32, "y", 1,
+            sensor_msgs::msg::PointField::FLOAT32, "z", 1,
+            sensor_msgs::msg::PointField::FLOAT32, "intensity", 1,
+            sensor_msgs::msg::PointField::FLOAT32);
+
+        PointCloud2Iter xIt(msgPcl, "x");
+        PointCloud2Iter yIt(msgPcl, "y");
+        PointCloud2Iter zIt(msgPcl, "z");
+        PointCloud2Iter vIt(msgPcl, "intensity");
+
+        std::srand(std::time({}));
+
+        for (float i = 0; i < gridLength; i++) {
+            for (float j = 0; j < gridLength; j++) {
+                const float x = x0 + i * stepSizeX;
+                const float y = y0 + j * stepSizeY;
+
+                Point simulatedCoM = Point(x, y);
+                float v = stabilityCriteria(simulatedCoM, this->hullPolygon);
+                if (v < 0) continue;
+                *vIt = v;
+                *xIt = x;
+                *yIt = y;
+                *zIt = 0.0;
+
+                ++xIt;
+                ++yIt;
+                ++zIt;
+                ++vIt;
+            }
+        }
+
+        pub->publish(msgPcl);
     }
 
     bool centerOfMassInside(Point com) {
@@ -155,20 +211,50 @@ int main(int argc, char **argv) {
         node->create_publisher<std_msgs::msg::Float32>("stability", 10);
     while (rclcpp::ok()) {
         rclcpp::spin_some(node);
-        if (pts.read_available() < PTS_PER_POLYGON) continue;
 
-        SupportPolygon supPolygon = SupportPolygon(pts);
+        // DEBUG
+        std::vector<Point> PoS_pts = {Point(-0.07, 0.2), Point(-0.07, -0.2),
+                                      Point(0.16, 0.2), Point(0.16, -0.2)};
+        // Point(-0.077059, 0.123697),  Point(-0.076916, 0.199696),
+        // Point(-0.076916, 0.199697),  Point(-0.076916, 0.199697),
+        // Point(-0.076916, 0.199697),  Point(-0.076915, 0.199697),
+        // Point(-0.076915, 0.199698),  Point(-0.076915, 0.199698),
+        // Point(0.092383, 0.199379),   Point(0.132687, 0.198825),
+        // Point(0.132688, 0.198825),   Point(0.132688, 0.198825),
+        // Point(0.167873, 0.140237),   Point(0.167874, 0.140234),
+        // Point(0.167874, 0.140232),   Point(0.168974, -0.186596),
+        // Point(0.133651, -0.203059),  Point(0.133651, -0.203059),
+        // Point(-0.057453, -0.203217), Point(-0.075954, -0.203185),
+        // Point(-0.075955, -0.203185), Point(-0.077059, 0.123697),
+        // Point(-0.076915, 0.19969)};
+        PointQueue ptsDebug;
+        for (Point p : PoS_pts) {
+            ptsDebug.push(p);
+        }
+        SupportPolygon supPolygon = SupportPolygon(ptsDebug);
+        //
+
+        // if (pts.read_available() < PTS_PER_POLYGON) continue;
+        // SupportPolygon supPolygon = SupportPolygon(pts);
         supPolygon.visualizePolygon(visPubPoly);
         supPolygon.visualizeStability(visPubStability);
 
         float stabilityMetric =
-            neo_utils::Stability::minEdgeDist(com, supPolygon.getHull());
+            stabilityCriteria(com, supPolygon.getHull());
         std_msgs::msg::Float32 stabilityMsg;
         stabilityMsg.data = stabilityMetric;
         stabilityPub->publish<std_msgs::msg::Float32>(stabilityMsg);
 
         RCLCPP_INFO(node->get_logger(), "Static Stability: %f",
                     stabilityMetric);
+
+        // std::string txtPolyPts = "";
+        // for (auto p : supPolygon.getHull().outer()) {
+        //     float x = bg::get<0>(p);
+        //     float y = bg::get<1>(p);
+        //     txtPolyPts += std::to_string(x) + "|" + std::to_string(y) + ", ";
+        // }
+        // RCLCPP_INFO(node->get_logger(), "%s", txtPolyPts.c_str());
     }
 
     rclcpp::shutdown();
