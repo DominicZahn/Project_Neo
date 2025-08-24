@@ -10,30 +10,30 @@ def generate_launch_description():
 
     arg = DeclareLaunchArgument(
         'sim',
-        default_value='gz',
-        choices=['gz', 'rviz']
+        default_value='rviz_gui',
+        choices=['rviz_gui', 'rviz_manual', 'gz']
     )
 
     def chooseLaunchFile(context, *args, **kwargs):
-        bringupDir = get_package_share_directory('ros_gz_h1_bringup')
-        gazeboLaunchFile = os.path.join(
-            bringupDir,
-            'launch',
-            'h1_gazebo_sim.launch.py')
-        rvizLaunchFile = os.path.join(
-            bringupDir,
-            'launch',
-            'h1_rviz.launch.py')
-        launchFile = ""
-        sim_arg_val = LaunchConfiguration("sim").perform(context)
-        if sim_arg_val == "gz":
-            launchFile = gazeboLaunchFile
+        sim_arg_val = LaunchConfiguration('sim').perform(context)
+        if sim_arg_val == 'gz':
+            launchFile = os.path.join(
+                get_package_share_directory('ros_gz_h1_bringup'),
+                'launch',
+                'h1_gazebo_sim.launch.py')
+        elif sim_arg_val == 'rviz_manual':
+            launchFile = os.path.join(
+                get_package_share_directory('dodge_it'),
+                'launch',
+                'h1_rviz_manual.launch.py')
         else:
-            launchFile = rvizLaunchFile
-
+            launchFile = os.path.join(
+                get_package_share_directory('dodge_it'),
+                'launch',
+                'h1_rviz_gui.launch.py')
         return IncludeLaunchDescription(
             PythonLaunchDescriptionSource(launchFile)
-        ),        
+        ),
 
     return LaunchDescription([
         arg,
