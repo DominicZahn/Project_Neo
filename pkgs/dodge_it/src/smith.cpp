@@ -15,7 +15,8 @@ using namespace RigidBodyDynamics::Math;
 
 #include "neo_utils/rbdlWrapper.hpp"
 #include "neo_utils/stability.hpp"
-#define stabilityCriteria(CoM, PoS) (neo_utils::Stability::distCentroid(CoM, PoS))
+#define stabilityCriteria(CoM, PoS) \
+    (neo_utils::Stability::distCentroid(CoM, PoS))
 typedef neo_utils::RBDLWrapper::JointLimit JointLimit;
 
 struct ObjFuncData {
@@ -61,27 +62,32 @@ std::string nloptResult2Str(nlopt::result result) {
 
 double objectiveFunc(const std::vector<double> &q, std::vector<double> &grad,
                      void *data) {
-    (void)grad;  // grad is not needed because of COBYLA
+    (void)grad;  // grad is not needed because of COBYLA / BOBYGA
     auto objData = reinterpret_cast<ObjFuncData *>(data);
+    std::vector<double> unmaskedq = objData->rbdl->unmaskVec(q, 0.0);
+    const size_t q_size = unmaskedq.size();
 
     // ---------- DEBUG for visualization ----------
-    objData->rbdl->publishJoints(q);
+    objData->rbdl->publishJoints(unmaskedq);
     //  ---------------------------------------------
 
     auto model = *objData->rbdl->get_model();
     Polygon PoS = objData->PoS;
-    VectorNd qVec = VectorNd::Zero(q.size());
-    for (int i = 0; i < q.size(); i++) {
-        qVec[i] = q[i];
+    VectorNd qVec = VectorNd::Zero(q_size);
+    for (size_t i = 0; i < q_size; i++) {
+        qVec[i] = unmaskedq[i];
     }
-    VectorNd qDotVec = VectorNd::Zero(q.size());
-    qDotVec = objData->rbdl->get_qdot();
+    VectorNd qDotVec = VectorNd::Zero(q_size);
+    qDotVec = objData->rbdl->unmaskVec(objData->rbdl->get_qdot(), 0.0);
     Vector3d CoM = Vector3d::Zero();
     Scalar totalMass = 0.0;
-    RigidBodyDynamics::Utils::CalcCenterOfMass(
-        model, qVec, qDotVec, NULL, totalMass, CoM);
+    RigidBodyDynamics::Utils::CalcCenterOfMass(model, qVec, qDotVec, NULL,
+                                               totalMass, CoM);
     Point CoMpt = Point(CoM[0], CoM[1]);
     double stability = stabilityCriteria(CoMpt, PoS);
+
+    std::cout << stability << std::endl;
+
     return stability;
 }
 
@@ -91,18 +97,25 @@ int main(int argc, char **argv) {
     neo_utils::RBDLWrapper *rbdlWrapper = new neo_utils::RBDLWrapper();
     // put robot into default position
     std::vector<double> q_0(rbdlWrapper->get_q().size(), 0.0);
-        rbdlWrapper->publishJoints(q_0);
+    rbdlWrapper->publishJoints(q_0);
     //
 
-    const int q_size = rbdlWrapper->get_q().size();
+    rbdlWrapper->updateMask({// --------- wrist ---------
+                             "right_wrist_roll_joint",
+                             "right_wrist_pitch_joint", "right_wrist_yaw_joint",
+                             "left_wrist_roll_joint", "left_wrist_pitch_joint",
+                             "left_wrist_yaw_joint"});
+
+    const int q_size = rbdlWrapper->get_jointNames().size();
     std::vector<double> q_lb(q_size);
     std::vector<double> q_ub(q_size);
     std::vector<double> q_opt(q_size);
-    std::vector<JointLimit> jointLimits = rbdlWrapper->get_qLimits();
     for (int i = 0; i < q_size; i++) {
-        q_lb[i] = jointLimits[i].q_min;
-        q_ub[i] = jointLimits[i].q_max;
-        q_opt[i] = q_0[i];
+        JointLimit jl = rbdlWrapper->get_jointLimit(i);
+        q_lb[i] = jl.q_min;
+        q_ub[i] = jl.q_max;
+        // q_opt[i] = q_0[i];
+        q_opt[i] = q_lb[i];
     }
 
     ObjFuncData objFuncData;
@@ -124,10 +137,10 @@ int main(int argc, char **argv) {
     globalOpt.set_lower_bounds(q_lb);
     globalOpt.set_upper_bounds(q_ub);
     globalOpt.set_min_objective(objectiveFunc, &objFuncData);
-    
-    globalOpt.set_ftol_abs(1e-8);
-    globalOpt.set_xtol_abs(1e-8);
-    //globalOpt.set_maxtime(30);
+
+    globalOpt.set_ftol_abs(1e-10);
+    globalOpt.set_xtol_abs(1e-10);
+    // globalOpt.set_maxtime(30);
     globalOpt.set_initial_step(1e-5);
 
     auto jointNames = rbdlWrapper->get_jointNames();
@@ -148,7 +161,8 @@ int main(int argc, char **argv) {
         std::cout << "nlopt failed: " << e.what() << std::endl;
     }
 
-    auto errorJoints = rbdlWrapper->publishJoints(q_opt);
+    auto unmaskedq_opt = rbdlWrapper->unmaskVec(q_opt, 0.0);
+    auto errorJoints = rbdlWrapper->publishJoints(unmaskedq_opt);
     if (!errorJoints.empty()) {
         std::cout << "Error Joints: " << std::endl;
         for (auto name : errorJoints) {

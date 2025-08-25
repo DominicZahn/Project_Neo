@@ -32,6 +32,23 @@ typedef sensor_msgs::msg::JointState MsgJointState;
 using namespace std::chrono_literals;
 
 namespace neo_utils {
+// namespace conversion {
+// using namespace RigidBodyDynamics::Math;
+//
+// std::vector<double> RbdlNd2std(const VectorNd &rbdl) {
+//     return std::vector<double>(rbdl.data(), rbdl.data() + rbdl.size());
+// }
+//
+//// if @param copy is false the VectorNd will use the std::vectors memory and
+//// only point to it
+// VectorNd std2RbdlNd(std::vector<double> vec) {
+//     VectorNd rbdl = VectorNd(vec.size());
+//     std::copy(vec.begin(), vec.end(), rbdl.data());
+//     return rbdl;
+// }
+//
+// }  // namespace conversion
+
 /**
  * @class RBDLWrapper
  * A wrapper for rbdl that also stays consistent with the current ros2 state.
@@ -47,26 +64,95 @@ class RBDLWrapper {
         double velocity;
         double effort;
     };
+    class Mask {
+       public:
+        bool add(const int qIdx, const int maskedIdx) {
+            if (qIdx2maskedMap.find(qIdx) != qIdx2maskedMap.end()) return false;
+            qIdx2maskedMap[qIdx] = maskedIdx;
+            masked2qIdxMap[maskedIdx] = qIdx;
+            _size += 1;
+            return true;
+        }
+        size_t size() const { return _size; }
+        int qIdx2masked(const int qIdx) const {
+            auto iter = qIdx2maskedMap.find(qIdx);
+            return iter != qIdx2maskedMap.end() ? iter->second : -1;
+        }
+        int masked2qIdx(const int maskedqIdx) const {
+            auto iter = masked2qIdxMap.find(maskedqIdx);
+            return iter != masked2qIdxMap.end() ? iter->second : -1;
+        }
+
+       private:
+        size_t _size = 0;
+        std::unordered_map<int, int> qIdx2maskedMap;
+        std::unordered_map<int, int> masked2qIdxMap;
+    };
     RBDLWrapper(bool floatingBase = false);
-    ~RBDLWrapper();
-    int jointName2qIdx(std::string &jointName) const;
-    std::vector<std::string> publishJoints(std::vector<double>);
+    int jointName2qIdx(const std::string &jointName) const;
+    void updateMask(const std::vector<std::string> &maskedOutJoints);
+
+    template <typename T>
+    std::vector<T> maskVec(const std::vector<T> &vec) const {
+        std::vector<T> maskedVec(mask.size());
+        for (int originalIdx = 0; originalIdx < (int)vec.size(); originalIdx++) {
+            int maskedIdx = mask.qIdx2masked(originalIdx);
+            if (maskedIdx < 0 || maskedIdx > (int)vec.size()) continue;
+            maskedVec[maskedIdx] = vec[originalIdx];
+        }
+        return maskedVec;
+    }
+
+    VectorNd maskVec(const VectorNd &vec) const {
+        VectorNd maskedVec(vec.size());
+        for (int originalIdx = 0; originalIdx < (int)vec.size(); originalIdx++) {
+            int maskedIdx = mask.qIdx2masked(originalIdx);
+            if (maskedIdx < 0 || maskedIdx > (int)vec.size()) continue;
+            maskedVec[maskedIdx] = vec[originalIdx];
+        }
+        return maskedVec;
+    }
+
+    template <typename T>
+    std::vector<T> unmaskVec(const std::vector<T> &maskedVec,
+                             T fillValue) const {
+        std::vector<T> unmaskedVec(jointNames.size(), fillValue);
+        for (int maskedIdx = 0; maskedIdx < (int)maskedVec.size(); maskedIdx++) {
+            int unmaskedIdx = mask.masked2qIdx(maskedIdx);
+            if (unmaskedIdx < 0 || unmaskedIdx > (int)maskedVec.size()) continue;
+            unmaskedVec[unmaskedIdx] = maskedVec[maskedIdx];
+        }
+        return unmaskedVec;
+    }
+
+    VectorNd unmaskVec(const VectorNd &maskedVec, double fillValue) const {
+        VectorNd unmaskedVec = VectorNd::Constant(jointNames.size(), fillValue);
+        for (int maskedIdx = 0; maskedIdx < (int)maskedVec.size(); maskedIdx++) {
+            int unmaskedIdx = mask.masked2qIdx(maskedIdx);
+            if (unmaskedIdx < 0 || unmaskedIdx > (int)maskedVec.size()) continue;
+            unmaskedVec[unmaskedIdx] = maskedVec[maskedIdx];
+        }
+        return unmaskedVec;
+    }
+
+    std::vector<std::string> publishJoints(std::vector<double> q);
     // ------ getter for exposed members -------
     std::shared_ptr<const Model> get_model();
-    const VectorNd &get_q() const;
-    const VectorNd &get_qdot() const;
-    const std::vector<JointLimit> &get_qLimits() const;
-    const std::vector<std::string> &get_jointNames() const;
+    VectorNd get_q() const;
+    VectorNd get_qdot() const;
+    JointLimit get_jointLimit(const int maskedIdx) const;
+    std::vector<std::string> get_jointNames() const;
     // -------- forwarded rbdl funcs -----------
 
    private:
     // ---------- internal members -------------
     std::shared_ptr<rclcpp::Node> node;
     std::shared_ptr<rclcpp::Subscription<MsgJointState>> jointStateSub;
-    std::unordered_map<std::string, uint> jointName2qIdxMap;
+    std::unordered_map<std::string, int> jointName2qIdxMap;
     std::thread thread;
     std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> exec;
     std::shared_ptr<rclcpp::Publisher<MsgJointState>> jointStatesPub;
+    Mask mask;  // reroutes qIdx to mask out joints
     // ---------- exposed members --------------
     std::shared_ptr<Model> model;
     VectorNd q;
@@ -81,6 +167,6 @@ class RBDLWrapper {
      * - jointLimits and
      * - jointName2qIdx-map
      */
-    int setupJoints(const char* xml);
+    int setupJoints(const char *xml);
 };
 }  // namespace neo_utils

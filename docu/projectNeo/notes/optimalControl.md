@@ -1,7 +1,9 @@
 # Optimal Control
 > [!info] Change to only estimate optimal evation position
 ## That shit need to be done
-- [ ] create masking for joints (`q`)
+- [x] create masking for joints (`q`)
+    - mask rbdlWrapper
+    - mask wrapper already in constructor, so model is already masked
 - [ ] fix feet to ground
     - new constraint
     - feet body needs to be at this world position

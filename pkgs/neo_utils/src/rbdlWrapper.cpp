@@ -12,6 +12,7 @@ neo_utils::RBDLWrapper::RBDLWrapper(bool floatingBase) {
     // setup system members
     q = VectorNd::Zero(model->q_size);
     qdot = VectorNd::Zero(model->qdot_size);
+
     //      read joint limits
     if (setupJoints(urdfStr.c_str()) < 0) {
         RCLCPP_ERROR(node->get_logger(),
@@ -29,32 +30,56 @@ neo_utils::RBDLWrapper::RBDLWrapper(bool floatingBase) {
         "/joint_states", 10, jointStateUpdate);
     exec = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
     exec->add_node(node);
+
+    updateMask({});  // create mask that does not remove any joints
     thread = std::thread([this]() { this->exec->spin(); });
 }
-
-neo_utils::RBDLWrapper::~RBDLWrapper() {}
 
 std::shared_ptr<const Model> neo_utils::RBDLWrapper::get_model() {
     return model;
 }
 
-const VectorNd &neo_utils::RBDLWrapper::get_q() const { return q; }
+VectorNd neo_utils::RBDLWrapper::get_q() const { return maskVec(q); }
 
-const VectorNd &neo_utils::RBDLWrapper::get_qdot() const { return qdot; }
+VectorNd neo_utils::RBDLWrapper::get_qdot() const { return maskVec(qdot); }
 
-const std::vector<neo_utils::RBDLWrapper::JointLimit> &
-neo_utils::RBDLWrapper::get_qLimits() const {
-    return jointLimits;
+neo_utils::RBDLWrapper::JointLimit neo_utils::RBDLWrapper::get_jointLimit(
+    const int maskedIdx) const {
+    const int qIdx = mask.masked2qIdx(maskedIdx);
+    return jointLimits[qIdx];
 }
 
-const std::vector<std::string> &neo_utils::RBDLWrapper::get_jointNames() const {
-    return jointNames;
+std::vector<std::string> neo_utils::RBDLWrapper::get_jointNames() const {
+    return maskVec(jointNames);
 }
 
-int neo_utils::RBDLWrapper::jointName2qIdx(std::string &jointName) const {
+int neo_utils::RBDLWrapper::jointName2qIdx(const std::string &jointName) const {
     auto iter = jointName2qIdxMap.find(jointName);
     if (iter == jointName2qIdxMap.end()) return -1;
-    return iter->second;
+    const int originalIdx = iter->second;
+    return mask.qIdx2masked(originalIdx);
+}
+
+/**
+ * This function creates new mask that rearranges vectors to only include the
+ * not listed joint names.
+ */
+void neo_utils::RBDLWrapper::updateMask(
+    const std::vector<std::string> &maskedOutJoints) {
+    int lastIdx = 0;
+    mask = Mask();  // clean mask
+    for (const std::string &name : jointNames) {
+        bool isMasked =
+            std::find(maskedOutJoints.begin(), maskedOutJoints.end(), name) !=
+            maskedOutJoints.end();
+        if (isMasked) {
+            continue;
+        }
+
+        auto iter = jointName2qIdxMap.find(name);
+        const int qIdx = iter != jointName2qIdxMap.end() ? iter->second : -1;
+        mask.add(qIdx, lastIdx++);
+    }
 }
 
 /**
@@ -69,10 +94,12 @@ std::vector<std::string> neo_utils::RBDLWrapper::publishJoints(
     MsgJointState msg;
     msg.position = {};
     msg.name = {};
-    for (size_t qIdx = 0; qIdx < q.size(); qIdx++) {
-        const std::string name = jointNames[qIdx];
-        const JointLimit limit = jointLimits[qIdx];
-        if (limit.q_min > q[qIdx] || q[qIdx] > limit.q_max) {
+    for (int qIdx = 0; qIdx < (int)q.size(); qIdx++) {
+        const int maskedIdx = mask.qIdx2masked(qIdx);
+        if (maskedIdx < 0) continue;
+        const std::string name = jointNames[maskedIdx];
+        const JointLimit limit = jointLimits[maskedIdx];
+        if (limit.q_min > q[maskedIdx] || q[maskedIdx] > limit.q_max) {
             errorJointNames.push_back(name);
             continue;
         }
@@ -97,6 +124,7 @@ const std::string neo_utils::RBDLWrapper::retrieveUrdf() {
 
     return paramClientNode->get_parameter<std::string>("robot_description");
 }
+
 /**
  * Reads the current values of each joints from the joint_states topic.
  */

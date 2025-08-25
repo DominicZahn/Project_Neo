@@ -9,7 +9,7 @@
 - [x] optimize *com* calculator to get faster responses
     - using rbdl to read urdf file
 - [ ] (optional) fix permissions
-- [ ] add parameter to launch file to activate gazebo (else rviz)
+- [x] add parameter to launch file to activate gazebo (else rviz)
 - [x] write static stability checker
     - [x] calculate support polygon from feet (generating polygon from multiple points)
     - [x] check if center of mass is inside polygon of support (point inside polyon problem)
@@ -31,8 +31,8 @@
     - [x] make more stable over time -> *more points more stable*
 ### Dodge Control
 > Using rbdl and nlopt to let h1 dodge away from a given postion at a given point in time.
-- [ ] write pseudo formulation for optimal control problem
-- [ ] spawn robot in pose
+- [x] write pseudo formulation for optimal control problem
+- [x] spawn robot in pose
 - [ ] visualize results of optimization
 
 # Q&A
