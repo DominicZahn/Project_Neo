@@ -19,6 +19,8 @@ using namespace std::chrono_literals;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
+#define GND_APPROX_FRAME "left_ankle_roll_link"
+
 class RVizPublisher : public rclcpp::Node {
    public:
     RVizPublisher(const std::string topicName) : Node("rviz_pub_" + topicName) {
@@ -27,10 +29,10 @@ class RVizPublisher : public rclcpp::Node {
         this->lastPublishedTimestamp_ = this->get_clock()->now();
     }
 
-    rclcpp::Duration publishPoint(Math::Vector3d p) {
+    rclcpp::Duration publishPoint(Math::Vector3d p, const std::string &ptFrameId) {
         rclcpp::Time currTimestamp = this->get_clock()->now();
         geometry_msgs::msg::PointStamped pt;
-        pt.header.frame_id = "pelvis";
+        pt.header.frame_id = ptFrameId;
         pt.header.stamp = currTimestamp;
         pt.point.x = p[0];
         pt.point.y = p[1];
@@ -137,13 +139,18 @@ int main(int argc, char **argv) {
         rclcpp::spin_some(jointReaderNode);
         //  calculate CoM
         Math::Scalar totalMass;
-        Math::Vector3d com;
+        Math::Vector3d CoM_world;
         Utils::CalcCenterOfMass(*model, jointReaderNode->q,
-                                jointReaderNode->qdot, NULL, totalMass, com);
+                                jointReaderNode->qdot, NULL, totalMass, CoM_world);
+        // convert to ground
+        uint gndBodyId = model->GetBodyId(GND_APPROX_FRAME);
+        VectorNd Q = VectorNd::Zero(model->dof_count);
+        Vector3d CoM_gnd = CalcBaseToBodyCoordinates(*model, Q, gndBodyId, CoM_world, false);
+
         // publish CoM
-        rclcpp::Duration d = rvizCoMPub->publishPoint(com);
-        Math::Vector3d cop = {com[0], com[1], 0.0};
-        rvizCoPPub->publishPoint(cop);
+        rclcpp::Duration d = rvizCoMPub->publishPoint(CoM_gnd, GND_APPROX_FRAME);
+        Math::Vector3d cop = {CoM_gnd[0], CoM_gnd[1], 0.0};
+        rvizCoPPub->publishPoint(cop, GND_APPROX_FRAME);
     }
 
     rclcpp::shutdown();

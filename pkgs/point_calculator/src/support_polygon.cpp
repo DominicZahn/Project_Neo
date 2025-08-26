@@ -21,6 +21,10 @@ typedef sensor_msgs::PointCloud2Iterator<float> PointCloud2Iter;
 typedef visualization_msgs::msg::Marker visMarker;
 #include <visualization_msgs/msg/marker_array.hpp>
 
+#include "neo_utils/rbdlWrapper.hpp"
+
+#define GND_APPROX_FRAME "left_ankle_roll_link"
+
 #define NOT_IMPLEMENTED                                                \
     std::cerr << "This function is not implemented yet!" << std::endl; \
     assert(false);
@@ -30,7 +34,8 @@ typedef boost::lockfree::spsc_queue<Point,
     PointQueue;
 
 #include "neo_utils/stability.hpp"
-#define stabilityCriteria(CoM, PoS) (neo_utils::Stability::distCentroid(CoM, PoS))
+#define stabilityCriteria(CoM, PoS) \
+    (neo_utils::Stability::distCentroid(CoM, PoS))
 
 bool comparePoints(Point pt0, Point pt1) {
     return bg::get<0>(pt0) == bg::get<0>(pt1) &&
@@ -52,7 +57,7 @@ class SupportPolygon {
     void visualizePolygon(
         std::shared_ptr<rclcpp::Publisher<visMarker>> pubPolygon) {
         visMarker marker;
-        marker.header.frame_id = "pelvis";
+        marker.header.frame_id = GND_APPROX_FRAME;
         marker.type = 11;  // TRIANGLE_LIST
         marker.scale.x = 1;
         marker.scale.y = 1;
@@ -105,7 +110,7 @@ class SupportPolygon {
         msgPointCloud2 msgPcl;
         msgPcl.width = gridLength;
         msgPcl.height = gridLength;
-        msgPcl.header.frame_id = "pelvis";
+        msgPcl.header.frame_id = GND_APPROX_FRAME;
         msgPcl.is_dense = false;
 
         sensor_msgs::PointCloud2Modifier modifier(msgPcl);
@@ -209,27 +214,18 @@ int main(int argc, char **argv) {
         node->create_publisher<msgPointCloud2>("vis_Stability", 10);
     auto stabilityPub =
         node->create_publisher<std_msgs::msg::Float32>("stability", 10);
+
+    auto rbdlWrapper = new neo_utils::RBDLWrapper();
     while (rclcpp::ok()) {
         rclcpp::spin_some(node);
 
         // DEBUG
-        std::vector<Point> PoS_pts = {Point(-0.07, 0.2), Point(-0.07, -0.2),
-                                      Point(0.16, 0.2), Point(0.16, -0.2)};
-        // Point(-0.077059, 0.123697),  Point(-0.076916, 0.199696),
-        // Point(-0.076916, 0.199697),  Point(-0.076916, 0.199697),
-        // Point(-0.076916, 0.199697),  Point(-0.076915, 0.199697),
-        // Point(-0.076915, 0.199698),  Point(-0.076915, 0.199698),
-        // Point(0.092383, 0.199379),   Point(0.132687, 0.198825),
-        // Point(0.132688, 0.198825),   Point(0.132688, 0.198825),
-        // Point(0.167873, 0.140237),   Point(0.167874, 0.140234),
-        // Point(0.167874, 0.140232),   Point(0.168974, -0.186596),
-        // Point(0.133651, -0.203059),  Point(0.133651, -0.203059),
-        // Point(-0.057453, -0.203217), Point(-0.075954, -0.203185),
-        // Point(-0.075955, -0.203185), Point(-0.077059, 0.123697),
-        // Point(-0.076915, 0.19969)};
+        std::vector<Point> PoS_pts = {Point(0.15, -0.35), Point(-0.05, 0.05),
+                                      Point(-0.05, -0.35), Point(0.15, 0.05)};
         PointQueue ptsDebug;
         for (Point p : PoS_pts) {
-            ptsDebug.push(p);
+            auto pGnd = Vector3d(bg::get<0>(p), bg::get<1>(p), 0.0);
+            ptsDebug.push(Point(pGnd[0], pGnd[1]));
         }
         SupportPolygon supPolygon = SupportPolygon(ptsDebug);
         //
@@ -239,8 +235,7 @@ int main(int argc, char **argv) {
         supPolygon.visualizePolygon(visPubPoly);
         supPolygon.visualizeStability(visPubStability);
 
-        float stabilityMetric =
-            stabilityCriteria(com, supPolygon.getHull());
+        float stabilityMetric = stabilityCriteria(com, supPolygon.getHull());
         std_msgs::msg::Float32 stabilityMsg;
         stabilityMsg.data = stabilityMetric;
         stabilityPub->publish<std_msgs::msg::Float32>(stabilityMsg);

@@ -28,6 +28,7 @@ typedef sensor_msgs::msg::JointState MsgJointState;
 #include <memory>
 #include <thread>
 #include <unordered_map>
+#include <random>
 
 using namespace std::chrono_literals;
 
@@ -55,6 +56,7 @@ namespace neo_utils {
  * It therefore depends on the following processes already running:
  * - /joint_states (topic)
  * - /robot_state_publisher/robot_description (parameter)
+ * /joint_states can also be updated using publishJointes()
  */
 class RBDLWrapper {
    public:
@@ -136,6 +138,7 @@ class RBDLWrapper {
     }
 
     std::vector<std::string> publishJoints(std::vector<double> q);
+    Vector3d base2body(Vector3d pBase, const std::string &bodyName) const;
     // ------ getter for exposed members -------
     std::shared_ptr<const Model> get_model();
     VectorNd get_q() const;

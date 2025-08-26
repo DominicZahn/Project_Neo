@@ -7,9 +7,10 @@ Panels:
         - /Global Options1
         - /Status1
         - /RobotModel1
-        - /PointCloud21
+        - /PointStamped1
+        - /PointCloud21/Topic1
       Splitter Ratio: 0.5
-    Tree Height: 365
+    Tree Height: 741
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -252,7 +253,7 @@ Visualization Manager:
       Class: rviz_default_plugins/PointStamped
       Color: 204; 41; 204
       Enabled: true
-      History Length: 1
+      History Length: 10
       Name: PointStamped
       Radius: 0.10000000149011612
       Topic:
@@ -312,7 +313,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 199; 199; 199
-    Fixed Frame: pelvis
+    Fixed Frame: left_ankle_roll_link
     Frame Rate: 30
   Name: root
   Tools:
@@ -355,25 +356,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.243401527404785
+      Distance: 2.440767765045166
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.22594952583312988
-        Y: 0.06333990395069122
-        Z: 0.15428948402404785
+        X: -0.18240493535995483
+        Y: -0.2534502446651459
+        Z: 0.7777975797653198
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6647971868515015
+      Pitch: 0.5647972822189331
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.3284794092178345
+      Yaw: 0.3334794044494629
     Saved: ~
 Window Geometry:
   Displays:

@@ -24,6 +24,12 @@ struct ObjFuncData {
     Polygon PoS;
 };
 
+struct GlobalBodyConstraintData {
+    neo_utils::RBDLWrapper *rbdl;
+    const std::string &bodyName;
+    Vector3d worldPos;
+};
+
 std::string nloptResult2Str(nlopt::result result) {
     switch (result) {
         // --- Success codes ---
@@ -91,6 +97,22 @@ double objectiveFunc(const std::vector<double> &q, std::vector<double> &grad,
     return stability;
 }
 
+double globalBodyConstraint(const std::vector<double> &masked_q,
+                            std::vector<double> &grad, void *data) {
+    (void)grad;  // grad is not needed because of COBYLA / BOBYGA
+    auto castedData = reinterpret_cast<GlobalBodyConstraintData *>(data);
+    neo_utils::RBDLWrapper *rbdl = castedData->rbdl;
+    const std::string &bodyName = castedData->bodyName;
+    Vector3d worldPos = castedData->worldPos;
+
+    // umasking to be able to use rbdl functions
+    std::vector<double> q = rbdl->unmaskVec(masked_q, 0.0);
+    const size_t q_size = q.size();
+    auto model = *rbdl->get_model();
+
+    return 0.0;
+}
+
 int main(int argc, char **argv) {
     rclcpp::init(argc, argv);
 
@@ -104,7 +126,9 @@ int main(int argc, char **argv) {
                              "right_wrist_roll_joint",
                              "right_wrist_pitch_joint", "right_wrist_yaw_joint",
                              "left_wrist_roll_joint", "left_wrist_pitch_joint",
-                             "left_wrist_yaw_joint"});
+                             "left_wrist_yaw_joint",
+                             // --------- keep PoS constant -------
+                             "left_hip_yaw_joint", "right_hip_yaw_joint"});
 
     const int q_size = rbdlWrapper->get_jointNames().size();
     std::vector<double> q_lb(q_size);
@@ -114,8 +138,7 @@ int main(int argc, char **argv) {
         JointLimit jl = rbdlWrapper->get_jointLimit(i);
         q_lb[i] = jl.q_min;
         q_ub[i] = jl.q_max;
-        // q_opt[i] = q_0[i];
-        q_opt[i] = q_lb[i];
+        q_opt[i] = q_0[i];
     }
 
     ObjFuncData objFuncData;
@@ -137,6 +160,9 @@ int main(int argc, char **argv) {
     globalOpt.set_lower_bounds(q_lb);
     globalOpt.set_upper_bounds(q_ub);
     globalOpt.set_min_objective(objectiveFunc, &objFuncData);
+    GlobalBodyConstraintData leftFeetData = {rbdlWrapper, "",
+                                             Vector3d(1.0, 1.0, 1.0)};
+    globalOpt.add_equality_constraint(globalBodyConstraint, rbdlWrapper, 1e-8);
 
     globalOpt.set_ftol_abs(1e-10);
     globalOpt.set_xtol_abs(1e-10);

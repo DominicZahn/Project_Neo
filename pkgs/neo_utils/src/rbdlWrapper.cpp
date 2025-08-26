@@ -4,7 +4,10 @@ neo_utils::RBDLWrapper::RBDLWrapper(bool floatingBase) {
     rbdl_check_api_version(RBDL_API_VERSION);
 
     // initalize rbdl model from robot_description
-    node = std::make_shared<rclcpp::Node>("rbdl_wrapper");
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(0, 999999);
+    node = std::make_shared<rclcpp::Node>("rbdl_wrapper_"+std::to_string(dist(gen)));
     const std::string &urdfStr = retrieveUrdf();
     model = std::make_shared<Model>();
     Addons::URDFReadFromString(urdfStr.c_str(), model.get(), floatingBase);
@@ -116,6 +119,13 @@ std::vector<std::string> neo_utils::RBDLWrapper::publishJoints(
     return errorJointNames;
 }
 
+Vector3d neo_utils::RBDLWrapper::base2body(Vector3d pBase,
+                                           const std::string &bodyName) const {
+    uint bodyId = model->GetBodyId(bodyName.c_str());
+    Vector3d pBody = CalcBaseToBodyCoordinates(*model, q, bodyId, pBase);
+    return pBody;
+}
+
 const std::string neo_utils::RBDLWrapper::retrieveUrdf() {
     auto paramClientNode = std::make_shared<rclcpp::SyncParametersClient>(
         node, "robot_state_publisher");
@@ -135,21 +145,8 @@ void neo_utils::RBDLWrapper::readJointsFromTopic(MsgJointState msg) {
         auto mapIter = jointName2qIdxMap.find(name);
         uint q_idx = -1;
         if (mapIter != jointName2qIdxMap.end()) {
-            // retrive from map
             q_idx = mapIter->second;
         } else {
-            // // retrive from mBodies and save to map
-            // int wordPos = name.find("joint");
-            // if (wordPos >= 0) {
-            //     name.replace(wordPos, std::string("joint").length(), "link");
-            // }
-            // // find body with same name, without "joint", to select correct
-            // // link and joint have same id in rbdl => bodyId = jointId
-            // uint bodyId = model->GetBodyId(name.c_str());
-            // if (bodyId > model->mBodies.size()) continue;
-            // q_idx = model->mJoints[bodyId].q_index;
-
-            // jointName2qIdxMap.insert({msg.name[jointStateIdx], q_idx});
             continue;
         }
         q[q_idx] = msg.position[jointStateIdx];

@@ -6,7 +6,14 @@
     - mask wrapper already in constructor, so model is already masked
 - [ ] fix feet to ground
     - new constraint
-    - feet body needs to be at this world position
+    - this would change PoS -> *to much effort*
+        - feet body needs to be at this world position
+        - both feet at same $z$ and $z < 0.0$ (*underneath pelvis)
+        - (fix orientation)
+    - keep feet at constant postion from pelvis
+        - no knees
+        - only hip and upper body
+- [ ] constraint for dodging
 - [x] only rviz
     - [x] set joint position
     - [x] visualize CoM and saved PoS
