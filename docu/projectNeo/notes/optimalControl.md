@@ -4,6 +4,7 @@
 - [x] create masking for joints (`q`)
     - mask rbdlWrapper
     - mask wrapper already in constructor, so model is already masked
+- [x] project PoS and CoM to ground
 - [ ] fix feet to ground
     - new constraint
     - this would change PoS -> *to much effort*

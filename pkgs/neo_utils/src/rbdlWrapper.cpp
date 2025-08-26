@@ -7,7 +7,8 @@ neo_utils::RBDLWrapper::RBDLWrapper(bool floatingBase) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     std::uniform_int_distribution<> dist(0, 999999);
-    node = std::make_shared<rclcpp::Node>("rbdl_wrapper_"+std::to_string(dist(gen)));
+    node = std::make_shared<rclcpp::Node>("rbdl_wrapper_" +
+                                          std::to_string(dist(gen)));
     const std::string &urdfStr = retrieveUrdf();
     model = std::make_shared<Model>();
     Addons::URDFReadFromString(urdfStr.c_str(), model.get(), floatingBase);
@@ -93,20 +94,21 @@ void neo_utils::RBDLWrapper::updateMask(
 std::vector<std::string> neo_utils::RBDLWrapper::publishJoints(
     std::vector<double> q) {
     std::vector<std::string> errorJointNames = {};
+    std::vector<double> unmasked_q = unmaskVec(q, 0.0);
 
     MsgJointState msg;
     msg.position = {};
     msg.name = {};
-    for (int qIdx = 0; qIdx < (int)q.size(); qIdx++) {
-        const int maskedIdx = mask.qIdx2masked(qIdx);
-        if (maskedIdx < 0) continue;
-        const std::string name = jointNames[maskedIdx];
-        const JointLimit limit = jointLimits[maskedIdx];
-        if (limit.q_min > q[maskedIdx] || q[maskedIdx] > limit.q_max) {
+    for (int qIdx = 0; qIdx < (int)unmasked_q.size(); qIdx++) {
+        const double curr_q = unmasked_q[qIdx];
+        if (qIdx < 0) continue;
+        const std::string name = jointNames[qIdx];
+        const JointLimit limit = jointLimits[qIdx];
+        if (limit.q_min > curr_q || curr_q > limit.q_max) {
             errorJointNames.push_back(name);
             continue;
         }
-        msg.position.push_back(q[qIdx]);
+        msg.position.push_back(curr_q);
         msg.name.push_back(name);
     }
 
@@ -121,9 +123,26 @@ std::vector<std::string> neo_utils::RBDLWrapper::publishJoints(
 
 Vector3d neo_utils::RBDLWrapper::base2body(Vector3d pBase,
                                            const std::string &bodyName) const {
+    return base2body(pBase, bodyName, this->q);
+}
+
+Vector3d neo_utils::RBDLWrapper::base2body(Vector3d pBase,
+                                           const std::string &bodyName, VectorNd qNew) const {
     uint bodyId = model->GetBodyId(bodyName.c_str());
-    Vector3d pBody = CalcBaseToBodyCoordinates(*model, q, bodyId, pBase);
+    Vector3d pBody = CalcBaseToBodyCoordinates(*model, qNew, bodyId, pBase);
     return pBody;
+}
+
+Vector3d neo_utils::RBDLWrapper::body2base(Vector3d pBody,
+                                           const std::string &bodyName) const {
+    return body2base(pBody, bodyName, this->q);
+}
+
+Vector3d neo_utils::RBDLWrapper::body2base(Vector3d pBody,
+                                           const std::string &bodyName, VectorNd qNew) const {
+    uint bodyId = model->GetBodyId(bodyName.c_str());
+    Vector3d pBase = CalcBodyToBaseCoordinates(*model, qNew, bodyId, pBody);
+    return pBase;
 }
 
 const std::string neo_utils::RBDLWrapper::retrieveUrdf() {

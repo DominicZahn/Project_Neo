@@ -119,9 +119,9 @@ class RBDLWrapper {
     std::vector<T> unmaskVec(const std::vector<T> &maskedVec,
                              T fillValue) const {
         std::vector<T> unmaskedVec(jointNames.size(), fillValue);
-        for (int maskedIdx = 0; maskedIdx < (int)maskedVec.size(); maskedIdx++) {
+        for (int maskedIdx = 0; maskedIdx < (int)unmaskedVec.size(); maskedIdx++) {
             int unmaskedIdx = mask.masked2qIdx(maskedIdx);
-            if (unmaskedIdx < 0 || unmaskedIdx > (int)maskedVec.size()) continue;
+            if (unmaskedIdx < 0 || unmaskedIdx > (int)unmaskedVec.size()) continue;
             unmaskedVec[unmaskedIdx] = maskedVec[maskedIdx];
         }
         return unmaskedVec;
@@ -129,16 +129,19 @@ class RBDLWrapper {
 
     VectorNd unmaskVec(const VectorNd &maskedVec, double fillValue) const {
         VectorNd unmaskedVec = VectorNd::Constant(jointNames.size(), fillValue);
-        for (int maskedIdx = 0; maskedIdx < (int)maskedVec.size(); maskedIdx++) {
+        for (int maskedIdx = 0; maskedIdx < (int)unmaskedVec.size(); maskedIdx++) {
             int unmaskedIdx = mask.masked2qIdx(maskedIdx);
-            if (unmaskedIdx < 0 || unmaskedIdx > (int)maskedVec.size()) continue;
+            if (unmaskedIdx < 0 || unmaskedIdx > (int)unmaskedVec.size()) continue;
             unmaskedVec[unmaskedIdx] = maskedVec[maskedIdx];
         }
         return unmaskedVec;
     }
 
     std::vector<std::string> publishJoints(std::vector<double> q);
+    Vector3d base2body(Vector3d pBase, const std::string &bodyName, VectorNd qNew) const;
     Vector3d base2body(Vector3d pBase, const std::string &bodyName) const;
+    Vector3d body2base(Vector3d pBody, const std::string &bodyName, VectorNd qNew) const;
+    Vector3d body2base(Vector3d pBody, const std::string &bodyName) const;
     // ------ getter for exposed members -------
     std::shared_ptr<const Model> get_model();
     VectorNd get_q() const;

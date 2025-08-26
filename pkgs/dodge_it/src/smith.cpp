@@ -19,6 +19,8 @@ using namespace RigidBodyDynamics::Math;
     (neo_utils::Stability::distCentroid(CoM, PoS))
 typedef neo_utils::RBDLWrapper::JointLimit JointLimit;
 
+#define GND_APPROX_FRAME "left_ankle_roll_link"
+
 struct ObjFuncData {
     neo_utils::RBDLWrapper *rbdl;
     Polygon PoS;
@@ -66,30 +68,32 @@ std::string nloptResult2Str(nlopt::result result) {
     }
 }
 
-double objectiveFunc(const std::vector<double> &q, std::vector<double> &grad,
-                     void *data) {
+double objectiveFunc(const std::vector<double> &masked_q,
+                     std::vector<double> &grad, void *data) {
     (void)grad;  // grad is not needed because of COBYLA / BOBYGA
     auto objData = reinterpret_cast<ObjFuncData *>(data);
-    std::vector<double> unmaskedq = objData->rbdl->unmaskVec(q, 0.0);
-    const size_t q_size = unmaskedq.size();
+    std::vector<double> unmasked_q = objData->rbdl->unmaskVec(masked_q, 0.0);
+    const size_t q_size = unmasked_q.size();
 
     // ---------- DEBUG for visualization ----------
-    objData->rbdl->publishJoints(unmaskedq);
+    objData->rbdl->publishJoints(masked_q);
     //  ---------------------------------------------
 
     auto model = *objData->rbdl->get_model();
     Polygon PoS = objData->PoS;
     VectorNd qVec = VectorNd::Zero(q_size);
     for (size_t i = 0; i < q_size; i++) {
-        qVec[i] = unmaskedq[i];
+        qVec[i] = unmasked_q[i];
     }
     VectorNd qDotVec = VectorNd::Zero(q_size);
     qDotVec = objData->rbdl->unmaskVec(objData->rbdl->get_qdot(), 0.0);
-    Vector3d CoM = Vector3d::Zero();
+    Vector3d world_CoM = Vector3d::Zero();
     Scalar totalMass = 0.0;
     RigidBodyDynamics::Utils::CalcCenterOfMass(model, qVec, qDotVec, NULL,
-                                               totalMass, CoM);
-    Point CoMpt = Point(CoM[0], CoM[1]);
+                                               totalMass, world_CoM);
+    Vector3d gnd_CoM =
+        objData->rbdl->base2body(world_CoM, GND_APPROX_FRAME, qVec);
+    Point CoMpt = Point(gnd_CoM[0], gnd_CoM[1]);
     double stability = stabilityCriteria(CoMpt, PoS);
 
     std::cout << stability << std::endl;
@@ -105,12 +109,18 @@ double globalBodyConstraint(const std::vector<double> &masked_q,
     const std::string &bodyName = castedData->bodyName;
     Vector3d worldPos = castedData->worldPos;
 
-    // umasking to be able to use rbdl functions
-    std::vector<double> q = rbdl->unmaskVec(masked_q, 0.0);
-    const size_t q_size = q.size();
-    auto model = *rbdl->get_model();
+    std::vector<double> unmasked_q = rbdl->unmaskVec(masked_q, 0.0);
+    VectorNd vec_q = VectorNd::Zero(unmasked_q.size());
+    for (size_t i = 0; i < unmasked_q.size(); i++) {
+        vec_q[i] = unmasked_q[i];
+    }
+    Vector3d bodyOriginInWorld =
+        rbdl->body2base(Vector3d(0, 0, 0), bodyName, vec_q);
+    double d = (bodyOriginInWorld - worldPos).norm();
 
-    return 0.0;
+    std::cout << "d: " << d << std::endl;
+
+    return d;
 }
 
 int main(int argc, char **argv) {
@@ -127,8 +137,12 @@ int main(int argc, char **argv) {
                              "right_wrist_pitch_joint", "right_wrist_yaw_joint",
                              "left_wrist_roll_joint", "left_wrist_pitch_joint",
                              "left_wrist_yaw_joint",
-                             // --------- keep PoS constant -------
-                             "left_hip_yaw_joint", "right_hip_yaw_joint"});
+                             // --------- keep PoS const (parallel feet) -------
+                             "left_hip_yaw_joint", "left_hip_roll_joint",
+                             "right_hip_yaw_joint", "right_hip_roll_joint",
+                             "left_ankle_roll_joint", "right_ankle_roll_joint",
+                             // ---------- further limiting ----------
+                             "left_elbow_joint", "right_elbow_joint"});
 
     const int q_size = rbdlWrapper->get_jointNames().size();
     std::vector<double> q_lb(q_size);
@@ -145,8 +159,8 @@ int main(int argc, char **argv) {
     objFuncData.rbdl = rbdlWrapper;
 
     // hardcoded PoS from default position
-    std::vector<Point> PoS_pts = {Point(-0.07, 0.2), Point(-0.07, -0.2),
-                                  Point(0.16, 0.2), Point(0.16, -0.2)};
+    std::vector<Point> PoS_pts = {Point(0.15, -0.35), Point(-0.05, 0.05),
+                                  Point(-0.05, -0.35), Point(0.15, 0.05)};
     Polygon PoS_rng, PoS;
     for (Point p : PoS_pts) {
         bg::append(PoS_rng.outer(), p);
@@ -160,14 +174,14 @@ int main(int argc, char **argv) {
     globalOpt.set_lower_bounds(q_lb);
     globalOpt.set_upper_bounds(q_ub);
     globalOpt.set_min_objective(objectiveFunc, &objFuncData);
-    GlobalBodyConstraintData leftFeetData = {rbdlWrapper, "",
-                                             Vector3d(1.0, 1.0, 1.0)};
-    globalOpt.add_equality_constraint(globalBodyConstraint, rbdlWrapper, 1e-8);
+    GlobalBodyConstraintData headData = {rbdlWrapper, "lidar_link",
+                                         Vector3d(-0.663, -0.163, 0.738)};
+    globalOpt.add_equality_constraint(globalBodyConstraint, &headData, 1e-2);
 
-    globalOpt.set_ftol_abs(1e-10);
-    globalOpt.set_xtol_abs(1e-10);
+    globalOpt.set_ftol_abs(-1);
+    globalOpt.set_xtol_abs(-1);
     // globalOpt.set_maxtime(30);
-    globalOpt.set_initial_step(1e-5);
+    globalOpt.set_initial_step(1e-6);
 
     auto jointNames = rbdlWrapper->get_jointNames();
     double maxf = 0.0;
@@ -187,8 +201,7 @@ int main(int argc, char **argv) {
         std::cout << "nlopt failed: " << e.what() << std::endl;
     }
 
-    auto unmaskedq_opt = rbdlWrapper->unmaskVec(q_opt, 0.0);
-    auto errorJoints = rbdlWrapper->publishJoints(unmaskedq_opt);
+    auto errorJoints = rbdlWrapper->publishJoints(q_opt);
     if (!errorJoints.empty()) {
         std::cout << "Error Joints: " << std::endl;
         for (auto name : errorJoints) {
