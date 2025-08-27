@@ -163,11 +163,6 @@ class SupportPolygon {
         out_min = std::min(v, out_min);
         out_max = std::max(v, out_max);
     }
-
-    static void minmaxSetter(const float &v, float &out_min, float &out_max) {
-        out_min = std::min(v, out_min);
-        out_max = std::max(v, out_max);
-    }
 };
 
 void writeToBuffer(ros_gz_interfaces::msg::Contacts contacts, PointQueue &pts) {
