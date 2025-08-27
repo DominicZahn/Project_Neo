@@ -126,6 +126,7 @@ Vector3d neo_utils::RBDLWrapper::base2body(Vector3d pBase,
     return base2body(pBase, bodyName, this->q);
 }
 
+// CAUTION: takes unmasked q
 Vector3d neo_utils::RBDLWrapper::base2body(Vector3d pBase,
                                            const std::string &bodyName, VectorNd qNew) const {
     uint bodyId = model->GetBodyId(bodyName.c_str());
@@ -138,6 +139,7 @@ Vector3d neo_utils::RBDLWrapper::body2base(Vector3d pBody,
     return body2base(pBody, bodyName, this->q);
 }
 
+// CAUTION: takes unmasked q
 Vector3d neo_utils::RBDLWrapper::body2base(Vector3d pBody,
                                            const std::string &bodyName, VectorNd qNew) const {
     uint bodyId = model->GetBodyId(bodyName.c_str());

@@ -5,7 +5,7 @@
     - mask rbdlWrapper
     - mask wrapper already in constructor, so model is already masked
 - [x] project PoS and CoM to ground
-- [ ] fix feet to ground
+- [x] fix feet to ground
     - new constraint
     - this would change PoS -> *to much effort*
         - feet body needs to be at this world position
@@ -15,6 +15,7 @@
         - no knees
         - only hip and upper body
 - [ ] constraint for dodging
+- [ ] fix stability criteria
 - [x] only rviz
     - [x] set joint position
     - [x] visualize CoM and saved PoS
