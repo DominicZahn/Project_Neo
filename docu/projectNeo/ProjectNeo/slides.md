@@ -32,10 +32,10 @@ transition: slide-left
   <div> <img src="/push_g1.webp"/> </div>
   <div> <img src="/push_reddit.webp"/> </div>
   <div> <img src="/push_op3.webp"/> </div>
-  <div> <img src="/background_3.jpg"/> </div>
-  <div> <img src="/background_3.jpg"/> </div>
-  <div> <img src="/background_3.jpg"/> </div>
-  <div> <img src="/background_3.jpg"/> </div>
+  <div> <img src="/push_bosstownDynamics.webp"/> </div>
+  <div> <img src="/push_nadia.webp"/> </div>
+  <div> <img src="/push_agilityRobotics.webp"/> </div>
+  <div> <img src="/push_tuDelft.webp"/> </div>
 </div>
 
 <!-- Sources:
@@ -44,6 +44,10 @@ https://www.youtube.com/watch?v=7b53L10RaIE Atrias
 https://www.youtube.com/watch?v=LfcZ_EdTtGw G1
 https://www.reddit.com/r/oddlyterrifying/comments/1j6h9q9/how_quickly_this_robot_gets_up_after_being_pushed/ reddit
 https://www.youtube.com/watch?v=KSvLcr5HtNc OP3
+https://www.youtube.com/watch?v=y3RIHnK0_NE Bosstown Dynamics
+https://www.youtube.com/watch?v=aM-qb1yd5mU nadia
+https://www.youtube.com/watch?v=2amzGvk97GE Agility Robotics
+https://www.youtube.com/watch?v=w97H0eEKYvY TU Delft
 -->
 <!--
 TODO: multiple videos of roboerts getting pushed
