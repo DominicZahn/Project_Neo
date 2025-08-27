@@ -215,7 +215,6 @@ int main(int argc, char **argv) {
     auto stabilityPub =
         node->create_publisher<std_msgs::msg::Float32>("stability", 10);
 
-    auto rbdlWrapper = new neo_utils::RBDLWrapper();
     while (rclcpp::ok()) {
         rclcpp::spin_some(node);
 

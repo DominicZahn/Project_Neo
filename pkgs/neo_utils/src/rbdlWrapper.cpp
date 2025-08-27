@@ -57,11 +57,14 @@ std::vector<std::string> neo_utils::RBDLWrapper::get_jointNames() const {
     return maskVec(jointNames);
 }
 
-int neo_utils::RBDLWrapper::jointName2qIdx(const std::string &jointName) const {
+int neo_utils::RBDLWrapper::jointName2qIdx(const std::string &jointName, bool masked) const {
     auto iter = jointName2qIdxMap.find(jointName);
     if (iter == jointName2qIdxMap.end()) return -1;
     const int originalIdx = iter->second;
-    return mask.qIdx2masked(originalIdx);
+    if (masked)
+        return mask.qIdx2masked(originalIdx);
+    else
+        return originalIdx;
 }
 
 /**
@@ -94,7 +97,16 @@ void neo_utils::RBDLWrapper::updateMask(
 std::vector<std::string> neo_utils::RBDLWrapper::publishJoints(
     std::vector<double> q) {
     std::vector<std::string> errorJointNames = {};
-    std::vector<double> unmasked_q = unmaskVec(q, 0.0);
+
+    // decides between masked and unmasked
+    std::vector<double> unmasked_q;
+    if (mask.size() == q.size()) {
+        unmasked_q = unmaskVec(q, 0.0); // still masked
+    } else if ((size_t)this->q.size() == q.size()) {
+        unmasked_q = q; // already unmasked
+    } else {
+        return jointNames; // some nonsense vector
+    }
 
     MsgJointState msg;
     msg.position = {};

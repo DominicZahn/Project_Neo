@@ -91,7 +91,7 @@ class RBDLWrapper {
         std::unordered_map<int, int> masked2qIdxMap;
     };
     RBDLWrapper(bool floatingBase = false);
-    int jointName2qIdx(const std::string &jointName) const;
+    int jointName2qIdx(const std::string &jointName, bool masked = true) const;
     void updateMask(const std::vector<std::string> &maskedOutJoints);
 
     template <typename T>

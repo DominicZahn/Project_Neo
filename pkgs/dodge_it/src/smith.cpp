@@ -80,27 +80,34 @@ double objectiveFunc(const std::vector<double> &masked_q,
                      std::vector<double> &grad, void *data) {
     (void)grad;  // grad is not needed because of COBYLA / BOBYGA
     auto objData = reinterpret_cast<ObjFuncData *>(data);
-    std::vector<double> unmasked_q = objData->rbdl->unmaskVec(masked_q, 0.0);
+    auto rbdl = objData->rbdl;
+    std::vector<double> unmasked_q = rbdl->unmaskVec(masked_q, 0.0);
     const size_t q_size = unmasked_q.size();
 
+    // sync right foot
+    unmasked_q[rbdl->jointName2qIdx("right_hip_pitch_joint", false)] =
+        unmasked_q[rbdl->jointName2qIdx("left_hip_pitch_joint", false)];
+    unmasked_q[rbdl->jointName2qIdx("right_knee_joint", false)] =
+        unmasked_q[rbdl->jointName2qIdx("left_knee_joint", false)];
+    unmasked_q[rbdl->jointName2qIdx("right_ankle_pitch_joint", false)] =
+        unmasked_q[rbdl->jointName2qIdx("left_ankle_pitch_joint", false)];
     // ---------- DEBUG for visualization ----------
-    objData->rbdl->publishJoints(masked_q);
+    rbdl->publishJoints(unmasked_q);
     //  ---------------------------------------------
 
-    auto model = *objData->rbdl->get_model();
+    auto model = *rbdl->get_model();
     Polygon PoS = objData->PoS;
     VectorNd qVec = VectorNd::Zero(q_size);
     for (size_t i = 0; i < q_size; i++) {
         qVec[i] = unmasked_q[i];
     }
     VectorNd qDotVec = VectorNd::Zero(q_size);
-    qDotVec = objData->rbdl->unmaskVec(objData->rbdl->get_qdot(), 0.0);
+    qDotVec = rbdl->unmaskVec(rbdl->get_qdot(), 0.0);
     Vector3d world_CoM = Vector3d::Zero();
     Scalar totalMass = 0.0;
     RigidBodyDynamics::Utils::CalcCenterOfMass(model, qVec, qDotVec, NULL,
                                                totalMass, world_CoM);
-    Vector3d gnd_CoM =
-        objData->rbdl->base2body(world_CoM, GND_APPROX_FRAME, qVec);
+    Vector3d gnd_CoM = rbdl->base2body(world_CoM, GND_APPROX_FRAME, qVec);
     Point CoMpt = Point(gnd_CoM[0], gnd_CoM[1]);
     double stability = stabilityCriteria(CoMpt, PoS);
 
@@ -108,7 +115,7 @@ double objectiveFunc(const std::vector<double> &masked_q,
 }
 
 double limboConstraint(const std::vector<double> &masked_q,
-                            std::vector<double> &grad, void *data) {
+                       std::vector<double> &grad, void *data) {
     (void)grad;  // grad is not needed because of COBYLA / BOBYGA
     auto castedData = reinterpret_cast<LimboConstraintData *>(data);
     neo_utils::RBDLWrapper *rbdl = castedData->rbdl;
@@ -125,7 +132,6 @@ double limboConstraint(const std::vector<double> &masked_q,
     Vector3d bodyOriginInRef =
         rbdl->base2body(bodyOriginInWorld, GND_APPROX_FRAME, vec_q);
 
-
     const double dz = bodyOriginInRef[2] + zInRef;
     std::cout << "\r" << std::setw(10) << iterCounter++ << ": " << dz
               << std::flush;
@@ -134,7 +140,7 @@ double limboConstraint(const std::vector<double> &masked_q,
 }
 
 double relBodyConstraint(const std::vector<double> &masked_q,
-                            std::vector<double> &grad, void *data) {
+                         std::vector<double> &grad, void *data) {
     (void)grad;  // grad is not needed because of COBYLA / BOBYGA
     auto castedData = reinterpret_cast<RelBodyConstraintData *>(data);
     neo_utils::RBDLWrapper *rbdl = castedData->rbdl;
@@ -187,12 +193,12 @@ int main(int argc, char **argv) {
     neo_utils::RBDLWrapper *rbdlWrapper = new neo_utils::RBDLWrapper();
     // put robot into default position
     std::vector<double> q_0(rbdlWrapper->get_q().size(), 0.0);
-    q_0[rbdlWrapper->jointName2qIdx("left_hip_pitch_joint")] = 1.0;
-    q_0[rbdlWrapper->jointName2qIdx("right_hip_pitch_joint")] = 1.0;
-    q_0[rbdlWrapper->jointName2qIdx("left_knee_joint")] = 1.5;
-    q_0[rbdlWrapper->jointName2qIdx("right_knee_joint")] = 1.5;
-    q_0[rbdlWrapper->jointName2qIdx("right_ankle_pitch_joint")] = -0.8;
-    q_0[rbdlWrapper->jointName2qIdx("left_ankle_pitch_joint")] = -0.8;
+    //q_0[rbdlWrapper->jointName2qIdx("left_hip_pitch_joint")] = 1.0;
+    //q_0[rbdlWrapper->jointName2qIdx("right_hip_pitch_joint")] = 1.0;
+    q_0[rbdlWrapper->jointName2qIdx("left_knee_joint")] = 0.5;
+    q_0[rbdlWrapper->jointName2qIdx("right_knee_joint")] = 0.5;
+    //q_0[rbdlWrapper->jointName2qIdx("right_ankle_pitch_joint")] = -0.8;
+    //q_0[rbdlWrapper->jointName2qIdx("left_ankle_pitch_joint")] = -0.8;
     rbdlWrapper->publishJoints(q_0);
     //
 
@@ -210,11 +216,10 @@ int main(int argc, char **argv) {
          "right_shoulder_pitch_joint", "left_shoulder_roll_joint",
          "right_shoulder_roll_joint", "left_shoulder_yaw_joint",
          "right_shoulder_yaw_joint", "left_elbow_joint", "right_elbow_joint",
-         "torso_joint",
+         //"torso_joint",
          // ---------- right leg ----------
-         //"right_hip_pitch_joint", "right_knee_joint",
-         //"right_ankle_pitch_joint"
-        });
+         "right_hip_pitch_joint", "right_knee_joint",
+         "right_ankle_pitch_joint"});
 
     const int q_size = rbdlWrapper->get_jointNames().size();
     std::vector<double> q_lb(q_size);
@@ -245,9 +250,9 @@ int main(int argc, char **argv) {
     globalOpt.set_lower_bounds(q_lb);
     globalOpt.set_upper_bounds(q_ub);
     globalOpt.set_min_objective(objectiveFunc, &objFuncData);
-    globalOpt.add_equality_constraint(rightFeetConstraint, rbdlWrapper,
-    1e-3);
-    LimboConstraintData headLimboData = { rbdlWrapper, "lidar_link", -0.166 };
+    // globalOpt.add_equality_constraint(rightFeetConstraint, rbdlWrapper,
+    // 1e-3);
+    LimboConstraintData headLimboData = {rbdlWrapper, "lidar_link", -0.166};
     globalOpt.add_inequality_constraint(limboConstraint, &headLimboData, 1e-3);
 
     globalOpt.set_ftol_abs(1e-8);

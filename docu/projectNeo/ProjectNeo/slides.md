@@ -20,23 +20,31 @@ title: Project Neo
 hideInToc: true
 transition: slide-left
 ---
+<!--
 # What have all these videos in common?
-
+-->
 <div class="grid grid-cols-4 gap-x-12 gap-y-12">
-  <div> <img src="/background_3.jpg"/> </div>
-  <div> <img src="/background_3.jpg"/> </div>
-  <div> <img src="/background_3.jpg"/> </div>
-  <div> <img src="/background_3.jpg"/> </div>
-  <div> <img src="/background_3.jpg"/> </div>
-  <div> <img src="/background_3.jpg"/> </div>
-  <div> <img src="/background_3.jpg"/> </div>
-  <div> <img src="/background_3.jpg"/> </div>
+  <div> <img src="/push_atlas.webp"/> </div>
+  <div> <img src="/push_atlas2.webp"/> </div>
+  <div> <img src="/push_oldSpot.webp"/> </div>
+  <div> <img src="/push_oldSpot2.webp"/> </div>
+  <div> <img src="/push_atrias.webp"/> </div>
+  <div> <img src="/push_g1.webp"/> </div>
+  <div> <img src="/push_reddit.webp"/> </div>
+  <div> <img src="/push_op3.webp"/> </div>
   <div> <img src="/background_3.jpg"/> </div>
   <div> <img src="/background_3.jpg"/> </div>
   <div> <img src="/background_3.jpg"/> </div>
   <div> <img src="/background_3.jpg"/> </div>
 </div>
 
+<!-- Sources:
+https://www.youtube.com/watch?v=0VgxAnZKM14 CNN
+https://www.youtube.com/watch?v=7b53L10RaIE Atrias
+https://www.youtube.com/watch?v=LfcZ_EdTtGw G1
+https://www.reddit.com/r/oddlyterrifying/comments/1j6h9q9/how_quickly_this_robot_gets_up_after_being_pushed/ reddit
+https://www.youtube.com/watch?v=KSvLcr5HtNc OP3
+-->
 <!--
 TODO: multiple videos of roboerts getting pushed
 -->
