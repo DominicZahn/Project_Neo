@@ -671,6 +671,7 @@ level: 3
 layout: image-right
 image: /screenshots/gz_faceplant.png
 class: text-right
+transition: fade
 ---
 
 <div class="h-10"/>
@@ -803,28 +804,19 @@ flowchart TB
 
     PolygonOfSupport -.-> Stability
 ```
-
 ---
-level: 3
+level: 2
 layout: two-cols
 hideInToc: true
 ---
 
-# Stability ⚖
+# Launch Files
 
 <div class="h-30"/>
-<v-switch>
-    <template #0>
-        <h2> 🚀 stability.launch</h2>
-        <h4><i>run</i> <b>CenterOfMass 🎯</b></h4>
-        <h4><i>run</i> <b>PolygonOfSupport 👣</b></h4>
-        <h4><i>launch</i> <b>rviz</b> <i>OR</i> <b>gazebo🧮</b></h4>
-    </template>
-    <template #1>
-        <img class="mx-auto block" width="100em" src="/TechStack/cmake.svg"/>
-        <h2 class="text-center">🚨 <b>Dependency Chaos</b> 🚨</h2>
-    </template>
-</v-switch>
+<h2> 🚀 stability.launch</h2>
+<h4><i>run</i> <b>CenterOfMass 🎯</b></h4>
+<h4><i>run</i> <b>PolygonOfSupport 👣</b></h4>
+<h4><i>launch</i> <b>rviz</b> <i>OR</i> <b>gazebo🧮</b></h4>
 
 ::right::
 <div class="h-5"/>
@@ -883,6 +875,8 @@ flowchart TB
     stability.launch --run--> CenterOfMass
     stability.launch --run--> PolygonOfSupport
 ```
+
+
 ---
 level: 2
 layout: image-right
@@ -900,22 +894,105 @@ class: text-center
 </Footnotes>
 ---
 level: 1
-layout: image-right
-#image: /screenshot/moving.webm
+layout: two-cols
 ---
 # Actuation 🕹
+<div class="h-30"/>
+<h2>🔊Publishing to <i>/joint_states</i></h2>
+<h4>- 🍎<b>Ignore Physics</b></h4>
+<h4>- ⏱<b>Instant Movement</b></h4>
 
-Something about how we use `/joint_states` to move the robot into postion.
+::right::
+<video
+    src="/screenshots/moving.webm" autoplay
+    width="500em"
+    loop
+    muted
+    playsinline
+    class="mx-auto rounded-xl shadow-lg max-h-[100vh]"
+/>
 
 ---
 level: 2
 layout: two-cols
-class: text-left
+hideInToc: true
 ---
-# RbdlWrapper 🛠
+
+# Dependencies 🔗
+
+<div class="h-30"/>
+<v-click>
+    <img class="mx-auto block" width="100em" src="/TechStack/cmake.svg"/>
+    <h2 class="text-center">🚨 <b>Dependency Chaos</b> 🚨</h2>
+</v-click>
 
 ::right::
+<div class="h-5"/>
 
+```mermaid
+%%{
+  init: {
+    'theme': 'neutral'
+  }
+}%%
+
+flowchart TB
+    subgraph point_calculator
+        CenterOfMass[CenterOfMass 🎯]
+        PolygonOfSupport[PolygonOfSupport 👣]
+    end
+
+    subgraph ros2_heinz[ros2_heinz *1*]
+        subgraph h1_gazebo_sim
+            subgraph h1_bringup
+                h1_rviz.launch
+                h1_gazebo_sim.launch
+            end
+            subgraph h1_description
+            end
+        end
+    end
+    subgraph Thirdparty
+    subgraph ROS2
+        rclcpp
+        msgs
+        tf2
+    end
+    RBDL
+    Eigen3
+    Boost
+    end
+
+    point_calculator -.-> ROS2
+    point_calculator -.-> RBDL
+    ROS2 -.-> Boost
+    RBDL -.-> Eigen3
+
+    point_calculator  -.-> h1_description
+
+    Stability[Stability ⚖]
+    style Stability stroke-dasharray: 5 5
+
+    Stability -.-> RBDL
+    Stability -.-> h1_description
+    PolygonOfSupport -.-> Stability
+
+    stability.launch[stability.launch 🚀]
+
+    stability.launch --launch--> h1_bringup
+    stability.launch --run--> CenterOfMass
+    stability.launch --run--> PolygonOfSupport
+```
+
+---
+level: 2
+layout: two-cols
+class: text-center
+---
+<div class="text-left">
+
+# RbdlWrapper 🛠
+</div>
 ```mermaid
 %%{
   init: {
@@ -960,6 +1037,32 @@ flowchart TB
     RbdlWrapper -.-> h1_description
 
 ```
+
+::right::
+
+<v-switch>
+<template #0>
+```mermaid
+flowchart BT
+    User --access--> RBDL
+    subgraph RbdlWrapper:
+        RBDL <--sync--> js[joint_states]
+        end
+```
+</template>
+<template #1>
+```mermaid
+flowchart BT
+    User .-> RBDL
+    User --access--> Mask
+    subgraph RbdlWrapper:
+        Mask <--> RBDL
+        RBDL <--sync--> js[joint_states]
+        end
+```
+</template>
+</v-switch>
+
 
 ---
 level: 1
@@ -1027,6 +1130,27 @@ flowchart TB
     <Footnote :number=1><a href="https://github.com/K-d4wg/ros2_heinz">K-d4wg</a></Footnote>
 </Footnotes>
 ---
+level: 2
+layout: center
+class text-center
+---
+# Tech Stack Overview 📦
+<div class="h-5"/>
+<div class="grid grid-cols-4 gap-x-25 gap-y-10">
+  <div><img class="mx-auto block" width="100em" src="/TechStack/ROS.svg"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/Docker.svg"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/gz.svg"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/rviz.png"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/rbdl.svg"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/nlopt.png"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/boost.svg"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/eigen.png"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/biorbd.png"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/bioviz.png"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/bioptim.png"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/OpenCV.svg"/></div>
+</div>
+---
 level: 1
 layout: image-right
 image: /TechStack/nlopt_exp.png
@@ -1057,7 +1181,9 @@ class: text-center
 </div>
 <Footnotes x='l'>
     <Footnote :number=1>learnvray.com</Footnote>
-</Footnotes>level: 1
+</Footnotes>
+---
+level: 1
 ---
 # Future Work 🔭
 
