@@ -38,51 +38,51 @@ transition: slide-left
 
 <div class="grid grid-cols-4 gap-x-12 gap-y-12">
   <div class="image-container">
-    <img src="/push_atlas.webp"/>
+    <img src="/push/push_atlas.webp"/>
     <span class="footnote-number">1</span>
   </div>
   <div class="image-container">
-    <img src="/push_op3.webp"/>
+    <img src="/push/push_op3.webp"/>
     <span class="footnote-number">2</span>
   </div>
   <div class="image-container">
-    <img src="/push_tuDelft.webp"/>
+    <img src="/push/push_tuDelft.webp"/>
     <span class="footnote-number">3</span>
   </div>
   <div class="image-container">
-    <img src="/push_oldSpot2.webp"/>
+    <img src="/push/push_oldSpot2.webp"/>
     <span class="footnote-number">4</span>
   </div>
   <div class="image-container">
-    <img src="/push_atrias.webp"/>
+    <img src="/push/push_atrias.webp"/>
     <span class="footnote-number">5</span>
   </div>
   <div class="image-container">
-    <img src="/push_g1.webp"/>
+    <img src="/push/push_g1.webp"/>
     <span class="footnote-number">6</span>
   </div>
   <div class="image-container">
-    <img src="/push_reddit.webp"/>
+    <img src="/push/push_reddit.webp"/>
     <span class="footnote-number">7</span>
   </div>
   <div class="image-container">
-    <img src="/push_atlas2.webp"/>
+    <img src="/push/push_atlas2.webp"/>
     <span class="footnote-number">8</span>
   </div>
   <div class="image-container">
-    <img src="/push_bosstownDynamics.webp"/>
+    <img src="/push/push_bosstownDynamics.webp"/>
     <span class="footnote-number">9</span>
   </div>
   <div class="image-container">
-    <img src="/push_nadia.webp"/>
+    <img src="/push/push_nadia.webp"/>
     <span class="footnote-number">10</span>
   </div>
   <div class="image-container">
-    <img src="/push_agilityRobotics.webp"/>
+    <img src="/push/push_agilityRobotics.webp"/>
     <span class="footnote-number">11</span>
   </div>
   <div class="image-container">
-    <img src="/push_oldSpot.webp"/>
+    <img src="/push/push_oldSpot.webp"/>
     <span class="footnote-number">12</span>
   </div>
 </div>
@@ -262,19 +262,19 @@ hideInToc: true
     </div>
     <div>🦿</div>
     <div>
+        Optimal Control ↔
+    </div>
+    <div text-align="left">
+        <i>Bioptim</i>
+    </div>
+    <div>🕹️</div>
+    <div>
         Vision ↔
     </div>
     <div text-align="left">
         <i>OpenCv</i>
     </div>
     <div>🥽</div>
-    <div>
-        Optimal Control ↔
-    </div>
-    <div text-align="left">
-        <i>Biorbd</i>
-    </div>
-    <div>🕹️</div>
 </div>
 
 <Footnotes x='l'>
@@ -298,7 +298,7 @@ layout: image-right
 image: /robot_neo.png
 class: text-left
 ---
-# Optimization Problem
+# Optimization Problem 📈
 
 > ### Problem:
 > - **avoid obstacles** on head level
@@ -320,7 +320,7 @@ layout: two-cols
 class: text-left
 hideInToc: true
 ---
-# Optimization <br> Problem
+# Optimization <br> Problem  📈
 
 > ### Problem:
 > - **avoid obstacles** on head level
@@ -389,55 +389,675 @@ $$
 </div>
 
 ---
-title: Stability ⚖
 level: 1
+layout: image-right
+image: /R1.jpg
+class: "text-center"
 ---
-# Stability
+<div style="display:flex; align-items:center; justify-content:center; height:60vh;">
+
+# Static Stability ⚖
+
+<Footnotes x='l'>
+    <Footnote :number=1>Unitree</Footnote>
+</Footnotes>
+
+</div>
 ---
 title: Center of Mass $(\text{CoM})$ and Center of Preassure $(\text{CoP})$ 🎯
 level: 2
+layout: two-cols
 ---
-# Center of Mass $(\text{CoM})$ 🎯
+# Center of Mass <br>$(\text{CoM})$ 🎯
+<div class="h-20"></div>
 
+![Repo Card](https://github-readme-stats.vercel.app/api/pin/?username=K-d4wg&repo=ros2_heinz)
+
+::right::
+<div class="h-20"></div>
+```mermaid
+%%{
+  init: {
+    'theme': 'neutral'
+  }
+}%%
+
+flowchart TB
+    CenterOfMass[CenterOfMass 🎯]
+
+    subgraph ros2_heinz[ros2_heinz *1*]
+        subgraph h1_gazebo_sim
+            subgraph h1_bringup
+                h1_rviz.launch
+                h1_gazebo_sim.launch
+            end
+            subgraph h1_description
+            end
+        end
+    end
+    CenterOfMass -.retrieve urdf.-> h1_description
+
+```
+
+<Footnotes x='l'>
+    <Footnote :number=1><a href="https://github.com/K-d4wg/ros2_heinz">K-d4wg</a></Footnote>
+</Footnotes>
 ---
 hideInToc: true
 level: 2
+layout: two-cols
 ---
-# Center of Preassure $(\text{CoP})$
+# Center of Mass <br>$(\text{CoM})$ 🎯
+<div class="grid grid-cols-2 place-items-center gap-y-6">
+    <div>
+        <img src="/TechStack/ROS.svg" width="150em"/>
+    </div>
+    <div>
+        <img src="/TechStack/rbdl.svg" width="150em"/>
+    </div>
+    <div>
+        <img src="/TechStack/boost.svg" width="130em"/>
+    </div>
+    <div>
+        <img src="/TechStack/eigen.png" width="130em"/>
+    </div>
+</div>
+
+::right::
+<div class="h-20"></div>
+```mermaid
+%%{
+  init: {
+    'theme': 'neutral'
+  }
+}%%
+
+flowchart TB
+    CenterOfMass[CenterOfMass 🎯]
+
+    subgraph ros2_heinz[ros2_heinz *1*]
+        subgraph h1_gazebo_sim
+            subgraph h1_bringup
+                h1_rviz.launch
+                h1_gazebo_sim.launch
+            end
+            subgraph h1_description
+            end
+        end
+    end
+    
+    subgraph Thirdparty
+    subgraph ROS2
+        rclcpp
+        msgs
+        tf2
+    end
+    RBDL
+    Eigen3
+    Boost
+    end
+
+    CenterOfMass -.-> ROS2
+    CenterOfMass -.-> RBDL
+    ROS2 -.-> Boost
+    RBDL -.-> Eigen3
+
+    CenterOfMass -.-> h1_description
+
+```
+<div class="h-10"/>
+
+<v-switch>
+<template #1>
+
+> ### 🔊Publisher: `/CoM`
+
+</template>
+<template #2>
+
+> ### 🔊Publisher: `/CoM` $\xRightarrow{z=0}$ `/CoP`
+
+</template>
+</v-switch>
+---
+hideInToc: true
+level: 2
+layout: image-right
+image: /screenshots/CoM.png
+class: text-right
+---
+
+# Center of Mass $(\text{CoM})$ 🎯
+
+<div class="h-20"/>
+
+### Legend
+
+**CoM** 🟠
+
+**CoP** 🔵
 
 ---
 level: 2
+layout: two-cols
 ---
 # Polygon of Support $(\text{PoS})$ 👣
+<video
+    src="/screenshots/contacts.webm"  autoplay
+    width="220em"
+    loop
+    muted
+    playsinline
+    class="mx-auto rounded-xl shadow-lg max-h-[100vh]"
+/>
+
+::right::
+<div class="h-10"/>
+```mermaid
+%%{
+  init: {
+    'theme': 'neutral'
+  }
+}%%
+
+flowchart TB
+    subgraph point_calculator
+        CenterOfMass[CenterOfMass 🎯]
+        PolygonOfSupport[PolygonOfSupport 👣]
+    end
+
+    subgraph ros2_heinz[ros2_heinz *1*]
+        subgraph h1_gazebo_sim
+            subgraph h1_bringup
+                h1_rviz.launch
+                h1_gazebo_sim.launch
+            end
+            subgraph h1_description
+            end
+        end
+    end
+    subgraph Thirdparty
+    subgraph ROS2
+        rclcpp
+        msgs
+        tf2
+    end
+    RBDL
+    Eigen3
+    Boost
+    end
+
+    point_calculator -.-> ROS2
+    point_calculator -.-> RBDL
+    ROS2 -.-> Boost
+    RBDL -.-> Eigen3
+
+    point_calculator  -.-> h1_description
+
+```
+<div class="h-5"/>
+
+<v-click>
+
+> ### 🔊Publisher: `/PoS`
+
+</v-click>
+---
+hideInToc: true
+level: 2
+layout: two-cols
+---
+# Polygon of Support $(\text{PoS})$ 👣
+<video
+    src="/screenshots/PoS.webm"  autoplay
+    width="220em"
+    loop
+    muted
+    playsinline
+    class="mx-auto rounded-xl shadow-lg max-h-[100vh]"
+/>
+
+::right::
+<div class="h-10"/>
+```mermaid
+%%{
+  init: {
+    'theme': 'neutral'
+  }
+}%%
+
+flowchart TB
+    subgraph point_calculator
+        CenterOfMass[CenterOfMass 🎯]
+        PolygonOfSupport[PolygonOfSupport 👣]
+    end
+
+    subgraph ros2_heinz[ros2_heinz *1*]
+        subgraph h1_gazebo_sim
+            subgraph h1_bringup
+                h1_rviz.launch
+                h1_gazebo_sim.launch
+            end
+            subgraph h1_description
+            end
+        end
+    end
+    subgraph Thirdparty
+    subgraph ROS2
+        rclcpp
+        msgs
+        tf2
+    end
+    RBDL
+    Eigen3
+    Boost
+    end
+
+    point_calculator -.-> ROS2
+    point_calculator -.-> RBDL
+    ROS2 -.-> Boost
+    RBDL -.-> Eigen3
+
+    point_calculator  -.-> h1_description
+
+```
+<div class="h-5"/>
+
+> ### 🔊Publisher: `/PoS` $\xRightarrow{\text{Rviz}}$ `/vis_PoS`
 
 ---
-level: 2
+#hideInToc: true
+level: 3
+layout: image-right
+image: /screenshots/gz_faceplant.png
+class: text-right
 ---
+
+<div class="h-10"/>
+
+# Gazebo $\xRightarrow{}$ Rviz
+
+<v-clicks>
+
+### Flexibel Joint Control ✅
+### Full Visualization ✅
+### No Jiggeling ✅
+### Better Performance ✅
+
+</v-clicks>
+<div class="h-10"/>
+<v-clicks>
+
+### No Physics ❌
+### No Fixed Global Frame ❌
+### No Live Contacts ❌
+
+</v-clicks>
+<div class="h-10"/>
+<v-click>
+
+## $\xRightarrow{}$ Fixed $\text{PoS}$ 🔒
+
+</v-click>
+---
+level: 2
+layout: two-cols
+class: text-left
+---
+
 # Stability Criteria 📐
 
----
-level: 2
-layout: center
----
-# <span style="color: blue">Live Demo</span>🥋
+<img class="mx-auto block" width="80%" src="/screenshots/minEdgeDst.png"/>
+<div class="text-center">
+
+## Min Edge Distance
+#### 🚫 No Continuity
+#### ✅ Uses PoS Borders
+#### ✅ Adjusts to Shape
+
+</div>
+
+::right::
+<div class="text-right h-14">
+🔴: low values | 🔵: high values
+</div>
+
+<img class="mx-auto block" width="80%" src="/screenshots/centroidDst.png"/>
+<div class="text-center">
+<span v-mark="{color: 'green', type: 'circle' }">
+
+## Centroid Distance
+</span>
+
+#### ✅ Continuious
+#### 🚫 Ignores PoS Borders
+#### ⚠ Only Indirect Influence of Shape
+</div>
 
 ---
+level: 3
+layout: two-cols
+hideInToc: true
+---
+
+# Stability ⚖
+<div class="h-20"/>
+<h2>📚Stability Library</h2>
+<h4><b>- Stability Criteria</b></h4>
+<h4><b>- Helper Functions</b></h4>
+
+<div class="h-10"/>
+<h2>🔗Depends on</h2>
+<h4><b> - RBDL</b></h4>
+<h4><b> - h1_description</b></h4>
+
+::right::
+<div class="h-20"/>
+
+```mermaid
+%%{
+  init: {
+    'theme': 'neutral'
+  }
+}%%
+
+flowchart TB
+    subgraph point_calculator
+        CenterOfMass[CenterOfMass 🎯]
+        PolygonOfSupport[PolygonOfSupport 👣]
+    end
+
+    subgraph ros2_heinz[ros2_heinz *1*]
+        subgraph h1_gazebo_sim
+            subgraph h1_bringup
+                h1_rviz.launch
+                h1_gazebo_sim.launch
+            end
+            subgraph h1_description
+            end
+        end
+    end
+    subgraph Thirdparty
+    subgraph ROS2
+        rclcpp
+        msgs
+        tf2
+    end
+    RBDL
+    Eigen3
+    Boost
+    end
+
+    point_calculator -.-> ROS2
+    point_calculator -.-> RBDL
+    ROS2 -.-> Boost
+    RBDL -.-> Eigen3
+
+    point_calculator  -.-> h1_description
+
+    Stability[Stability ⚖]
+    style Stability stroke-dasharray: 5 5
+
+    Stability -.-> RBDL
+    Stability -.-> h1_description
+
+    PolygonOfSupport -.-> Stability
+```
+
+---
+level: 3
+layout: two-cols
+hideInToc: true
+---
+
+# Stability ⚖
+
+<div class="h-30"/>
+<v-switch>
+    <template #0>
+        <h2> 🚀 stability.launch</h2>
+        <h4><i>run</i> <b>CenterOfMass 🎯</b></h4>
+        <h4><i>run</i> <b>PolygonOfSupport 👣</b></h4>
+        <h4><i>launch</i> <b>rviz</b> <i>OR</i> <b>gazebo🧮</b></h4>
+    </template>
+    <template #1>
+        <img class="mx-auto block" width="100em" src="/TechStack/cmake.svg"/>
+        <h2 class="text-center">🚨 <b>Dependency Chaos</b> 🚨</h2>
+    </template>
+</v-switch>
+
+::right::
+<div class="h-5"/>
+
+```mermaid
+%%{
+  init: {
+    'theme': 'neutral'
+  }
+}%%
+
+flowchart TB
+    subgraph point_calculator
+        CenterOfMass[CenterOfMass 🎯]
+        PolygonOfSupport[PolygonOfSupport 👣]
+    end
+
+    subgraph ros2_heinz[ros2_heinz *1*]
+        subgraph h1_gazebo_sim
+            subgraph h1_bringup
+                h1_rviz.launch
+                h1_gazebo_sim.launch
+            end
+            subgraph h1_description
+            end
+        end
+    end
+    subgraph Thirdparty
+    subgraph ROS2
+        rclcpp
+        msgs
+        tf2
+    end
+    RBDL
+    Eigen3
+    Boost
+    end
+
+    point_calculator -.-> ROS2
+    point_calculator -.-> RBDL
+    ROS2 -.-> Boost
+    RBDL -.-> Eigen3
+
+    point_calculator  -.-> h1_description
+
+    Stability[Stability ⚖]
+    style Stability stroke-dasharray: 5 5
+
+    Stability -.-> RBDL
+    Stability -.-> h1_description
+    PolygonOfSupport -.-> Stability
+
+    stability.launch[stability.launch 🚀]
+
+    stability.launch --launch--> h1_bringup
+    stability.launch --run--> CenterOfMass
+    stability.launch --run--> PolygonOfSupport
+```
+---
+level: 2
+layout: image-right
+image: /dojo_render.jpg
+class: text-center
+---
+
+<div style="display:flex; align-items:center; justify-content:center; height:60vh;">
+
+# <span style="color: green"> 🥋 <b>Live Demo</b> 🥋 </span>
+
+</div>
+<Footnotes x='l'>
+    <Footnote :number=1>learnvray.com</Footnote>
+</Footnotes>
+---
 level: 1
+layout: image-right
+#image: /screenshot/moving.webm
 ---
 # Actuation 🕹
 
----
-level: 1
----
-# Executing Optimization ✅
+Something about how we use `/joint_states` to move the robot into postion.
 
 ---
 level: 2
-layout: center
+layout: two-cols
+class: text-left
 ---
-# <span style="color: blue">Live Demo</span>🥋
+# RbdlWrapper 🛠
+
+::right::
+
+```mermaid
+%%{
+  init: {
+    'theme': 'neutral'
+  }
+}%%
+
+flowchart TB
+    subgraph point_calculator
+        CenterOfMass[CenterOfMass 🎯]
+        PolygonOfSupport[PolygonOfSupport 👣]
+    end
+
+    stability.launch[stability.launch 🚀]
+
+    subgraph ros2_heinz[ros2_heinz *1*]
+        subgraph h1_gazebo_sim
+            subgraph h1_bringup
+                h1_rviz.launch
+                h1_gazebo_sim.launch
+            end
+            subgraph h1_description
+            end
+        end
+    end
+
+    subgraph neo_utils
+        RbdlWrapper[RbdlWrapper 🛠]
+        Stability[Stability ⚖]
+        style RbdlWrapper stroke-dasharray: 5 5
+        style Stability stroke-dasharray: 5 5
+    end
+
+    point_calculator -.-> neo_utils
+
+    dodge_it -.-> RbdlWrapper
+
+    stability.launch --launch--> h1_bringup
+    stability.launch --run--> CenterOfMass
+    stability.launch --run--> PolygonOfSupport
+
+    RbdlWrapper -.-> h1_description
+
+```
+
 ---
 level: 1
+hideInToc: true
+layout: center
+class: text-left
+---
+<div class="text-left">
+
+# Framework Overview 🧰
+
+</div>
+
+```mermaid
+%%{
+  init: {
+    'theme': 'neutral'
+  }
+}%%
+
+flowchart TB
+    subgraph point_calculator
+        CenterOfMass[CenterOfMass 🎯]
+        PolygonOfSupport[PolygonOfSupport 👣]
+    end
+
+    subgraph dodge_it
+        Smith[Smith 🤺]
+        Neo[Neo 🤸]
+        stability.launch[stability.launch 🚀]
+    end
+
+    subgraph ros2_heinz[ros2_heinz *1*]
+        subgraph h1_gazebo_sim
+            subgraph h1_bringup
+                h1_rviz.launch
+                h1_gazebo_sim.launch
+            end
+            subgraph h1_description
+            end
+        end
+    end
+
+    subgraph neo_utils
+        RbdlWrapper[RbdlWrapper 🛠]
+        Stability[Stability ⚖]
+        style RbdlWrapper stroke-dasharray: 5 5
+        style Stability stroke-dasharray: 5 5
+    end
+
+    point_calculator -.-> neo_utils
+    
+    Smith -.-> neo_utils
+    Neo -.-> neo_utils
+
+    stability.launch --launch--> h1_bringup
+    stability.launch --run--> CenterOfMass
+    stability.launch --run--> PolygonOfSupport
+
+    RbdlWrapper -.-> h1_description
+
+```
+
+<Footnotes x='l'>
+    <Footnote :number=1><a href="https://github.com/K-d4wg/ros2_heinz">K-d4wg</a></Footnote>
+</Footnotes>
+---
+level: 1
+layout: image-right
+image: /TechStack/nlopt_exp.png
+class: text-center
+---
+
+<div style="display:flex; align-items:center; justify-content:center; height:60vh;">
+
+# Executing Optimization ✅
+
+<Footnotes x='l'>
+    <Footnote :number=1></Footnote>
+</Footnotes>
+
+</div>
+
+---
+level: 2
+layout: image-right
+image: /dojo_render.jpg
+class: text-center
+---
+
+<div style="display:flex; align-items:center; justify-content:center; height:60vh;">
+
+# <span style="color: green"> 🥋 <b>Live Demo</b> 🥋 </span>
+
+</div>
+<Footnotes x='l'>
+    <Footnote :number=1>learnvray.com</Footnote>
+</Footnotes>level: 1
 ---
 # Future Work 🔭
 
