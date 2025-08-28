@@ -1159,13 +1159,92 @@ class: text-center
 
 <div style="display:flex; align-items:center; justify-content:center; height:60vh;">
 
-# Executing Optimization ✅
-
-<Footnotes x='l'>
-    <Footnote :number=1></Footnote>
-</Footnotes>
+# Executing Optimization 🎲
 
 </div>
+---
+hideInToc: true
+level: 2
+layout: image-right
+image: /screenshots/well_thats_an_optimum.png
+---
+# Root $\neq$ World
+
+<div class="text-right">
+
+### Optimization **(I)**
+$$
+\begin{align}
+    p_{\text{head}}^\text{world} &\ne p_{\text{obstacle}}^\text{world} \\
+    \nonumber \\
+    p_{\text{leftFoot}}^\text{world} &\in \text{GND} \\
+    \text{AND}\quad p_{\text{rightFoot}}^\text{world} &\in \text{GND} \\
+    \nonumber \\
+    p_\text{CoP}^\text{world} &\in \text{PoS}^\text{world} \\
+    \xRightarrow{\text{static}} p_\text{CoP}^\text{world} &:= 
+    \begin{bmatrix}
+        p_\text{CoM}^\text{world}.x \\
+        p_\text{CoM}^\text{world}.y \\
+        0
+    \end{bmatrix}
+\end{align}
+$$
+</div>
+---
+hideInToc: true
+level: 2
+layout: image-right
+image: /screenshots/dodging_literally_everything.png
+---
+# Root $\neq$ World
+
+<div class="text-right">
+
+### Optimization **(II)**
+$$
+\begin{align}
+    p_{\text{head}}^\text{leftFoot} &\ne p_{\text{obstacle}}^\text{leftFoot} \\
+    \nonumber \\
+    p_{\text{leftFoot}}^\text{leftFoot} &\in \text{GND} \\
+    \text{AND}\quad p_{\text{rightFoot}}^\text{leftFoot} &\in \text{GND} \\
+    \nonumber \\
+    p_\text{CoP}^\text{leftFoot} &\in \text{PoS}^\text{leftFoot} \\
+    \xRightarrow{\text{static}} p_\text{CoP}^\text{leftFoot} &:= 
+    \begin{bmatrix}
+        p_\text{CoM}^\text{leftFoot}.x \\
+        p_\text{CoM}^\text{leftFoot}.y \\
+        0
+    \end{bmatrix}
+\end{align}
+$$
+</div>
+---
+hideInToc: true
+level: 2
+layout: image-right
+image: /screenshots/dodging_literally_everything.png
+class: text-left
+---
+<div class="text-center">
+```mermaid
+flowchart BT
+    User .-> RBDL
+    User --access--> Mask
+    subgraph RbdlWrapper:
+        Mask <--> RBDL
+        RBDL <--sync--> js[joint_states]
+        end
+    style Mask fill:orange, color:grey
+```
+</div>
+---
+hideInToc: true
+level: 2
+layout: figure
+figureUrl: /screenshots/face_down.png
+figureCaption: 🔗 unsynced Legs + 🎱 bad Start Configuration
+---
+# Just a Little Push 🥊
 
 ---
 level: 2
@@ -1183,8 +1262,48 @@ class: text-center
     <Footnote :number=1>learnvray.com</Footnote>
 </Footnotes>
 ---
+hideInToc: true
+level: 2
+layout: figure
+figureUrl: /screenshots/finally.png
+class: text-center
+---
+# 🎉Welcome `He1nz` the chosen one🎉
+---
 level: 1
 ---
 # Future Work 🔭
 
+```mermaid
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#2596be',
+      'primaryTextColor': 'white',
+      'primaryBorderColor': '#7C0000',
+      'secondaryColor': '#b04d1e',
+      'tertiaryColor': '#bea925'
+    }
+  }
+}%%
+mindmap
+    root((Project Neo))
+        Optimal Control
+            Stable Trajectories
+            Dynamic Stability
+            Full Gazebo Simulation
+        Dynamic PoS
+            Realtime Contacts
+            Adaptable PoS
+        Object Detection
+            Simulate Obstacle
+            Add LiDar and Camera preprocessing
+            Explore Evasion Constraints
+```
+
 ---
+hideInToc: true
+layout: end
+---
+# Thanks for Exploring the Matrix with Me.
