@@ -876,22 +876,6 @@ flowchart TB
     stability.launch --run--> PolygonOfSupport
 ```
 
-
----
-level: 2
-layout: image-right
-image: /dojo_render.jpg
-class: text-center
----
-
-<div style="display:flex; align-items:center; justify-content:center; height:60vh;">
-
-# <span style="color: green"> 🥋 <b>Live Demo</b> 🥋 </span>
-
-</div>
-<Footnotes x='l'>
-    <Footnote :number=1>learnvray.com</Footnote>
-</Footnotes>
 ---
 level: 1
 layout: two-cols
@@ -1307,3 +1291,4 @@ hideInToc: true
 layout: end
 ---
 # Thanks for Exploring the Matrix with Me.
+---
