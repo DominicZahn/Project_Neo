@@ -1143,7 +1143,7 @@ class: text-center
 
 <div style="display:flex; align-items:center; justify-content:center; height:60vh;">
 
-# Executing Optimization 🎲
+# Running Optimization 🎲
 
 </div>
 ---
@@ -1280,7 +1280,7 @@ mindmap
         Dynamic PoS
             Realtime Contacts
             Adaptable PoS
-        Object Detection
+        Object Evasion
             Simulate Obstacle
             Add LiDar and Camera preprocessing
             Explore Evasion Constraints
