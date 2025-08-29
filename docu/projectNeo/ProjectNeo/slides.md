@@ -1290,5 +1290,5 @@ mindmap
 hideInToc: true
 layout: end
 ---
-# Thanks for Exploring the Matrix with Me.
+# Thank you for following the White Rabbit. 🐇
 ---
