@@ -5,11 +5,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# enable Find*.cmake to be found
-LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
-
 # find dependencies
-SET(CUSTOM_RBDL_PATH "" CACHE PATH "Path to specific RBDL Installation")
+get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
+list(APPEND CMAKE_PREFIX_PATH ${PARENT_DIR}/CMakeModules)
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -22,7 +21,7 @@ find_package(ros_gz_interfaces REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(urdfdom REQUIRED)
-find_package(RBDL COMPONENTS URDFREADER REQUIRED)
+find_package(RBDL COMPONENTS URDFREADER REQUIRED CONFIG)
 find_package(Eigen3 3.0.0 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(neo_utils REQUIRED)
@@ -61,9 +60,9 @@ foreach(file ${SRC_FILES})
     RBDL
     neo_utils
   )
-  
+
   install(TARGETS ${file_name}
-    DESTINATION lib/${PROJECT_NAME}) 
+    DESTINATION lib/${PROJECT_NAME})
 endforeach()
 
 if(BUILD_TESTING)

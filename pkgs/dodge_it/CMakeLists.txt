@@ -6,14 +6,14 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # find dependencies
-# enable Find*.cmake to be found
-LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
+list(APPEND CMAKE_PREFIX_PATH ${PARENT_DIR}/CMakeModules)
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(Eigen3 3.0.0 REQUIRED)
 find_package(neo_utils REQUIRED)
-SET(CUSTOM_RBDL_PATH "" CACHE PATH "Path to specific RBDL Installation")
-find_package(RBDL COMPONENTS URDFREADER REQUIRED)
+find_package(RBDL COMPONENTS URDFREADER REQUIRED CONFIG)
 
 add_executable(smith src/smith.cpp)
 target_include_directories(smith PUBLIC

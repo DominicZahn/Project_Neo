@@ -9,13 +9,15 @@ endif()
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 
 # find dependencies
-SET(CUSTOM_RBDL_PATH "" CACHE PATH "Path to specific RBDL Installation")
+get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
+list(APPEND CMAKE_PREFIX_PATH ${PARENT_DIR}/CMakeModules)
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(RBDL COMPONENTS URDFREADER REQUIRED)
+find_package(RBDL COMPONENTS URDFREADER REQUIRED CONFIG)
 find_package(Eigen3 3.0.0 REQUIRED)
 
 # Install project launch files
