@@ -1,18 +1,44 @@
-import pinocchio as pin
-from pinocchio import casadi as ca_pin
-from acados_template import AcadosOcp
-import casadi as ca
+import numpy as np
+import casadi as c
+import pinocchio.casadi as cpin
+from acados_template import (
+    AcadosOcpSolver
+)
 
-import sys
+import time
 
-def main() -> int:
-    model = pin.buildModelFromUrdf("/home/robot/ws/pkgs/ros2_heinz/h1_gazebo_sim/ros_gz_h1_description/models/h1_ign/h1_2.urdf")
-    c_model = ca_pin.Model(model)
-    c_data = c_model.createData()
+from pkgs.dodge_it_py.dodge_it_py.h1wrapper import *
+from pkgs.dodge_it_py.dodge_it_py.ocp_def import OCP
 
-    print('FINISHED')
+def print_joints(cmodel, cdata):
+    for name, oMi in zip(cmodel.names, cdata.oMi):
+        print(name, '', oMi.translation.T)
+
+def main(args=None) -> int:
+    dynamic_joint_names = [
+        'left_hip_pitch_joint',
+        'right_hip_pitch_joint',
+        'left_knee_joint',
+        'right_knee_joint',
+        'left_ankle_pitch_joint',
+        'right_ankle_pitch_joint',
+        'torso_joint'
+    ]
+
+    h1 = H1Wrapper()
+
+    h1.fixJoints(
+        dynamic_joint_names,
+        dynamic_representation=True)
+    names = stdvec2list(h1.robot.model.names[1:])
+    q0 = np.ones((len(names))).tolist()
+    while True:
+        h1.publishJoints(q0, names)
+        time.sleep(1)
+
+    rclpy.shutdown()
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
