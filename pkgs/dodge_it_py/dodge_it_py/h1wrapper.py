@@ -33,6 +33,10 @@ class MirrorLayer():
             return False
         
         self.mapper[real_id] = mirror_id
+#        for i in range(mirror_id, self.mapper.size):
+#            mapping = self.mapper[i]
+#            if mapping >= 0:
+#                self.mapper[i] -= 1
         return True
    
     def reduced2mirrored_joints(self,
@@ -188,16 +192,20 @@ class H1Wrapper():
     def mirrored2reduced(self, q : np.ndarray | c.SX) -> np.ndarray | c.SX:
         return self.mirror_layer.mirrored2realReduced_joints(q)
     
-    def jointNames(self, reduced=False):
+    def jointNames(self, reduced=False) -> list[str]:
         if not reduced:
-            return self.robot.model.names
+            return list(self.robot.model.names)
         
         # remove mirrored
         names = list(self.robot.model.names)
+        mirror_i_list = []
         for i in range(1,len(names)): # skip 'universe' at 0
             mirror_i = self.mirror_layer.mapper[i-1]
             if mirror_i >= 0: # no 'universe' in mapper
-                names.pop(mirror_i)
+                mirror_i_list.append(mirror_i)
+        mirror_i_list = sorted(mirror_i_list, reverse=True)
+        for mirror_i in mirror_i_list:
+            names.pop(mirror_i)
         return names
         
     def publishJoints(self,

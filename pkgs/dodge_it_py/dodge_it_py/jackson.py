@@ -30,25 +30,21 @@ def main(args=None) -> int:
         dynamic_representation=True)
     
     mirrors_res = h1.mirrorJoints('left_hip_pitch_joint', 'right_hip_pitch_joint')
+    mirrors_res &= h1.mirrorJoints('left_knee_joint', 'right_knee_joint')
+    mirrors_res &= h1.mirrorJoints('left_ankle_pitch_joint', 'right_ankle_pitch_joint')
     if not mirrors_res:
         return -1
 
-    names = list(h1.robot.model.names)
-    q0 = np.zeros(len(names)-1)
-    q0[1] = 1.0
-    q0 = h1.reduced2Mirrored(np.array(q0))
-    print(q0)
-    print(names)
-    print(h1.jointNames(reduced=True))
+    names_reduced = h1.jointNames(reduced=True)
+    q0 = np.zeros(len(names_reduced))
     while True:
         h1.publishJoints(
-            q0,
-            names)
+            h1.reduced2Mirrored(q0),
+            h1.jointNames())
         time.sleep(3)
 
     rclpy.shutdown()
     return 0
-
 
 if __name__ == "__main__":
     main()
