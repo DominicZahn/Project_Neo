@@ -24,17 +24,27 @@ def main(args=None) -> int:
         'right_ankle_pitch_joint',
         'torso_joint'
     ]
-
     h1 = H1Wrapper()
-
     h1.fixJoints(
         dynamic_joint_names,
         dynamic_representation=True)
-    names = stdvec2list(h1.robot.model.names[1:])
-    q0 = np.ones((len(names))).tolist()
+    
+    mirrors_res = h1.mirrorJoints('left_hip_pitch_joint', 'right_hip_pitch_joint')
+    if not mirrors_res:
+        return -1
+
+    names = list(h1.robot.model.names)
+    q0 = np.zeros(len(names)-1)
+    q0[1] = 1.0
+    q0 = h1.reduced2Mirrored(np.array(q0))
+    print(q0)
+    print(names)
+    print(h1.jointNames(reduced=True))
     while True:
-        h1.publishJoints(q0, names)
-        time.sleep(1)
+        h1.publishJoints(
+            q0,
+            names)
+        time.sleep(3)
 
     rclpy.shutdown()
     return 0

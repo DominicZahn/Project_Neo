@@ -20,6 +20,36 @@ def stdvec2list(stdvec) -> list:
         l.append(v)
     return l
 
+class MirrorLayer():
+    def __init__(self, size : int):
+        # values in mapper
+        # -1: entry has no mirror
+        #  i: entry at index is mirrored to i
+        self.mapper = np.full(size, -1)
+    
+    def set_mirror(self, real_id : int, mirror_id : int) -> bool:
+        out_of_range = real_id >= self.mapper.size or mirror_id >= self.mapper.size
+        if out_of_range:
+            return False
+        
+        self.mapper[real_id] = mirror_id
+        return True
+   
+    def reduced2mirrored_joints(self,
+                                    q_reduced : np.ndarray | c.SX) -> np.ndarray | c.SX:
+        
+        q_mirrored = q_reduced.copy()
+        for i in range(self.mapper.size):
+            mirror_id = self.mapper[i]
+            if mirror_id >= 0:
+                q_mirrored = np.insert(q_mirrored, mirror_id, q_reduced[i])
+        return q_mirrored
+                
+    
+    def mirrored2realReduced_joints(self,
+                                    q_mirrored : c.SX | np.ndarray) -> c.SX | np.ndarray:
+        pass
+    
 class JointState_Node(Node):
     def __init__(self):
         super().__init__('jackson_pub_node')
@@ -60,6 +90,9 @@ class H1Wrapper():
         self.robot = pin.RobotWrapper.BuildFromURDF(model_dir+urdf_file)
         self.all_joint_names = stdvec2list(self.robot.model.names)
         self.all_joint_values0 = np.zeros(len(self.all_joint_names)).tolist()
+
+        # mirror layer
+        self.mirror_layer = MirrorLayer(self.robot.q0.size)
 
         # rclpy Nodes
         rclpy.init()
@@ -135,6 +168,38 @@ class H1Wrapper():
             fixed_joint_names,
             joint_values)
         
+        self.mirror_layer = MirrorLayer(self.robot.q0.size)
+        
+    def mirrorJoints(self,
+                     joint_name_real : str,
+                     joint_name_mirrored : str) -> bool:
+        model = self.robot.model
+        joint_existence = model.existJointName(joint_name_real) and model.existJointName(joint_name_mirrored)
+        if not joint_existence:
+            return False
+        
+        r_id = model.getJointId(joint_name_real)
+        m_id = model.getJointId(joint_name_mirrored)
+        return self.mirror_layer.set_mirror(r_id, m_id)
+    
+    def reduced2Mirrored(self, q : np.ndarray | c.SX) -> np.ndarray | c.SX:
+        return self.mirror_layer.reduced2mirrored_joints(q)
+    
+    def mirrored2reduced(self, q : np.ndarray | c.SX) -> np.ndarray | c.SX:
+        return self.mirror_layer.mirrored2realReduced_joints(q)
+    
+    def jointNames(self, reduced=False):
+        if not reduced:
+            return self.robot.model.names
+        
+        # remove mirrored
+        names = list(self.robot.model.names)
+        for i in range(1,len(names)): # skip 'universe' at 0
+            mirror_i = self.mirror_layer.mapper[i-1]
+            if mirror_i >= 0: # no 'universe' in mapper
+                names.pop(mirror_i)
+        return names
+        
     def publishJoints(self,
                       q : list[float],
                       names : list[str],
@@ -158,7 +223,6 @@ class H1Wrapper():
                 error_names.append(name)
                 continue
             i_full = full_names.index(name)
-            print(i_full, i_param, name)
             full_q[i_full] = q[i_param]
             if len(qdot) > 0:
                 full_qdot[i_full] = qdot[i_param]
