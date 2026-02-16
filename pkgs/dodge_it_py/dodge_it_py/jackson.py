@@ -15,6 +15,8 @@ def print_joints(cmodel, cdata):
         print(name, '', oMi.translation.T)
 
 def main(args=None) -> int:
+
+    # ---------------- H1 ---------------
     dynamic_joint_names = [
         'left_hip_pitch_joint',
         'right_hip_pitch_joint',
@@ -32,16 +34,27 @@ def main(args=None) -> int:
     mirrors_res = h1.mirrorJoints('left_hip_pitch_joint', 'right_hip_pitch_joint')
     mirrors_res &= h1.mirrorJoints('left_knee_joint', 'right_knee_joint')
     mirrors_res &= h1.mirrorJoints('left_ankle_pitch_joint', 'right_ankle_pitch_joint')
+    
     if not mirrors_res:
         return -1
-
-    names_reduced = h1.jointNames(reduced=True)
+    names_reduced = h1.jointNames(reduced=True)[1:] # no universe
     q0 = np.zeros(len(names_reduced))
-    while True:
+
+    # --------------- OCP -----------------
+    Tf = 1.0
+    N = 33
+    nq = len(h1.jointNames())
+    ocp = OCP(h1, dict(zip(names_reduced, q0)))
+    solver = ocp.solve(Tf, N)
+
+    # --------------- vis -----------------
+    for n in range(N):
+        qi = solver.get(n, 'x')[:nq]
         h1.publishJoints(
-            h1.reduced2Mirrored(q0),
+            h1.reduced2Mirrored(qi),
             h1.jointNames())
-        time.sleep(3)
+        print(qi)
+        time.sleep(Tf / N)
 
     rclpy.shutdown()
     return 0
