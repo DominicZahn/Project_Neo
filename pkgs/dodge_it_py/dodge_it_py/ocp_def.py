@@ -25,12 +25,12 @@ class OCP:
 
     def _variable_def(self):
         self.x = c.vertcat(
-            self.h1.q,
-            self.h1.qdot)
+            self.h1.get_q(),
+            self.h1.get_qdot())
         self.xdot = c.vertcat(
-            self.h1.qdot,
-            self.h1.tau)
-        self.u = self.h1.tau
+            self.h1.get_qdot(),
+            self.h1.get_tau())
+        self.u = self.h1.get_tau()
 
     def _cost(self, ac_model : AcadosModel) -> AcadosOcpCost:
         ocp_cost = AcadosOcpCost()
@@ -63,8 +63,8 @@ class OCP:
         ocp_cons.ubu = np.full(nq, tau_max)
         ocp_cons.lbu = np.full(nq, -tau_max)
         #      joint limit
-        qub = self.h1.robot.model.upperPositionLimit
-        qlb = self.h1.robot.model.lowerPositionLimit
+        qub = self.h1.get_upperPosLimit()
+        qlb = self.h1.get_lowerPosLimit()
         ocp_cons.idxbx = np.arange(2*nq)
         max_acceleration = 1
         ocp_cons.ubx = np.hstack((qub, np.full(nq,max_acceleration)))
@@ -72,8 +72,8 @@ class OCP:
     
         # end
         #   head
-        PoS_center = self.h1.PoS_center
-        head_pos = self.h1.head_pos
+        PoS_center = self.h1.get_PoS_center()
+        head_pos = self.h1.get_head_pos()
 
         head_pos_proj = self.h1.proj2PoS(head_pos)
         head_height = c.dot(head_pos-head_pos_proj, head_pos-head_pos_proj)

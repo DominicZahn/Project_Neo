@@ -34,7 +34,7 @@ def main(args=None) -> int:
     mirrors_res = h1.mirrorJoints('left_hip_pitch_joint', 'right_hip_pitch_joint')
     mirrors_res &= h1.mirrorJoints('left_knee_joint', 'right_knee_joint')
     mirrors_res &= h1.mirrorJoints('left_ankle_pitch_joint', 'right_ankle_pitch_joint')
-    
+
     if not mirrors_res:
         return -1
     names_reduced = h1.jointNames(reduced=True)[1:] # no universe
@@ -43,7 +43,7 @@ def main(args=None) -> int:
     # --------------- OCP -----------------
     Tf = 1.0
     N = 33
-    nq = len(h1.jointNames())
+    nq = h1.get_nq(reduced=True)
     ocp = OCP(h1, dict(zip(names_reduced, q0)))
     solver = ocp.solve(Tf, N)
 
@@ -51,8 +51,8 @@ def main(args=None) -> int:
     for n in range(N):
         qi = solver.get(n, 'x')[:nq]
         h1.publishJoints(
-            h1.reduced2Mirrored(qi),
-            h1.jointNames())
+            h1.reduced2mirrored(qi).tolist(),
+            h1.jointNames(reduced=False)[1:])
         print(qi)
         time.sleep(Tf / N)
 

@@ -93,28 +93,69 @@ class H1Wrapper():
         nq = cmodel.nq
         nv = cmodel.nv
         
-        self.q = c.SX.sym('q', nq)
-        self.qdot = c.SX.sym('qdot', nv)
-        self.tau = c.SX.sym('tau', nv)
-        cpin.aba(cmodel, cdata, self.q, self.qdot ,self.tau)
-        self.qqdot = cdata.ddq
+        self._q = c.SX.sym('q', nq)
+        self._q = self.full2mirrored(self._q)
+        self._qdot = c.SX.sym('qdot', nv)
+        self._qdot = self.full2mirrored(self._qdot)
+        self._tau = c.SX.sym('tau', nv)
+        self._tau = self.full2mirrored(self._tau)
+        cpin.aba(cmodel, cdata, self._q, self._qdot ,self._tau)
+        self._qddot = cdata.ddq
+        self._qddot = self.full2mirrored(self._qddot)
         
         # CoM
-        cpin.framesForwardKinematics(cmodel, cdata, self.q)
-        CoM = cpin.centerOfMass(cmodel, cdata, self.q)
+        cpin.framesForwardKinematics(cmodel, cdata, self._q)
+        CoM = cpin.centerOfMass(cmodel, cdata, self._q)
 
         # PoS
         l_ankle = cdata.oMf[13] # left_ankle_roll_link
         r_ankle = cdata.oMf[25] # right_ankle_roll_link
         
-        self.PoS_center = cpin.SE3()
-        self.PoS_center.translation = (r_ankle.translation + l_ankle.translation) / 2
-        self.PoS_center.rotation = l_ankle.rotation
-        self.CoM_proj = self.proj2PoS(CoM)
+        self._PoS_center = cpin.SE3()
+        self._PoS_center.translation = (r_ankle.translation + l_ankle.translation) / 2
+        self._PoS_center.rotation = l_ankle.rotation
+        self._CoM_proj = self.proj2PoS(CoM)
         
         # head (lidar_link)
         id_head = self.robot.model.getFrameId('lidar_link')
-        self.head_pos = cdata.oMf[id_head].translation
+        self._head_pos = cdata.oMf[id_head].translation
+
+    def get_q(self, reduced=True):
+        if not reduced:
+            return self._q
+        return self.mirrored2reduced(self._q)
+    
+    def get_qdot(self, reduced=True):
+        if not reduced:
+            return self._qdot
+        return self.mirrored2reduced(self._qdot) 
+    
+    def get_qddot(self, reduced=True):
+        if not reduced:
+            return self._qddot
+        return self.mirrored2reduced(self._qddot)
+    
+    def get_tau(self, reduced=True):
+        if not reduced:
+            return self._tau
+        return self.mirrored2reduced(self._tau)
+    
+    def get_upperPosLimit(self, reduced=True):
+        qub = self.robot.model.upperPositionLimit
+        if not reduced:
+            return qub
+        return self.mirrored2reduced(qub)
+    
+    def get_lowerPosLimit(self, reduced=True):
+        qlb = self.robot.model.lowerPositionLimit
+        if not reduced:
+            return qlb
+        return self.mirrored2reduced(qlb)
+    
+    def get_PoS_center(self):
+        return self._PoS_center
+    def get_head_pos(self):
+        return self._head_pos
 
     def set_q0(self, q0 : np.ndarray | c.SX) -> np.ndarray:
         if type(q0) is c.SX:
@@ -162,12 +203,12 @@ class H1Wrapper():
         return -1
             
     def stability(self) -> c.SX:
-        d = self.PoS_center.translation - self.CoM_proj
+        d = self._PoS_center.translation - self._CoM_proj
         return c.dot(d,d)
 
     def proj2PoS(self, p : c.SX) -> c.SX:
-        v = p - self.PoS_center.translation
-        PoS_normal = (self.PoS_center.rotation @ c.SX([0,0,1]))
+        v = p - self._PoS_center.translation
+        PoS_normal = (self._PoS_center.rotation @ c.SX([0,0,1]))
         PoS_normal /= c.dot(PoS_normal, PoS_normal)
         dist = c.dot(v, PoS_normal)
         p_proj = p - dist * PoS_normal
@@ -194,10 +235,10 @@ class H1Wrapper():
         self.robot = self.robot.buildReducedRobot(
             fixed_joint_names,
             joint_values)
-        self.init_casadi()
         
         print('Warning: Mirror Layer was reset.')
         self.mirror_layer = MirrorLayer(self.robot.nq+1)
+        self.init_casadi()
         
     def mirrorJoints(self,
                      joint_name_real : str,
@@ -210,12 +251,18 @@ class H1Wrapper():
         r_id = model.getJointId(joint_name_real)
         m_id = model.getJointId(joint_name_mirrored)
         
-        return self.mirror_layer.set_mirror(r_id, m_id)
-        
+        res = self.mirror_layer.set_mirror(r_id, m_id)
+        self.init_casadi()
+        return res
+    
+    def full2mirrored(self, q : np.ndarray | c.SX) -> np.ndarray | c.SX:
+        q_reduced = self.mirrored2reduced(q)
+        return self.reduced2mirrored(q_reduced)
+    
     def reduced2mirrored(self, q : np.ndarray | c.SX) -> np.ndarray | c.SX:
         nq_mirrored = self.get_nq(reduced=False)
         if type(q) is np.ndarray:
-            q_mirrored = np.zeros((nq_mirrored,1))
+            q_mirrored = np.zeros((nq_mirrored))
             q_size = q.size
         else:
             q_mirrored = c.SX(nq_mirrored,1)
@@ -230,7 +277,6 @@ class H1Wrapper():
             q_mirrored[i] = q[mirror_list[0]-1]
             for j in mirror_list[1:]:
                 q_mirrored[j-1] = q[mirror_list[0]-1]
-            print(q_mirrored)
             
         return q_mirrored
 
@@ -238,7 +284,7 @@ class H1Wrapper():
     def mirrored2reduced(self, q : np.ndarray | c.SX) -> np.ndarray | c.SX:
         nq_reduced = self.get_nq(reduced=True)
         if type(q) is np.ndarray:
-            q_reduced = np.zeros((nq_reduced,1))
+            q_reduced = np.zeros((nq_reduced))
             q_size = q.size
         else:
             q_reduced = c.SX(nq_reduced,1)
