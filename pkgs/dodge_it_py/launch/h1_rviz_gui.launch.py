@@ -8,18 +8,18 @@ import os
 def generate_launch_description():
 
     
-    # urdf = os.path.join(get_package_share_directory('ros_gz_h1_description'), 'models/h1_ign', 'h1_2_handless.urdf')
     urdf = os.path.join(get_package_share_directory('ros_gz_h1_description'), 'models/h1_ign', 'h1_2_handless_foot_root.urdf')
     with open(urdf, 'r') as infp:
         robot_description = infp.read()
 
     return LaunchDescription([
-        #Node(
-        #    package='joint_state_publisher',
-        #    executable='joint_state_publisher',
-        #    name='joint_state_publisher',
-        #    output='screen'
-        #),
+
+        Node(
+            package='joint_state_publisher_gui',
+            executable='joint_state_publisher_gui',
+            name='joint_state_publisher_gui',
+            output='screen'
+        ),
 
         Node(
             package='robot_state_publisher',

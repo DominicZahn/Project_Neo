@@ -10,7 +10,8 @@ from rclpy.node import Node
 from sensor_msgs.msg import JointState
 
 model_dir ='/home/robot/ws/pkgs/ros2_heinz/h1_gazebo_sim/ros_gz_h1_description/models/h1_ign/'
-urdf_file = 'h1_2_handless.urdf' # 'h1_2.urdf'
+# urdf_file = 'h1_2_handless.urdf' # 'h1_2.urdf'
+urdf_file = 'h1_2_handless_foot_root.urdf' # 'h1_2.urdf'
 sdf_file = 'model.sdf'
 mesh_dir = 'meshes/'
 
