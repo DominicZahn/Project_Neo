@@ -8,7 +8,7 @@ from acados_template import (
 import time
 
 from pkgs.dodge_it_py.dodge_it_py.h1wrapper import *
-from pkgs.dodge_it_py.dodge_it_py.ocp_def import OCP
+from pkgs.dodge_it_py.dodge_it_py.jackson.ocp_def import OCP
 
 def print_joints(cmodel, cdata):
     for name, oMi in zip(cmodel.names, cdata.oMi):
@@ -39,6 +39,9 @@ def main(args=None) -> int:
         return -1
     names_reduced = h1.jointNames(reduced=True)[1:] # no universe
     q0 = np.zeros(len(names_reduced))
+    q0[h1.getJointId('left_hip_pitch_joint')-1] = -0.3
+    q0[h1.getJointId('left_knee_joint')-1] = 0.6
+    q0[h1.getJointId('left_ankle_pitch_joint')-1] = -0.3
 
     # --------------- OCP -----------------
     Tf = 1.0
@@ -50,7 +53,7 @@ def main(args=None) -> int:
     # --------------- vis -----------------
     for n in range(N):
         qi = solver.get(n, 'x')[:nq]
-        h1.publishJoints(
+        h1.visualizeJoints(
             h1.reduced2mirrored(qi).tolist(),
             h1.jointNames(reduced=False)[1:])
         print(qi)

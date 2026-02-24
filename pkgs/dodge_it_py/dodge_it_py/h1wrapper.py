@@ -8,6 +8,7 @@ import casadi as c
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
+from geometry_msgs.msg import PointStamped, Point
 
 model_dir ='/home/robot/ws/pkgs/ros2_heinz/h1_gazebo_sim/ros_gz_h1_description/models/h1_ign/'
 # urdf_file = 'h1_2_handless.urdf' # 'h1_2.urdf'
@@ -21,13 +22,19 @@ def stdvec2list(stdvec) -> list:
         l.append(v)
     return l
    
-class JointState_Node(Node):
-    def __init__(self):
-        super().__init__('jackson_pub_node')
-        self.pub = self.create_publisher(
+class RVizCom_Node(Node):
+    def __init__(self, pub_name_list : list[str]):
+        super().__init__('h1wrapper_pub_node')
+        self.pub_joint_states = self.create_publisher(
             JointState,
             'joint_states',
             1)
+        self.pub_dict = {}
+        for name in pub_name_list:
+            self.pub_dict[name] = self.create_publisher(
+                PointStamped,
+                name,
+                1)
 
     def update_joints(self,
         q : list[float],
@@ -42,7 +49,23 @@ class JointState_Node(Node):
         msg.effort = qddot
         msg.header.frame_id = ""
         msg.header.stamp = self.get_clock().now().to_msg()
-        self.pub.publish(msg)
+        self.pub_joint_states.publish(msg)
+
+    def publish_point(self, p : np.ndarray | c.SX, pub_name : str) -> bool:
+        if pub_name not in self.pub_dict.keys():
+            return False
+        if type(p) == c.SX and p.size1() != 3:
+            return False
+        if type(p) == np.ndarray and p.size != 3:
+            return False
+        msg = PointStamped()
+        msg.point.x = p[0][0]
+        msg.point.y = p[1][0]
+        msg.point.z = p[2][0]
+        msg.header.frame_id = 'left_ankle_roll_link'
+        msg.header.stamp = self.get_clock().now().to_msg()
+        self.pub_dict[pub_name].publish(msg)
+        return True
 
 class MirrorLayer():
     def __init__(self, size : int):
@@ -63,7 +86,7 @@ class MirrorLayer():
 
 class H1Wrapper():
     def _dynamic2fixedJoints(self,
-                            dynamic_joint_names : list[str]) -> str:
+                            dynamic_joint_names : list[str]) -> list[str]:
         fixed_joint_names = []
         for joint_name in self.robot.model.names:
             if not self.robot.model.existJointName(joint_name):
@@ -84,16 +107,24 @@ class H1Wrapper():
 
         # rclpy Nodes
         rclpy.init()
-        self.node = JointState_Node()
+        self.node = RVizCom_Node([
+            'CoM_proj',
+            'CoM',
+            'PoS_center',
+            'head_pos'
+            ])
 
         self.init_casadi()
 
     def init_casadi(self):
         cmodel = cpin.Model(self.robot.model)
+        # cmodel.gravity.linear = c.SX.zeros(3)
         cdata = cmodel.createData()
         nq = cmodel.nq
         nv = cmodel.nv
-        
+
+        # dynamic / kinematics
+        """
         self._q = c.SX.sym('q', nq)
         self._q = self.full2mirrored(self._q)
         self._qdot = c.SX.sym('qdot', nv)
@@ -103,19 +134,30 @@ class H1Wrapper():
         cpin.aba(cmodel, cdata, self._q, self._qdot ,self._tau)
         self._qddot = cdata.ddq
         self._qddot = self.full2mirrored(self._qddot)
+        """
+        self._q = c.SX.sym('q', nq)
+        self._q = self.full2mirrored(self._q)
+        self._qdot = c.SX.sym('qdot', nv)
+        self._qdot = self.full2mirrored(self._qdot)
+        self._tau = c.SX.sym('tau', nv)
+        self._tau = self.full2mirrored(self._tau)
+        self._qddot = c.SX.sym('qddot', nv)
+        self._qddot = self.full2mirrored(self._qddot)
+        cpin.framesForwardKinematics(cmodel, cdata, self._q)
         
         # CoM
-        cpin.framesForwardKinematics(cmodel, cdata, self._q)
-        CoM = cpin.centerOfMass(cmodel, cdata, self._q)
+        self._CoM = cpin.centerOfMass(cmodel, cdata, self._q)
 
         # PoS
-        l_ankle = cdata.oMf[13] # left_ankle_roll_link
-        r_ankle = cdata.oMf[25] # right_ankle_roll_link
+        l_ankle_id = cmodel.getFrameId('left_ankle_roll_link')
+        l_ankle = cdata.oMf[l_ankle_id]
+        r_ankle_id = cmodel.getFrameId('right_ankle_roll_link')
+        r_ankle = cdata.oMf[r_ankle_id]
         
         self._PoS_center = cpin.SE3()
         self._PoS_center.translation = (r_ankle.translation + l_ankle.translation) / 2
         self._PoS_center.rotation = l_ankle.rotation
-        self._CoM_proj = self.proj2PoS(CoM)
+        self._CoM_proj = self.proj2PoS(self._CoM)
         
         # head (lidar_link)
         id_head = self.robot.model.getFrameId('lidar_link')
@@ -158,7 +200,7 @@ class H1Wrapper():
     def get_head_pos(self):
         return self._head_pos
 
-    def set_q0(self, q0 : np.ndarray | c.SX) -> np.ndarray:
+    def set_q0(self, q0 : np.ndarray | c.SX):
         if type(q0) is c.SX:
             nq0 = np.array(c.DM(q0))
         else:
@@ -208,11 +250,10 @@ class H1Wrapper():
         return c.dot(d,d)
 
     def proj2PoS(self, p : c.SX) -> c.SX:
-        v = p - self._PoS_center.translation
-        PoS_normal = (self._PoS_center.rotation @ c.SX([0,0,1]))
-        PoS_normal /= c.dot(PoS_normal, PoS_normal)
-        dist = c.dot(v, PoS_normal)
-        p_proj = p - dist * PoS_normal
+        p_proj = c.SX(3,1)
+        p_proj[0] = p[0]
+        p_proj[1] = p[1]
+        p_proj[2] = 0.0
         return p_proj
     
     def fixJoints(self,
@@ -311,13 +352,14 @@ class H1Wrapper():
                 reduced_names.append(all_names[i])
         return reduced_names
         
-    def publishJoints(self,
+    def visualizeJoints(self,
                       q : list[float],
                       names : list[str],
                       qdot : list[float] = [],
                       qddot : list[float] = []) -> list[str]:
         assert(len(q) == len(names))
         
+        # publish joint_states
         full_names = self.all_joint_names
         full_q = self.all_joint_values0
         full_qdot = []
@@ -345,4 +387,32 @@ class H1Wrapper():
             full_names,
             full_qdot,
             full_qddot)
+        
+        # visualize points
+        nq_reduced = self.get_nq(reduced=True)
+        q_red = c.SX(nq_reduced,1)
+        for qi, namei in zip(q, names):
+            id = self.getJointId(namei) - 1
+            q_red[id] = qi
+        q_sym = self.get_q(reduced=True)
+
+        CoM_proj_func = c.Function('CoM_func', [q_sym], [self._CoM_proj])
+        CoM_proj_q = np.array(c.DM(CoM_proj_func(q_red)))
+        if (not self.node.publish_point(CoM_proj_q, 'CoM_proj')):
+            print('ERROR: CoM_proj could not be published')
+
+        CoM_func = c.Function('CoM', [q_sym], [self._CoM])
+        CoM_q = np.array(c.DM(CoM_func(q_red)))
+        if (not self.node.publish_point(CoM_q, 'CoM')):
+            print('ERROR: CoM could not be published')
+
+        PoS_func = c.Function('PoS_func', [q_sym], [self._PoS_center.translation])
+        PoS_q = np.array(c.DM(PoS_func(q_red)))
+        if (not self.node.publish_point(PoS_q, 'PoS_center')):
+            print('ERROR: PoS_center could not be published')
+ 
+        head_func = c.Function('head_func', [q_sym], [self._head_pos])
+        head_q = np.array(c.DM(head_func(q_red)))
+        if (not self.node.publish_point(head_q, 'head_pos')):
+            print('ERROR: head_pos could not be published')       
         return error_names
