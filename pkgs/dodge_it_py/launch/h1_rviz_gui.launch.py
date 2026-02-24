@@ -36,6 +36,6 @@ def generate_launch_description():
             executable='rviz2',
             name='rviz2',
             output='screen',
-            arguments=['-d', os.path.join(get_package_share_directory('dodge_it'), 'config', 'stability.rviz')]
+            arguments=['-d', os.path.join(get_package_share_directory('dodge_it_py'), 'config', 'default.rviz')]
         )
     ])
