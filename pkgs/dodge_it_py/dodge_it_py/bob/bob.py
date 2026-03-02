@@ -5,6 +5,8 @@ from acados_template import (
     AcadosOcpSolver
 )
 
+import matplotlib.pyplot as plt
+
 import time
 
 from pkgs.dodge_it_py.dodge_it_py.h1wrapper import *
@@ -38,14 +40,9 @@ def main(args=None) -> int:
         return -1
     names_reduced = h1.jointNames(reduced=True)[1:] # no universe
     q0 = np.zeros(len(names_reduced))
-    # q0[h1.getJointId('left_hip_pitch_joint')-1] = -1.5
-    # q0[h1.getJointId('left_knee_joint')-1] = 1
-    # q0[h1.getJointId('left_ankle_pitch_joint')-1] = -0.2
-    q0[h1.getJointId('left_hip_pitch_joint')-1] = -0.2
-    q0[h1.getJointId('left_knee_joint')-1] = 0.4
-    q0[h1.getJointId('left_ankle_pitch_joint')-1] = -0.2
-
-
+    q0[h1.getJointId('left_hip_pitch_joint')-1] = -0.8 # x2
+    q0[h1.getJointId('left_knee_joint')-1] = 1 # x1
+    q0[h1.getJointId('left_ankle_pitch_joint')-1] = -0.44 # x0
 
     # --------------- OCP -----------------
     Tf = 30.0
@@ -55,19 +52,45 @@ def main(args=None) -> int:
     solver = ocp.solve(True)
 
     # --------------- vis -----------------
+    f_cost_stability = c.Function('f_cost_stability', [h1.get_q(True)], [ocp.cost_stability])
+    f_cost_head = c.Function('f_cost_head', [h1.get_q(True), ocp.t], [ocp.cost_head])
+
+    plt.ion()
+    fig, ax = plt.subplots()
+    fig.tight_layout()
+    ax.set_title('Cost Graph (with custom weight)')
+    ax.set_xlabel('t')
+    ax.set_ylabel('Cost')
+    t_data = []
+    cost_stability_data = []
+    cost_head_data = []
+    line_stability, = ax.plot([], [], label='stability')
+    line_head, = ax.plot([], [], label='head')
+    ax.legend()
     for n in range(N):
         qi = solver.get(n, 'x')[:nq]
-        head_height_f = c.Function('head_height_f', [h1.get_q(True)], [h1.get_head_pos()])
-        head_height = head_height_f(qi)[2] # type: ignore
         lam = solver.get(n, 'lam')
         t = solver.get(n, 'p')
         h1.visualizeJoints(
             h1.reduced2mirrored(qi).tolist(),
             h1.jointNames(reduced=False)[1:])
-        print(t, head_height, lam)
-        time.sleep(Tf / N)
-        # breakpoint()
-    print('Cost:', solver.get_cost())
+        print(t, lam)
+
+        # visualize cost in plot
+        t_data.append(float(t))
+        cost_stability = f_cost_stability(c.SX(qi))
+        cost_stability_data.append(float(cost_stability)) # type: ignore
+        cost_head = f_cost_head(c.SX(qi), c.SX(t))
+        cost_head_data.append(float(cost_head)) # type: ignore
+
+        line_stability.set_data(t_data, cost_stability_data)
+        line_head.set_data(t_data, cost_head_data)
+        ax.relim()
+        ax.autoscale_view()
+
+        # time.sleep(Tf / N)
+        plt.pause(Tf / N)
+    print('Total Cost:', solver.get_cost())
 
     breakpoint()
 

@@ -29,19 +29,22 @@ class OCP:
         self.x = c.vertcat(self.h1.get_q(), self.h1.get_qdot())
         self.xdot = c.vertcat(self.h1.get_qdot(), self.h1.get_qddot())
         self.u = self.h1.get_qddot()
-
+        self.t = c.SX.sym('t',1)
 
     def _cost(self, ac_model: AcadosModel) -> AcadosOcpCost:
         ocp_cost = AcadosOcpCost()
         ocp_cost.cost_type = "NONLINEAR_LS"
 
         # stability
-        cost_stability = self.h1.stability()
+        self.cost_stability = self.h1._PoS.stability_minEdgeY(self.h1._CoM_proj) * 10**1 
 
         # head
-        amplitude = 0.5
+        amplitude = 0.3
         f_head_h = c.Function('f_head_h',[self.h1.get_q(True)], [self.h1.get_head_pos()])
         head_pos0 = f_head_h(self._q0)
+        if head_pos0 is None:
+            print('ERROR: Head pos is broken in _cost(...)')
+            return ocp_cost
         t = ac_model.p
         dz = amplitude*c.cos((c.pi*t)/self.Tf)
         desired_head_pos = c.vertcat(
@@ -50,9 +53,9 @@ class OCP:
             head_pos0[2] + dz
         )
         head_diff = self.h1.get_head_pos() - desired_head_pos
-        cost_head = c.dot(head_diff, head_diff)
+        self.cost_head = c.dot(head_diff, head_diff) * 10**2
 
-        ac_model.cost_y_expr = 10**2 * cost_stability + 10**0+cost_head
+        ac_model.cost_y_expr = self.cost_stability + self.cost_head
         ocp_cost.yref = 0.0
         ocp_cost.W = np.eye(1)
 
@@ -77,9 +80,12 @@ class OCP:
         qub = self.h1.get_upperPosLimit()
         qlb = self.h1.get_lowerPosLimit()
         max_velocity = 0.05 # [m/s]
-        max_acceleration = 4 # [m/s²]
+        max_acceleration = 10 # [m/s²]
         # max_velocity = 1e9
         # max_acceleration = 1e9
+
+        #       stability constraint
+        
 
         ocp_cons.idxbx = np.arange(2 * nq)
         ocp_cons.ubx = np.hstack((qub, np.full(nq, max_velocity)))
@@ -96,7 +102,7 @@ class OCP:
         ac_model.x = self.x
         ac_model.u = self.u
         ac_model.f_expl_expr = self.xdot
-        ac_model.p = c.SX.sym('t',1)
+        ac_model.p = self.t
 
         ocp.constraints = self._constraints(ac_model)
         ocp.cost = self._cost(ac_model)

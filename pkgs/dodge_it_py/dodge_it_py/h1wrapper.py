@@ -83,6 +83,54 @@ class MirrorLayer():
             if self.mapper[i]:
                 self.mapper[i][0] -= 1
         return True
+    
+class PolygonOfSupport():
+    """
+    01---11        
+    |     |
+    |     |
+    00---10
+    """
+    def __init__(self) -> None:
+        self._x0 = 0.0339
+        self._x1 = -0.363
+        self._y0 = -0.0875
+        self._y1 = 0.175 
+        self._center = c.SX([
+            (self._y1+self._y0)/2,
+            (self._x1+self._x0)/2,
+            0.0
+        ])
+    
+    def get_corners(self) -> list[c.SX]:
+        """
+        00, 10, 11, 01
+        """
+        return [
+            c.SX([self._x0,self._y0,0.0]),
+            c.SX([self._x1,self._y0,0.0]),
+            c.SX([self._x1,self._y1,0.0]),
+            c.SX([self._x0,self._y1,0.0])
+        ]
+    
+    def get_center(self) -> c.SX:
+        return self._center
+    
+    def stability_centerDist(self, p : c.SX) -> c.SX:
+        d = self._center - p
+        return c.dot(d,d)
+    
+    def stability_minEdgeY(self, p : c.SX) -> c.SX:
+        xp = p[1]
+        yp = p[0]
+        xc = self._center[1]
+        yc = self._center[0]
+        # dx0 = (xp-self._x0)/(xc-self._x0)-2
+        # dx1 = (xp-self._x1)/(xc-self._x1)-2
+        dy0 = (yp-self._y0)/(yc-self._y0)
+        dy1 = (yp-self._y1)/(yc-self._y1)
+        return c.fmax(dy0, dy1)
+
 
 class H1Wrapper():
     def _dynamic2fixedJoints(self,
@@ -147,17 +195,10 @@ class H1Wrapper():
         
         # CoM
         self._CoM = cpin.centerOfMass(cmodel, cdata, self._q)
-
-        # PoS
-        l_ankle_id = cmodel.getFrameId('left_ankle_roll_link')
-        l_ankle = cdata.oMf[l_ankle_id]
-        r_ankle_id = cmodel.getFrameId('right_ankle_roll_link')
-        r_ankle = cdata.oMf[r_ankle_id]
-        
-        self._PoS_center = cpin.SE3()
-        self._PoS_center.translation = (r_ankle.translation + l_ankle.translation) / 2
-        self._PoS_center.rotation = l_ankle.rotation
         self._CoM_proj = self.proj2PoS(self._CoM)
+
+        # PoS (hardcoded)
+        self._PoS = PolygonOfSupport()
         
         # head (lidar_link)
         id_head = self.robot.model.getFrameId('lidar_link')
@@ -195,8 +236,8 @@ class H1Wrapper():
             return qlb
         return self.mirrored2reduced(qlb)
     
-    def get_PoS_center(self):
-        return self._PoS_center
+    def get_PoS_center(self) -> c.SX:
+        return self._PoS.get_center()
     def get_head_pos(self):
         return self._head_pos
 
@@ -244,10 +285,6 @@ class H1Wrapper():
                 if mirrored_id == id:
                     return e[0]
         return -1
-            
-    def stability(self) -> c.SX:
-        d = self._PoS_center.translation - self._CoM_proj
-        return c.dot(d,d)
 
     def proj2PoS(self, p : c.SX) -> c.SX:
         p_proj = c.SX(3,1)
@@ -406,7 +443,7 @@ class H1Wrapper():
         if (not self.node.publish_point(CoM_q, 'CoM')):
             print('ERROR: CoM could not be published')
 
-        PoS_func = c.Function('PoS_func', [q_sym], [self._PoS_center.translation])
+        PoS_func = c.Function('PoS_func', [q_sym], [self._PoS.get_center()])
         PoS_q = np.array(c.DM(PoS_func(q_red)))
         if (not self.node.publish_point(PoS_q, 'PoS_center')):
             print('ERROR: PoS_center could not be published')
