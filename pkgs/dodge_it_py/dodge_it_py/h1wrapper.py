@@ -94,7 +94,7 @@ class PolygonOfSupport():
     def __init__(self) -> None:
         self._x0 = 0.0339
         self._x1 = -0.363
-        self._y0 = -0.0875
+        self._y0 = -0.07 # -0.0875
         self._y1 = 0.175 
         self._center = c.SX([
             (self._y1+self._y0)/2,
@@ -125,10 +125,10 @@ class PolygonOfSupport():
         yp = p[0]
         xc = self._center[1]
         yc = self._center[0]
-        # dx0 = (xp-self._x0)/(xc-self._x0)-2
-        # dx1 = (xp-self._x1)/(xc-self._x1)-2
-        dy0 = (yp-self._y0)/(yc-self._y0)
-        dy1 = (yp-self._y1)/(yc-self._y1)
+        # dx0 = (xp-self._x0)/(xc-self._x0)
+        # dx1 = (xp-self._x1)/(xc-self._x1)
+        dy0 = (yp-self._y0)/(yc-self._y0)-1
+        dy1 = (yp-self._y1)/(yc-self._y1)-1
         return c.fmax(dy0, dy1)
 
 

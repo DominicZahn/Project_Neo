@@ -1,6 +1,7 @@
 import numpy as np
 import casadi as c
 import matplotlib.pyplot as plt
+import sys
 
 from pkgs.dodge_it_py.dodge_it_py.h1wrapper import H1Wrapper
 
@@ -23,6 +24,15 @@ class OCP:
             self.q0_map = q0
         else:
             self.q0_map = {}
+
+        nq = self.h1.get_nq(reduced=True)
+        q0_vec = np.zeros((nq))
+        for name, value in self.q0_map.items():
+            id = self.h1.getJointId(name) - 1  # no universe
+            print(id, name, value)
+            q0_vec[id] = value
+        self._q0 = q0_vec
+
         self._variable_def()
 
     def _variable_def(self):
@@ -36,26 +46,33 @@ class OCP:
         ocp_cost.cost_type = "NONLINEAR_LS"
 
         # stability
-        self.cost_stability = self.h1._PoS.stability_minEdgeY(self.h1._CoM_proj) * 10**1 
+        self.cost_stability = self.h1._PoS.stability_minEdgeY(self.h1._CoM_proj)
 
         # head
-        amplitude = 0.3
+        amplitude = 0.7
         f_head_h = c.Function('f_head_h',[self.h1.get_q(True)], [self.h1.get_head_pos()])
         head_pos0 = f_head_h(self._q0)
         if head_pos0 is None:
             print('ERROR: Head pos is broken in _cost(...)')
-            return ocp_cost
+            sys.exit(-1)
         t = ac_model.p
-        dz = amplitude*c.cos((c.pi*t)/self.Tf)
+        if type(t) is not c.SX:
+            print('ERROR: time t is broken in _cost(...)')
+            sys.exit(-1)
+        # dz = amplitude*c.cos((c.pi*t)/self.Tf)
+        dz = -(amplitude / self.Tf) * t
         desired_head_pos = c.vertcat(
             head_pos0[0],
             head_pos0[1],
             head_pos0[2] + dz
         )
         head_diff = self.h1.get_head_pos() - desired_head_pos
-        self.cost_head = c.dot(head_diff, head_diff) * 10**2
+        self.cost_head = c.dot(head_diff, head_diff)
 
-        ac_model.cost_y_expr = self.cost_stability + self.cost_head
+        self.w_cost_stability = 10**1
+        self.w_cost_head = 10**4
+
+        ac_model.cost_y_expr = self.w_cost_stability * self.cost_stability + self.w_cost_head * self.cost_head
         ocp_cost.yref = 0.0
         ocp_cost.W = np.eye(1)
 
@@ -66,14 +83,7 @@ class OCP:
         ocp_cons = AcadosOcpConstraints()
 
         # initial
-        q0_vec = np.zeros((nq))
-        for name, value in self.q0_map.items():
-            id = self.h1.getJointId(name) - 1  # no universe
-            print(id, name, value)
-            q0_vec[id] = value
-        self._q0 = q0_vec
-
-        ocp_cons.x0 = np.hstack((q0_vec, np.zeros(nq)))
+        ocp_cons.x0 = np.hstack((self._q0, np.zeros(nq)))
 
         # path
         #      joint limit
@@ -85,7 +95,9 @@ class OCP:
         # max_acceleration = 1e9
 
         #       stability constraint
-        
+        ac_model.con_h_expr = self.cost_stability
+        ocp_cons.uh = 0.9
+        ocp_cons.lh = -0.1
 
         ocp_cons.idxbx = np.arange(2 * nq)
         ocp_cons.ubx = np.hstack((qub, np.full(nq, max_velocity)))
@@ -104,8 +116,8 @@ class OCP:
         ac_model.f_expl_expr = self.xdot
         ac_model.p = self.t
 
-        ocp.constraints = self._constraints(ac_model)
         ocp.cost = self._cost(ac_model)
+        ocp.constraints = self._constraints(ac_model)
         ocp.parameter_values = np.array([0])
 
         ocp.model = ac_model
