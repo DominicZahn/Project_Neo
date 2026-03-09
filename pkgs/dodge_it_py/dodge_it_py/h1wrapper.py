@@ -92,13 +92,13 @@ class PolygonOfSupport():
     00---10
     """
     def __init__(self) -> None:
-        self._x0 = 0.0339
-        self._x1 = -0.363
-        self._y0 = -0.07 # -0.0875
-        self._y1 = 0.175 
+        self.xl = 0.0339
+        self.xu = -0.363
+        self.yl = -0.07 # -0.0875
+        self.yu = 0.175 
         self._center = c.SX([
-            (self._y1+self._y0)/2,
-            (self._x1+self._x0)/2,
+            (self.yu+self.yl)/2,
+            (self.xu+self.xl)/2,
             0.0
         ])
     
@@ -107,14 +107,19 @@ class PolygonOfSupport():
         00, 10, 11, 01
         """
         return [
-            c.SX([self._x0,self._y0,0.0]),
-            c.SX([self._x1,self._y0,0.0]),
-            c.SX([self._x1,self._y1,0.0]),
-            c.SX([self._x0,self._y1,0.0])
+            c.SX([self.xl,self.yl,0.0]),
+            c.SX([self.xu,self.yl,0.0]),
+            c.SX([self.xu,self.yu,0.0]),
+            c.SX([self.xl,self.yu,0.0])
         ]
     
     def get_center(self) -> c.SX:
         return self._center
+
+    def stability_centerDistParable(self, p : c.SX) -> c.SX:
+        yp = p[0]
+        yc = self._center[0]
+        return (yp-yc)**2/(self.yl-yc)**2
     
     def stability_centerDist(self, p : c.SX) -> c.SX:
         d = self._center - p
@@ -127,8 +132,8 @@ class PolygonOfSupport():
         yc = self._center[0]
         # dx0 = (xp-self._x0)/(xc-self._x0)
         # dx1 = (xp-self._x1)/(xc-self._x1)
-        dy0 = (yp-self._y0)/(yc-self._y0)-1
-        dy1 = (yp-self._y1)/(yc-self._y1)-1
+        dy0 = (yp-self.yl)/(yc-self.yl)-1
+        dy1 = (yp-self.yu)/(yc-self.yu)-1
         return c.fmax(dy0, dy1)
 
 

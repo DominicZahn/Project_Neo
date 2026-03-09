@@ -46,10 +46,10 @@ class OCP:
         ocp_cost.cost_type = "NONLINEAR_LS"
 
         # stability
-        self.cost_stability = self.h1._PoS.stability_minEdgeY(self.h1._CoM_proj)
+        self.cost_stability = self.h1._PoS.stability_centerDistParable(self.h1._CoM_proj)
 
         # head
-        amplitude = 0.7
+        amplitude = 0.5
         f_head_h = c.Function('f_head_h',[self.h1.get_q(True)], [self.h1.get_head_pos()])
         head_pos0 = f_head_h(self._q0)
         if head_pos0 is None:
@@ -67,10 +67,11 @@ class OCP:
             head_pos0[2] + dz
         )
         head_diff = self.h1.get_head_pos() - desired_head_pos
+        head_diff[2] *= 2 # amplify z offset
         self.cost_head = c.dot(head_diff, head_diff)
 
-        self.w_cost_stability = 10**1
-        self.w_cost_head = 10**4
+        self.w_cost_stability = 10**2
+        self.w_cost_head = 10**3
 
         ac_model.cost_y_expr = self.w_cost_stability * self.cost_stability + self.w_cost_head * self.cost_head
         ocp_cost.yref = 0.0
