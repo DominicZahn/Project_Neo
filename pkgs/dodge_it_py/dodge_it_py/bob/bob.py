@@ -36,8 +36,8 @@ def main(args=None) -> int:
     mirrors_res &= h1.mirrorJoints('left_knee_joint', 'right_knee_joint')
     mirrors_res &= h1.mirrorJoints('left_ankle_pitch_joint', 'right_ankle_pitch_joint')
 
-    # if not mirrors_res:
-        # return -1
+    if not mirrors_res:
+        return -1
     names_reduced = h1.jointNames(reduced=True)[1:] # no universe
     q0 = np.zeros(len(names_reduced))
     q0[h1.getJointId('left_hip_pitch_joint')-1] = -0.2 # x2

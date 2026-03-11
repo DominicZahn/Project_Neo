@@ -59,7 +59,6 @@ class OCP:
         if type(t) is not c.SX:
             print('ERROR: time t is broken in _cost(...)')
             sys.exit(-1)
-        # dz = amplitude*c.cos((c.pi*t)/self.Tf)
         dz = -(amplitude / self.Tf) * t
         desired_head_pos = c.vertcat(
             head_pos0[0],
@@ -70,8 +69,8 @@ class OCP:
         head_diff[2] *= 2 # amplify z offset
         self.cost_head = c.dot(head_diff, head_diff)
 
-        self.w_cost_stability = 10**2
-        self.w_cost_head = 10**3
+        self.w_cost_stability = 10**1
+        self.w_cost_head = 10**1
 
         ac_model.cost_y_expr = self.w_cost_stability * self.cost_stability + self.w_cost_head * self.cost_head
         ocp_cost.yref = 0.0
@@ -96,9 +95,9 @@ class OCP:
         # max_acceleration = 1e9
 
         #       stability constraint
-        ac_model.con_h_expr = self.cost_stability
-        ocp_cons.uh = 0.9
-        ocp_cons.lh = -0.1
+        ac_model.con_h_expr = self.h1._CoM_proj[0] # y
+        ocp_cons.uh = self.h1._PoS.yu
+        ocp_cons.lh = self.h1._PoS.yl
 
         ocp_cons.idxbx = np.arange(2 * nq)
         ocp_cons.ubx = np.hstack((qub, np.full(nq, max_velocity)))
