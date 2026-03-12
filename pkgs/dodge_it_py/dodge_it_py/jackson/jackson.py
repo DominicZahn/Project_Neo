@@ -53,7 +53,7 @@ def main(args=None) -> int:
     # --------------- vis -----------------
     for n in range(N):
         qi = solver.get(n, 'x')[:nq]
-        h1.visualizeJoints(
+        h1.visualize(
             h1.reduced2mirrored(qi).tolist(),
             h1.jointNames(reduced=False)[1:])
         print(qi)

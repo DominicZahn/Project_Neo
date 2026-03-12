@@ -69,10 +69,15 @@ class OCP:
         head_diff[2] *= 2 # amplify z offset
         self.cost_head = c.dot(head_diff, head_diff)
 
-        self.w_cost_stability = 10**1
-        self.w_cost_head = 10**1
+        # regularisation
+        self.cost_reg = c.dot(self.u,self.u)**2
 
-        ac_model.cost_y_expr = self.w_cost_stability * self.cost_stability + self.w_cost_head * self.cost_head
+        # combinded
+        self.w_cost_stability = 10**6
+        self.w_cost_head = 10**4
+        self.w_reg = 10**1
+
+        ac_model.cost_y_expr = self.w_cost_stability * self.cost_stability + self.w_cost_head * self.cost_head + self.w_reg * self.cost_reg
         ocp_cost.yref = 0.0
         ocp_cost.W = np.eye(1)
 
@@ -90,7 +95,9 @@ class OCP:
         qub = self.h1.get_upperPosLimit()
         qlb = self.h1.get_lowerPosLimit()
         max_velocity = 0.05 # [m/s]
-        max_acceleration = 10 # [m/s²]
+        # max_velocity = 0.01 # [m/s]
+        max_acceleration = 5 # [m/s²]
+        # max_acceleration = 1 # [m/s²]
         # max_velocity = 1e9
         # max_acceleration = 1e9
 

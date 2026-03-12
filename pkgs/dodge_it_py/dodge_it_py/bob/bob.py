@@ -40,16 +40,13 @@ def main(args=None) -> int:
         return -1
     names_reduced = h1.jointNames(reduced=True)[1:] # no universe
     q0 = np.zeros(len(names_reduced))
-    q0[h1.getJointId('left_hip_pitch_joint')-1] = -0.2 # x2
-    # q0[h1.getJointId('right_hip_pitch_joint')-1] = -0.2 # x2
-    q0[h1.getJointId('left_knee_joint')-1] = 0.4 # x1
-    # q0[h1.getJointId('right_knee_joint')-1] = 0.4 # x1
-    q0[h1.getJointId('left_ankle_pitch_joint')-1] = -0.2 # x0
-    # q0[h1.getJointId('right_ankle_pitch_joint')-1] = -0.2 # x0
+    # q0[h1.getJointId('left_hip_pitch_joint')-1] = -0.5 # x2
+    # q0[h1.getJointId('left_knee_joint')-1] = 1.0 # x1
+    # q0[h1.getJointId('left_ankle_pitch_joint')-1] = -0.5 # x0
 
     # --------------- OCP -----------------
     Tf = 30.0
-    N = 33*int(Tf)
+    N = 33*int(Tf)*4
     nq = h1.get_nq(reduced=True)
     ocp = OCP(h1, dict(zip(names_reduced, q0)), Tf, N)
     solver = ocp.solve(True)
@@ -66,6 +63,8 @@ def main(args=None) -> int:
     line_stability, = ax.plot([], [], label='stability')
     line_head, = ax.plot([], [], label='head')
     ax.legend()
+
+    h1.init_gazebo(dict(zip(h1.jointNames(reduced=False)[1:], h1.reduced2mirrored(q0))))
     while rclpy.ok():
         t_data = []
         cost_stability_data = []
@@ -74,7 +73,7 @@ def main(args=None) -> int:
             qi = solver.get(n, 'x')[:nq]
             lam = solver.get(n, 'lam')
             t = solver.get(n, 'p')
-            h1.visualizeJoints(
+            h1.visualize(
                 h1.reduced2mirrored(qi).tolist(),
                 h1.jointNames(reduced=False)[1:])
             print(t, lam)

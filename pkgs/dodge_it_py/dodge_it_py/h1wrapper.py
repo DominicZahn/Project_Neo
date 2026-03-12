@@ -1,3 +1,4 @@
+import time
 import pinocchio as pin
 from pinocchio import RobotWrapper
 import pinocchio.casadi as cpin
@@ -7,8 +8,11 @@ import casadi as c
 
 import rclpy
 from rclpy.node import Node
+from rclpy.executors import SingleThreadedExecutor
+from rclpy.wait_for_message import wait_for_message
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import PointStamped, Point
+from std_msgs.msg import Float64
 
 model_dir ='/home/robot/ws/pkgs/ros2_heinz/h1_gazebo_sim/ros_gz_h1_description/models/h1_ign/'
 # urdf_file = 'h1_2_handless.urdf' # 'h1_2.urdf'
@@ -21,10 +25,76 @@ def stdvec2list(stdvec) -> list:
     for v in stdvec:
         l.append(v)
     return l
+
+class GazeboCom_Node(Node):
+    def __init__(self, joint_names : list[str], q0 : list[float]):
+        super().__init__('h1wrapper_pub_node_gz')
+        # create subscriber for joint_states
+        self.joint_states_map = {}
+        self.subscription = self.create_subscription(
+            JointState,
+            '/joint_states',
+            self.js_callback,
+            10)
+        res, msg_init = wait_for_message(
+            msg_type=JointState,
+            node=self,
+            topic='/joint_states',
+            time_to_wait=5)
+        assert(res)
+        self.js_callback(msg_init)
+
+        # create publishers
+        self.pub_dict = {}
+        for name in joint_names:
+             topic_name = self.joint2topic(name)
+             self.pub_dict[name] = self.create_publisher(Float64, topic_name, 10)
+        self.motor_command = Float64() # to reuse single command
+        
+        # move slowly to starting position
+        # self.slow_motion(q0, joint_names)
+    
+    def js_callback(self, msg):
+            self.joint_states_map = dict(zip(msg.name, msg.position))
+
+    def slow_motion(self, q0 : list[float], names : list[str]):
+        cycle = 0
+        while True:
+            q_curr = np.zeros_like(names,dtype=float)
+            for i in range(len(names)):
+                q_curr[i] = self.joint_states_map[names[i]]
+                
+            cutoff = 0.005
+            dq = (np.array(q0) - q_curr)*0.01
+            dq[dq < cutoff] = 0.0
+            cycle += 1
+            print(cycle, np.linalg.norm(dq), dq)
+            if np.linalg.norm(dq) < cutoff:
+                break
+            q_next = q_curr + dq
+            self.update_joints(q_next.tolist(), names)
+            time.sleep(0.1)
+        
+    def update_joints(self,
+        q : list[float],
+        names : list[str],
+        qdot : list[float] = [],
+        qddot : list[float] = []):
+        rclpy.spin_once(self)
+
+        for name, qi in zip(names, q):
+            if name == 'universe':
+                continue
+            self.motor_command.data = qi
+            self.pub_dict[name].publish(self.motor_command)
+        
+
+    def joint2topic(self, joint_name : str):
+        return '/h1/'+joint_name+'/cmd_pos'
    
 class RVizCom_Node(Node):
     def __init__(self, pub_name_list : list[str]):
-        super().__init__('h1wrapper_pub_node')
+        super().__init__('h1wrapper_pub_node_rviz')
         self.pub_joint_states = self.create_publisher(
             JointState,
             'joint_states',
@@ -151,23 +221,35 @@ class H1Wrapper():
         return fixed_joint_names
 
     def __init__(self):
+        self.gazebo = False
+
         self.robot = pin.RobotWrapper.BuildFromURDF(model_dir+urdf_file)
         self.all_joint_names = stdvec2list(self.robot.model.names)
         self.all_joint_values0 = np.zeros(len(self.all_joint_names)).tolist()
 
-        # mirror layer
         self.mirror_layer = MirrorLayer(self.robot.nq+1)
 
-        # rclpy Nodes
         rclpy.init()
-        self.node = RVizCom_Node([
+        self.rviz_node = RVizCom_Node([
             'CoM_proj',
             'CoM',
             'PoS_center',
             'head_pos'
             ])
+        self.joint_node = self.rviz_node
 
         self.init_casadi()
+
+    def init_gazebo(self, q0_map : dict[str,float]):
+        q0 = self.all_joint_values0
+        for name, qi in q0_map.items():
+            i = self.all_joint_names.index(name)
+            q0[i] = qi
+        self.joint_node = GazeboCom_Node(self.all_joint_names[1:], q0[1:])
+        self.gazebo = True
+
+    def uses_gazebo(self):
+        return self.gazebo
 
     def init_casadi(self):
         cmodel = cpin.Model(self.robot.model)
@@ -394,7 +476,7 @@ class H1Wrapper():
                 reduced_names.append(all_names[i])
         return reduced_names
         
-    def visualizeJoints(self,
+    def visualize(self,
                       q : list[float],
                       names : list[str],
                       qdot : list[float] = [],
@@ -424,7 +506,7 @@ class H1Wrapper():
             if len(qddot) > 0:
                 full_qddot[i_full] = qddot[i_param]
 
-        self.node.update_joints(
+        self.joint_node.update_joints(
             full_q,
             full_names,
             full_qdot,
@@ -440,21 +522,21 @@ class H1Wrapper():
 
         CoM_proj_func = c.Function('CoM_func', [q_sym], [self._CoM_proj])
         CoM_proj_q = np.array(c.DM(CoM_proj_func(q_red)))
-        if (not self.node.publish_point(CoM_proj_q, 'CoM_proj')):
+        if (not self.rviz_node.publish_point(CoM_proj_q, 'CoM_proj')):
             print('ERROR: CoM_proj could not be published')
 
         CoM_func = c.Function('CoM', [q_sym], [self._CoM])
         CoM_q = np.array(c.DM(CoM_func(q_red)))
-        if (not self.node.publish_point(CoM_q, 'CoM')):
+        if (not self.rviz_node.publish_point(CoM_q, 'CoM')):
             print('ERROR: CoM could not be published')
 
         PoS_func = c.Function('PoS_func', [q_sym], [self._PoS.get_center()])
         PoS_q = np.array(c.DM(PoS_func(q_red)))
-        if (not self.node.publish_point(PoS_q, 'PoS_center')):
+        if (not self.rviz_node.publish_point(PoS_q, 'PoS_center')):
             print('ERROR: PoS_center could not be published')
  
         head_func = c.Function('head_func', [q_sym], [self._head_pos])
         head_q = np.array(c.DM(head_func(q_red)))
-        if (not self.node.publish_point(head_q, 'head_pos')):
+        if (not self.rviz_node.publish_point(head_q, 'head_pos')):
             print('ERROR: head_pos could not be published')       
         return error_names
