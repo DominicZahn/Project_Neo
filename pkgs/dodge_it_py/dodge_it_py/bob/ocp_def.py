@@ -49,7 +49,7 @@ class OCP:
         self.cost_stability = self.h1._PoS.stability_centerDistParable(self.h1._CoM_proj)
 
         # head
-        amplitude = 0.3
+        amplitude = 0.5
         f_head_h = c.Function('f_head_h',[self.h1.get_q(True)], [self.h1.get_head_pos()])
         head_pos0 = f_head_h(self._q0)
         if head_pos0 is None:
