@@ -57,6 +57,8 @@ class GazeboCom_Node(Node):
     def js_callback(self, msg):
             self.joint_states_map = dict(zip(msg.name, msg.position))
 
+    """
+    NOT WORKING
     def slow_motion(self, q0 : list[float], names : list[str]):
         cycle = 0
         while True:
@@ -73,7 +75,9 @@ class GazeboCom_Node(Node):
                 break
             q_next = q_curr + dq
             self.update_joints(q_next.tolist(), names)
-            time.sleep(0.1)
+            time.sleep(1)
+        input("Press any key to start...")
+    """
         
     def update_joints(self,
         q : list[float],
@@ -241,6 +245,8 @@ class H1Wrapper():
         self.init_casadi()
 
     def init_gazebo(self, q0_map : dict[str,float]):
+        if type(self.joint_node) is GazeboCom_Node:
+            self.joint_node.destroy_node()
         q0 = self.all_joint_values0
         for name, qi in q0_map.items():
             i = self.all_joint_names.index(name)
