@@ -50,7 +50,7 @@ class OCP:
         ocp_cost.cost_type = "NONLINEAR_LS"
 
         # stability
-        self.cost_stability = self.h1._PoS.stability_centerDistParable(self.h1._CoM_proj)
+        self.cost_stability = self.h1._PoS.stability_centerDistParable(self.h1._ZMP)
 
         # head
         amplitude = 0.5
@@ -112,7 +112,7 @@ class OCP:
 
         #       stability constraint
         ac_model.con_h_expr = c.vertcat(
-            self.h1._CoM_proj[0],  # y-coord
+            self.h1._ZMP[0],  # y-coord
             self.h1.get_tau(),
             )
         ocp_cons.uh = np.hstack((

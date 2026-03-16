@@ -52,7 +52,7 @@ def main(args=None) -> int:
     solver = ocp.solve(True)
 
     # --------------- vis -----------------
-    f_cost_stability = c.Function('f_cost_stability', [h1.get_q(True)], [ocp.cost_stability])
+    f_cost_stability = c.Function('f_cost_stability', [h1.get_q(True),h1.get_qdot(True), h1.get_qddot(True)], [ocp.cost_stability])
     f_cost_head = c.Function('f_cost_head', [h1.get_q(True), ocp.t], [ocp.cost_head])
     # f_cost_reg = c.Function('f_cost_reg', [h1.get_q(True), h1.get_qddot(True)], [ocp.cost_reg])
 
@@ -74,6 +74,8 @@ def main(args=None) -> int:
         # cost_reg_data = []
         for n in range(N):
             qi = solver.get(n, 'x')[:nq]
+            qdoti = solver.get(n, 'x')[nq:]
+            qddoti = solver.get(n, 'u')[nq:]
             lam = solver.get(n, 'lam')
             t = solver.get(n, 'p')
             h1.visualize(
@@ -83,7 +85,7 @@ def main(args=None) -> int:
 
             # visualize cost in plot
             t_data.append(float(t))
-            cost_stability = f_cost_stability(c.SX(qi))
+            cost_stability = f_cost_stability(c.SX(qi), c.SX(qdoti), c.SX(qddoti))
             cost_stability_data.append(float(cost_stability)) # type: ignore
             cost_head = f_cost_head(c.SX(qi), c.SX(t))
             cost_head_data.append(float(cost_head)) # type: ignore
