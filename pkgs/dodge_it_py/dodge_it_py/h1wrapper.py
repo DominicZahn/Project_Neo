@@ -259,32 +259,28 @@ class H1Wrapper():
 
     def init_casadi(self):
         cmodel = cpin.Model(self.robot.model)
-        # cmodel.gravity.linear = c.SX.zeros(3)
         cdata = cmodel.createData()
         nq = cmodel.nq
         nv = cmodel.nv
 
         # dynamic / kinematics
-        """
         self._q = c.SX.sym('q', nq)
         self._q = self.full2mirrored(self._q)
         self._qdot = c.SX.sym('qdot', nv)
         self._qdot = self.full2mirrored(self._qdot)
-        self._tau = c.SX.sym('tau', nv)
-        self._tau = self.full2mirrored(self._tau)
-        cpin.aba(cmodel, cdata, self._q, self._qdot ,self._tau)
-        self._qddot = cdata.ddq
-        self._qddot = self.full2mirrored(self._qddot)
-        """
-        self._q = c.SX.sym('q', nq)
-        self._q = self.full2mirrored(self._q)
-        self._qdot = c.SX.sym('qdot', nv)
-        self._qdot = self.full2mirrored(self._qdot)
-        self._tau = c.SX.sym('tau', nv)
-        self._tau = self.full2mirrored(self._tau)
         self._qddot = c.SX.sym('qddot', nv)
         self._qddot = self.full2mirrored(self._qddot)
-        cpin.framesForwardKinematics(cmodel, cdata, self._q)
+
+        cpin.forwardKinematics(cmodel, cdata, self._q, self._qdot, self._qddot)
+
+        cpin.rnea(
+            cmodel,
+            cdata,
+            self._q,
+            self._qdot,
+            self._qddot
+        )
+        self._tau = cdata.tau
         
         # CoM
         self._CoM = cpin.centerOfMass(cmodel, cdata, self._q)
