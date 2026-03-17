@@ -45,7 +45,7 @@ def main(args=None) -> int:
     q0[h1.getJointId('left_ankle_pitch_joint')-1] = -0.226 # x0
 
     # --------------- OCP -----------------
-    Tf = 30.0
+    Tf = 30
     N = 33*int(Tf)
     nq = h1.get_nq(reduced=True)
     ocp = OCP(h1, dict(zip(names_reduced, q0)), Tf, N)
@@ -75,12 +75,14 @@ def main(args=None) -> int:
         for n in range(N):
             qi = solver.get(n, 'x')[:nq]
             qdoti = solver.get(n, 'x')[nq:]
-            qddoti = solver.get(n, 'u')[nq:]
+            qddoti = solver.get(n, 'u')
             lam = solver.get(n, 'lam')
             t = solver.get(n, 'p')
             h1.visualize(
                 h1.reduced2mirrored(qi).tolist(),
-                h1.jointNames(reduced=False)[1:])
+                h1.jointNames(reduced=False)[1:],
+                h1.reduced2mirrored(qdoti).tolist(),
+                h1.reduced2mirrored(qddoti).tolist())
             print(t, lam)
 
             # visualize cost in plot

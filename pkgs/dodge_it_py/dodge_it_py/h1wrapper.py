@@ -237,7 +237,8 @@ class H1Wrapper():
             'CoM_proj',
             'CoM',
             'PoS_center',
-            'head_pos'
+            'head_pos',
+            'ZMP'
             ])
         self.joint_node = self.rviz_node
 
@@ -283,6 +284,34 @@ class H1Wrapper():
         ZMP[1] = zmp_y_den / zmp_num
         ZMP[2] = zmp_z
         return ZMP
+    
+    def zmp_angular_linear_casadi(self, cmodel, cdata) -> c.SX:
+        zmp_z = 0.0
+        g = cmodel.gravity.linear[2]
+        M = cpin.computeTotalMass(cmodel,cdata)
+        CoM = cpin.centerOfMass(
+            cmodel,
+            cdata,
+            self._q,
+            self._qdot,
+            self._qddot
+        )
+        dPdL = cpin.computeCentroidalMomentumTimeVariation(
+            cmodel,
+            cdata,
+            self._q,
+            self._qddot,
+            self._qddot
+        )
+        dP = dPdL.linear
+        dL = dPdL.angular
+
+        ZMP = c.SX([0,0,0])
+        zmp_num = M*g+dP[2]
+        ZMP[0] = (M*g*CoM[0]+zmp_z*dP[0]-dL[1]) / zmp_num
+        ZMP[1] = (M*g*CoM[1]+zmp_z*dP[2]+dL[0]) / zmp_num
+        ZMP[2] = zmp_z
+        return ZMP
 
     def init_casadi(self):
         cmodel = cpin.Model(self.robot.model)
@@ -317,7 +346,8 @@ class H1Wrapper():
         )
         cpin.updateFramePlacements(cmodel, cdata)
 
-        self._ZMP = self.zmp_approx_casadi(cmodel, cdata)
+        # self._ZMP = self.zmp_approx_casadi(cmodel, cdata)
+        self._ZMP = self.zmp_angular_linear_casadi(cmodel, cdata)
         
         # CoM
         self._CoM = cpin.centerOfMass(cmodel, cdata, self._q)
@@ -525,8 +555,8 @@ class H1Wrapper():
         # publish joint_states
         full_names = self.all_joint_names
         full_q = self.all_joint_values0
-        full_qdot = []
-        full_qddot = []
+        full_qdot = np.zeros(len(full_names)).tolist()
+        full_qddot = np.zeros(len(full_names)).tolist()
         error_names = []
         for i_param in range(len(names)):
             name = names[i_param]
@@ -554,10 +584,16 @@ class H1Wrapper():
         # visualize points
         nq_reduced = self.get_nq(reduced=True)
         q_red = c.SX(nq_reduced,1)
-        for qi, namei in zip(q, names):
+        qdot_red = c.SX(nq_reduced,1)
+        qddot_red = c.SX(nq_reduced,1)
+        for qi, qdoti, qddoti, namei in zip(q, qdot, qddot, names):
             id = self.getJointId(namei) - 1
             q_red[id] = qi
+            qdot_red[id] = qdoti
+            qddot_red[id] = qddoti
         q_sym = self.get_q(reduced=True)
+        qdot_sym = self.get_qdot(reduced=True)
+        qddot_sym = self.get_qddot(reduced=True)
 
         CoM_proj_func = c.Function('CoM_func', [q_sym], [self._CoM_proj])
         CoM_proj_q = np.array(c.DM(CoM_proj_func(q_red)))
@@ -568,6 +604,11 @@ class H1Wrapper():
         CoM_q = np.array(c.DM(CoM_func(q_red)))
         if (not self.rviz_node.publish_point(CoM_q, 'CoM')):
             print('ERROR: CoM could not be published')
+
+        ZMP_func = c.Function('ZMP', [q_sym, qdot_sym, qddot_sym], [self._ZMP])
+        ZMP_q = np.array(c.DM(ZMP_func(q_red, qdot_red, qddot_red)))
+        if (not self.rviz_node.publish_point(ZMP_q, 'ZMP')):
+            print('ERROR: ZMP could not be published')
 
         PoS_func = c.Function('PoS_func', [q_sym], [self._PoS.get_center()])
         PoS_q = np.array(c.DM(PoS_func(q_red)))

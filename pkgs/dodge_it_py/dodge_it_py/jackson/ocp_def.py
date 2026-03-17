@@ -76,7 +76,7 @@ class OCP:
         self.cost_reg = c.dot(self.h1.get_tau(),self.h1.get_tau())
 
         # combinded
-        self.w_cost_stability = 10**3
+        self.w_cost_stability = 10**4
         self.w_cost_head = 10**2
         self.w_reg = 10**-5
 
@@ -99,9 +99,11 @@ class OCP:
         qlb = self.h1.get_lowerPosLimit()
         max_velocity = 0.05 # [m/s]
         max_acceleration = 5 # [m/s²]
+        # max_velocity = 0.3 # [m/s]
+        # max_acceleration = 30 # [m/s²]
         # max_velocity = 1e9
         # max_acceleration = 1e9
-        max_tau = 360 # [Nm] (motor max)
+        max_tau = 220 # [Nm] (motor max)
 
         ocp_cons.idxbx = np.arange(2 * nq)
         ocp_cons.ubx = np.hstack((qub, np.full(nq, max_velocity)))
@@ -123,6 +125,12 @@ class OCP:
             self.h1._PoS.yl,
             np.full(nq, -max_tau),
             ))
+        
+        # terminal
+        #       limit velocity to end
+        # ocp_cons.idxbx_e = np.arange(nq,2*nq)
+        # ocp_cons.ubx_e = np.full(nq, 0.01)
+        # ocp_cons.lbx_e = np.full(nq, -0.01)
 
         return ocp_cons
 
