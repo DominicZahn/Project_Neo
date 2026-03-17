@@ -133,6 +133,24 @@ class OCP:
         # ocp_cons.lbx_e = np.full(nq, -0.01)
 
         return ocp_cons
+    
+    def set_time_var(self, solver : AcadosOcpSolver) -> AcadosOcpSolver:
+        # set time parameter
+        time_step = self.Tf / self.N
+        time_arr = np.arange(self.N+1)*time_step
+        solver.set_flat('p', time_arr)
+        return solver
+    
+    def set_warm_start(self, solver : AcadosOcpSolver, N : int) -> AcadosOcpSolver:
+        nq = self.h1.get_nq(reduced=True)
+        x_arr = np.zeros((2*nq, N+1))
+        x_arr[:,:nq] = self._q0
+        hip_id = self.h1.getJointId('left_hip_pitch_joint')-1
+        w = np.arange(0, 1, 1/(N+1))
+        x_arr[hip_id,:] = self._q0[hip_id]*w+1.55*(1-w)
+        solver.set_flat('x', x_arr.flatten())
+        return solver
+
 
     def solve(self, plot=False) -> AcadosOcpSolver:
         ocp = AcadosOcp()
@@ -155,12 +173,8 @@ class OCP:
         # ocp.solver_options.nlp_solver_max_iter = 1000
 
         solver = AcadosOcpSolver(ocp)
-
-        # set time parameter
-        time_step = self.Tf / self.N
-        time_arr = np.arange(self.N+1)*time_step
-        solver.set_flat('p', time_arr)
-
+        solver = self.set_time_var(solver)
+        solver = self.set_warm_start(solver, self.N)
         solver.solve()
         solver.print_statistics()
 
