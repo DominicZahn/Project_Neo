@@ -255,6 +255,34 @@ class H1Wrapper():
 
     def uses_gazebo(self):
         return self.gazebo
+    
+    def zmp_approx_casadi(self, cmodel, cdata) -> c.SX:
+        # ignoring angular accelerations
+        M = cpin.computeTotalMass(cmodel, cdata)
+        g = 9.181
+        zmp_z = 0.0
+        zmp_x_den = 0.0
+        zmp_y_den = 0.0
+        zmp_num = 0.0
+        cpin.updateFramePlacements(cmodel, cdata)
+        for id in range(1,len(cmodel.frames)):
+            frame = cmodel.frames[id]
+            m = frame.inertia.mass
+            a = cpin.getFrameAcceleration(
+                cmodel,
+                cdata,
+                id
+            ).linear
+            com = cdata.oMf[id].translation
+            zmp_x_den += m*((a[2]+g)*com[0]-(com[2]-zmp_z)*a[0])
+            zmp_num += m*(a[2]+g)
+            zmp_y_den += m*((a[2]+g)*com[1]-(com[2]-zmp_z)*a[1])
+
+        ZMP = c.SX([0,0,0])
+        ZMP[0] = zmp_x_den / zmp_num
+        ZMP[1] = zmp_y_den / zmp_num
+        ZMP[2] = zmp_z
+        return ZMP
 
     def init_casadi(self):
         cmodel = cpin.Model(self.robot.model)
@@ -289,31 +317,7 @@ class H1Wrapper():
         )
         cpin.updateFramePlacements(cmodel, cdata)
 
-        # ignoring angular accelerations
-        M = cpin.computeTotalMass(cmodel, cdata)
-        g = 9.181
-        zmp_z = 0.0
-        zmp_x_den = 0.0
-        zmp_y_den = 0.0
-        zmp_num = 0.0
-        # iterates throw ALL frames (not just reduced)
-        for id in range(1,len(cmodel.frames)):
-            frame = cmodel.frames[id]
-            m = frame.inertia.mass
-            a = cpin.getFrameAcceleration(
-                cmodel,
-                cdata,
-                id
-            ).linear
-            com = cdata.oMf[id].translation
-            zmp_x_den += m*((a[2]+g)*com[0]-(com[2]-zmp_z)*a[0])
-            zmp_num += m*(a[2]+g)
-            zmp_y_den += m*((a[2]+g)*com[1]-(com[2]-zmp_z)*a[1])
-
-        self._ZMP = c.SX([0,0,0])
-        self._ZMP[0] = zmp_x_den / zmp_num
-        self._ZMP[1] = zmp_y_den / zmp_num
-        self._ZMP[2] = zmp_z
+        self._ZMP = self.zmp_approx_casadi(cmodel, cdata)
         
         # CoM
         self._CoM = cpin.centerOfMass(cmodel, cdata, self._q)
