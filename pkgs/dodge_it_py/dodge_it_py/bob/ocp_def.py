@@ -73,9 +73,9 @@ class OCP:
         self.cost_reg = c.dot(self.u,self.u)**2
 
         # combinded
-        self.w_cost_stability = 10**6
-        self.w_cost_head = 10**4
-        self.w_reg = 10**1
+        self.w_cost_stability = 10**4 #6
+        self.w_cost_head = 10**2 #4
+        self.w_reg = 10**-5 #1
 
         ac_model.cost_y_expr = self.w_cost_stability * self.cost_stability + self.w_cost_head * self.cost_head + self.w_reg * self.cost_reg
         ocp_cost.yref = 0.0
@@ -94,7 +94,7 @@ class OCP:
         #      joint limit
         qub = self.h1.get_upperPosLimit()
         qlb = self.h1.get_lowerPosLimit()
-        max_velocity = 0.05 # [m/s]
+        max_velocity = 0.05 *2 # [m/s]
         # max_velocity = 0.01 # [m/s]
         max_acceleration = 5 # [m/s²]
         # max_acceleration = 1 # [m/s²]

@@ -45,8 +45,8 @@ def main(args=None) -> int:
     q0[h1.getJointId('left_ankle_pitch_joint')-1] = -0.226 # x0
 
     # --------------- OCP -----------------
-    Tf = 30
-    N = 33*int(Tf)
+    Tf = 30.0 / 2
+    N = 33*int(Tf)*10
     nq = h1.get_nq(reduced=True)
     ocp = OCP(h1, dict(zip(names_reduced, q0)), Tf, N)
     solver = ocp.solve(True)

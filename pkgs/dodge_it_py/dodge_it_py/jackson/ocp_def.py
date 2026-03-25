@@ -97,7 +97,7 @@ class OCP:
         #      joint limit
         qub = self.h1.get_upperPosLimit()
         qlb = self.h1.get_lowerPosLimit()
-        max_velocity = 0.05 # [m/s]
+        max_velocity = 0.05 *2 # [m/s]
         max_acceleration = 5 # [m/s²]
         # max_velocity = 0.3 # [m/s]
         # max_acceleration = 30 # [m/s²]
