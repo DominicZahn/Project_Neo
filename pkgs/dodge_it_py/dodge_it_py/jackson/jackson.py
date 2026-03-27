@@ -45,11 +45,15 @@ def main(args=None) -> int:
     q0[h1.getJointId('left_ankle_pitch_joint')-1] = -0.226 # x0
 
     # --------------- OCP -----------------
-    Tf = 30.0 / 2
-    N = 33*int(Tf)*10
+    Tf = 5
+    N = 40*int(Tf)
     nq = h1.get_nq(reduced=True)
     ocp = OCP(h1, dict(zip(names_reduced, q0)), Tf, N)
     solver = ocp.solve(True)
+    if solver.status != 0:
+        rclpy.shutdown()
+        print('Total Cost:', solver.get_cost())
+        return -1
 
     # --------------- vis -----------------
     f_cost_stability = c.Function('f_cost_stability', [h1.get_q(True),h1.get_qdot(True), h1.get_qddot(True)], [ocp.cost_stability])
@@ -83,7 +87,7 @@ def main(args=None) -> int:
                 h1.jointNames(reduced=False)[1:],
                 h1.reduced2mirrored(qdoti).tolist(),
                 h1.reduced2mirrored(qddoti).tolist())
-            print(t, lam)
+            # print(t, lam)
 
             # visualize cost in plot
             t_data.append(float(t))

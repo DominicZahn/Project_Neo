@@ -73,12 +73,12 @@ class OCP:
         self.cost_head = head_diff[2]**2
 
         # regularisation
-        self.cost_reg = c.dot(self.h1.get_tau(),self.h1.get_tau())
+        self.cost_reg = c.dot(self.u,self.u)
 
         # combinded
-        self.w_cost_stability = 10**4
-        self.w_cost_head = 10**2
-        self.w_reg = 10**-5
+        self.w_cost_stability = 1
+        self.w_cost_head = 0.5
+        self.w_reg = 10**-2
 
         ac_model.cost_y_expr = self.w_cost_stability * self.cost_stability + self.w_cost_head * self.cost_head + self.w_reg * self.cost_reg
         ocp_cost.yref = 0.0
@@ -97,13 +97,10 @@ class OCP:
         #      joint limit
         qub = self.h1.get_upperPosLimit()
         qlb = self.h1.get_lowerPosLimit()
-        max_velocity = 0.05 *2 # [m/s]
-        max_acceleration = 5 # [m/s²]
-        # max_velocity = 0.3 # [m/s]
-        # max_acceleration = 30 # [m/s²]
-        # max_velocity = 1e9
-        # max_acceleration = 1e9
-        max_tau = 220 # [Nm] (motor max)
+        max_velocity = 100 # [rad/s]
+        max_acceleration = 100 # [rad/s²]
+        max_tau = 360 # [Nm]
+
 
         ocp_cons.idxbx = np.arange(2 * nq)
         ocp_cons.ubx = np.hstack((qub, np.full(nq, max_velocity)))
@@ -111,10 +108,10 @@ class OCP:
         ocp_cons.idxbu = np.arange(nq)
         ocp_cons.ubu = np.full(nq, max_acceleration)
         ocp_cons.lbu = np.full(nq, -max_acceleration)
-
+        
         #       stability constraint
         ac_model.con_h_expr = c.vertcat(
-            self.h1._ZMP[0],  # y-coord
+            self.h1._ZMP[2],  # y-coord
             self.h1.get_tau(),
             )
         ocp_cons.uh = np.hstack((
@@ -125,12 +122,12 @@ class OCP:
             self.h1._PoS.yl,
             np.full(nq, -max_tau),
             ))
-        
+
         # terminal
         #       limit velocity to end
-        # ocp_cons.idxbx_e = np.arange(nq,2*nq)
-        # ocp_cons.ubx_e = np.full(nq, 0.01)
-        # ocp_cons.lbx_e = np.full(nq, -0.01)
+        ocp_cons.idxbx_e = np.arange(nq,2*nq)
+        ocp_cons.ubx_e = np.full(nq, 0.001)
+        ocp_cons.lbx_e = np.full(nq, -0.001)
 
         return ocp_cons
     
@@ -141,7 +138,8 @@ class OCP:
         solver.set_flat('p', time_arr)
         return solver
     
-    def set_warm_start(self, solver : AcadosOcpSolver, N : int) -> AcadosOcpSolver:
+    def set_inital_guess(self, solver : AcadosOcpSolver, N : int) -> AcadosOcpSolver:
+        # interpolate hip
         nq = self.h1.get_nq(reduced=True)
         x_arr = np.zeros((2*nq, N+1))
         x_arr[:,:nq] = self._q0
@@ -149,6 +147,7 @@ class OCP:
         w = np.arange(0, 1, 1/(N+1))
         x_arr[hip_id,:] = self._q0[hip_id]*w+1.55*(1-w)
         solver.set_flat('x', x_arr.flatten())
+
         return solver
 
 
@@ -170,11 +169,13 @@ class OCP:
         ocp.solver_options.tf = self.Tf
         ocp.solver_options.N_horizon = self.N
         ocp.solver_options.print_level = 1  # full verbosity
-        # ocp.solver_options.nlp_solver_max_iter = 1000
+        ocp.solver_options.nlp_solver_max_iter = 1000
+        ocp.solver_options.nlp_solver_tol_stat = float(10**-3)
+        ocp.solver_options.qp_solver_iter_max = 100
 
         solver = AcadosOcpSolver(ocp)
         solver = self.set_time_var(solver)
-        solver = self.set_warm_start(solver, self.N)
+        # solver = self.set_inital_guess(solver, self.N)
         solver.solve()
         solver.print_statistics()
 
