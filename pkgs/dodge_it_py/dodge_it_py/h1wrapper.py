@@ -327,8 +327,6 @@ class H1Wrapper():
         self._qddot = c.SX.sym('qddot', nv)
         self._qddot = self.full2mirrored(self._qddot)
 
-        cpin.forwardKinematics(cmodel, cdata, self._q, self._qdot, self._qddot)
-
         cpin.rnea(
             cmodel,
             cdata,
@@ -338,12 +336,7 @@ class H1Wrapper():
         )
         self._tau = cdata.tau
 
-        cpin.ccrba(
-            cmodel,
-            cdata,
-            self._q,
-            self._qddot
-        )
+        cpin.computeAllTerms(cmodel, cdata, self._q, self._qdot)
         cpin.updateFramePlacements(cmodel, cdata)
 
         # self._ZMP = self.zmp_approx_casadi(cmodel, cdata)
@@ -359,6 +352,9 @@ class H1Wrapper():
         # head (lidar_link)
         id_head = self.robot.model.getFrameId('lidar_link')
         self._head_pos = cdata.oMf[id_head].translation
+
+        self.cmodel = cmodel
+        self.cdata = cdata
 
     def get_q(self, reduced=True):
         if not reduced:
