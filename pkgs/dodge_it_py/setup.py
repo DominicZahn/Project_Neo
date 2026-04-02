@@ -30,6 +30,7 @@ setup(
     'console_scripts': [
         'jackson = dodge_it_py.jackson.jackson:main',
         'bob = dodge_it_py.bob.bob:main',
+        'john = dodge_it_py.john.john:main',
     ]
 }
 )
