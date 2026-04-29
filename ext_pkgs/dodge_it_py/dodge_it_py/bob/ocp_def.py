@@ -3,7 +3,7 @@ import casadi as c
 import matplotlib.pyplot as plt
 import sys
 
-from pkgs.dodge_it_py.dodge_it_py.h1wrapper import H1Wrapper
+from ext_pkgs.dodge_it_py.dodge_it_py.h1wrapper import H1Wrapper
 
 from acados_template import (
     plot_trajectories,

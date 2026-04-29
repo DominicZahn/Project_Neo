@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 
 import time
 
-from pkgs.dodge_it_py.dodge_it_py.h1wrapper import *
-from pkgs.dodge_it_py.dodge_it_py.john.ocp_def import OCP
+from ext_pkgs.dodge_it_py.dodge_it_py.h1wrapper import *
+from ext_pkgs.dodge_it_py.dodge_it_py.john.ocp_def import OCP
 
 def print_joints(cmodel, cdata):
     for name, oMi in zip(cmodel.names, cdata.oMi):
