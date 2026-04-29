@@ -1,10 +1,5 @@
 import numpy as np
 import casadi as c
-import pinocchio.casadi as cpin
-from acados_template import (
-    AcadosOcpSolver
-)
-
 import matplotlib.pyplot as plt
 
 import time
@@ -17,7 +12,6 @@ def print_joints(cmodel, cdata):
         print(name, '', oMi.translation.T)
 
 def main(args=None) -> int:
-
     # ---------------- H1 ---------------
     dynamic_joint_names = [
         'left_hip_pitch_joint',
