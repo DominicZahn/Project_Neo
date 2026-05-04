@@ -210,8 +210,8 @@ class OCP:
                 x_min=None,
                 x_max=None,
                 single_column=True,
-                x_labels=["$q_0$","$q_1$","$q_2$","$\dot q_0$","$\dot q_1$","$\dot q_2$"],
-                u_labels=["$\ddot q_0$","$\ddot q_1$","$\ddot q_2$"],
+                x_labels=["$q_0$","$q_1$","$q_2$","$\dot q_0$","$\dot q_1$","$\dot q_2$"], # type: ignore
+                u_labels=["$\ddot q_0$","$\ddot q_1$","$\ddot q_2$"], # type: ignore
                 show_legend=False,
                 show_plot=False, # plot but stay interactie
             )
