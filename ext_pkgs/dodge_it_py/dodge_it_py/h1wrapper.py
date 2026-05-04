@@ -50,34 +50,9 @@ class GazeboCom_Node(Node):
              topic_name = self.joint2topic(name)
              self.pub_dict[name] = self.create_publisher(Float64, topic_name, 10)
         self.motor_command = Float64() # to reuse single command
-        
-        # move slowly to starting position
-        # self.slow_motion(q0, joint_names)
     
     def js_callback(self, msg):
-            self.joint_states_map = dict(zip(msg.name, msg.position))
-
-    """
-    NOT WORKING
-    def slow_motion(self, q0 : list[float], names : list[str]):
-        cycle = 0
-        while True:
-            q_curr = np.zeros_like(names,dtype=float)
-            for i in range(len(names)):
-                q_curr[i] = self.joint_states_map[names[i]]
-                
-            cutoff = 0.005
-            dq = (np.array(q0) - q_curr)*0.01
-            dq[dq < cutoff] = 0.0
-            cycle += 1
-            print(cycle, np.linalg.norm(dq), dq)
-            if np.linalg.norm(dq) < cutoff:
-                break
-            q_next = q_curr + dq
-            self.update_joints(q_next.tolist(), names)
-            time.sleep(1)
-        input("Press any key to start...")
-    """
+        self.joint_states_map = dict(zip(msg.name, msg.position))
         
     def update_joints(self,
         q : list[float],
@@ -313,7 +288,7 @@ class H1Wrapper():
         ZMP[2] = zmp_z
         return ZMP
 
-    def init_casadi(self):
+    def init_casadi(self, inverseDynamics=True):
         cmodel = cpin.Model(self.robot.model)
         cdata = cmodel.createData()
         nq = cmodel.nq
@@ -324,17 +299,29 @@ class H1Wrapper():
         self._q = self.full2mirrored(self._q)
         self._qdot = c.SX.sym('qdot', nv)
         self._qdot = self.full2mirrored(self._qdot)
-        self._qddot = c.SX.sym('qddot', nv)
-        self._qddot = self.full2mirrored(self._qddot)
 
-        cpin.rnea(
-            cmodel,
-            cdata,
-            self._q,
-            self._qdot,
-            self._qddot
-        )
-        self._tau = cdata.tau
+        if inverseDynamics: # inverse dynamics: tau -> qddot
+            self._qddot = c.SX.sym('qddot', nv)
+            self._qddot = self.full2mirrored(self._qddot)
+            cpin.rnea(
+                cmodel,
+                cdata,
+                self._q,
+                self._qdot,
+                self._qddot
+            )
+            self._tau = cdata.tau
+        else: # forward dynamics: qddot -> tau
+            self._tau = c.SX.sym('tau', nv)
+            self._tau = self.full2mirrored(self._tau)
+            cpin.aba(
+                cmodel,
+                cdata,
+                self._q,
+                self._qdot,
+                self._tau
+            )
+            self._qddot = cdata._qddot
 
         cpin.computeAllTerms(cmodel, cdata, self._q, self._qdot)
         cpin.updateFramePlacements(cmodel, cdata)
