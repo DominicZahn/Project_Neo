@@ -38,9 +38,11 @@ def main(args=None) -> int:
     q0[h1.getJointId('left_knee_joint')-1] = 0.4 # x1
     q0[h1.getJointId('left_ankle_pitch_joint')-1] = -0.226 # x0
 
+
+
     # --------------- OCP -----------------
     Tf = 5
-    N = 40*int(Tf)
+    N = 30*int(Tf)
     nq = h1.get_nq(reduced=True)
     ocp = OCP(h1, dict(zip(names_reduced, q0)), Tf, N)
     solver = ocp.solve(True)
@@ -52,7 +54,8 @@ def main(args=None) -> int:
     # --------------- vis -----------------
     f_cost_stability = c.Function('f_cost_stability', [h1.get_q(True),h1.get_qdot(True), h1.get_qddot(True)], [ocp.cost_stability])
     f_cost_head = c.Function('f_cost_head', [h1.get_q(True), ocp.t], [ocp.cost_head])
-    # f_cost_reg = c.Function('f_cost_reg', [h1.get_q(True), h1.get_qddot(True)], [ocp.cost_reg])
+
+    f_rnea_tau = c.Function('f_rnea_tau', [h1.get_q(True), h1.get_qdot(True), h1.get_qddot(True)], [h1.get_tau(True)])
 
     plt.ion()
     fig, ax = plt.subplots()
@@ -70,18 +73,21 @@ def main(args=None) -> int:
         cost_stability_data = []
         cost_head_data = []
         # cost_reg_data = []
+        tau_full = np.zeros((N,3))
         for n in range(N):
             qi = solver.get(n, 'x')[:nq]
             qdoti = solver.get(n, 'x')[nq:]
             qddoti = solver.get(n, 'u')
-            lam = solver.get(n, 'lam')
+            taui = c.DM(f_rnea_tau(c.SX(qi), c.SX(qdoti), c.SX(qddoti))).toarray()
+            tau_full[n] = taui.transpose()
+            
             t = solver.get(n, 'p')
             h1.visualize(
                 h1.reduced2mirrored(qi).tolist(),
                 h1.jointNames(reduced=False)[1:],
                 h1.reduced2mirrored(qdoti).tolist(),
-                h1.reduced2mirrored(qddoti).tolist())
-            # print(t, lam)
+                h1.reduced2mirrored(qddoti).tolist(),
+                h1.reduced2mirrored(taui).tolist())
 
             # visualize cost in plot
             t_data.append(float(t))
@@ -103,6 +109,8 @@ def main(args=None) -> int:
             else:
                 time.sleep(Tf / N)
         print('Total Cost:', solver.get_cost())
+
+        np.save("/home/robot/ws/tau.npy", tau_full)
 
         input("Press any key to rerun...")
 

@@ -181,6 +181,7 @@ class OCP:
         ocp.solver_options.print_level = 1  # full verbosity
         ocp.solver_options.nlp_solver_max_iter = 1000
         ocp.solver_options.nlp_solver_tol_stat = float(10**-3)
+        # ocp.solver_options.tol = float(10**-3)
         ocp.solver_options.qp_solver_iter_max = 100
 
         solver = AcadosOcpSolver(ocp)
@@ -188,14 +189,18 @@ class OCP:
         # solver = self.set_inital_guess(solver, self.N)
         solver.solve()
         solver.print_statistics()
+        qp_dict = solver.qp_diagnostics('FULL_HESSIAN')
+        qp_prt_keys = ["max_eigv_global", "min_eigv_global", "condition_number_global"]
+        for k in qp_prt_keys:
+            print(k+": ", str(qp_dict[k]))
 
         if plot:
             simX = np.zeros((self.N + 1, self.x.size1()))
             simU = np.zeros((self.N, self.u.size1()))
-            for i in range(self.N):
+            for i in range(self.N+1):
                 simX[i, :] = solver.get(i, "x")
-                simU[i, :] = solver.get(i, "u")
-            simX[self.N, :] = solver.get(self.N, "x")
+                if i < self.N:
+                    simU[i, :] = solver.get(i, "u")
 
             plot_trajectories(
                 x_traj_list=[simX],
