@@ -27,7 +27,7 @@ def main(args=None) -> int:
         'left_ankle_pitch_joint',
         'right_ankle_pitch_joint'
     ]
-    h1 = H1Wrapper()
+    h1 = H1Wrapper(inverseDynamics=False)
     h1.fixJoints(
         dynamic_joint_names,
         dynamic_representation=True)
@@ -46,19 +46,21 @@ def main(args=None) -> int:
 
     # --------------- OCP -----------------
     Tf = 5
-    N = 40*int(Tf)
+    N = 30*int(Tf)
     nq = h1.get_nq(reduced=True)
     ocp = OCP(h1, dict(zip(names_reduced, q0)), Tf, N)
     solver = ocp.solve(True)
     if solver.status != 0:
         rclpy.shutdown()
         print('Total Cost:', solver.get_cost())
+        breakpoint()
         return -1
 
     # --------------- vis -----------------
-    f_cost_stability = c.Function('f_cost_stability', [h1.get_q(True),h1.get_qdot(True), h1.get_qddot(True)], [ocp.cost_stability])
+    f_cost_stability = c.Function('f_cost_stability', [h1.get_q(True),h1.get_qdot(True), h1.get_tau(True)], [ocp.cost_stability])
     f_cost_head = c.Function('f_cost_head', [h1.get_q(True), ocp.t], [ocp.cost_head])
     # f_cost_reg = c.Function('f_cost_reg', [h1.get_q(True), h1.get_qddot(True)], [ocp.cost_reg])
+    f_aba_qddot = c.Function('f_aba_addot', [h1.get_q(True), h1.get_qdot(True), h1.get_tau(True)], [h1.get_qddot(True)])
 
     plt.ion()
     fig, ax = plt.subplots()
@@ -79,14 +81,15 @@ def main(args=None) -> int:
         for n in range(N):
             qi = solver.get(n, 'x')[:nq]
             qdoti = solver.get(n, 'x')[nq:]
-            qddoti = solver.get(n, 'u')
-            lam = solver.get(n, 'lam')
+            taui = solver.get(n, 'u')
+            qddoti = c.DM(f_aba_qddot(c.SX(qi), c.SX(qdoti), c.SX(taui))).toarray()
             t = solver.get(n, 'p')
             h1.visualize(
                 h1.reduced2mirrored(qi).tolist(),
                 h1.jointNames(reduced=False)[1:],
                 h1.reduced2mirrored(qdoti).tolist(),
-                h1.reduced2mirrored(qddoti).tolist())
+                h1.reduced2mirrored(qddoti).tolist(),
+                h1.reduced2mirrored(taui).tolist())
 
             # visualize cost in plot
             t_data.append(float(t))

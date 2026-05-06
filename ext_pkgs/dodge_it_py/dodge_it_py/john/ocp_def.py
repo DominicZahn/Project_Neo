@@ -42,7 +42,7 @@ class OCP:
         self.xdot = c.vertcat(
             self.h1.get_qdot(),
             self.h1.get_qddot())
-        self.u = self.h1.get_qddot()
+        self.u = self.h1.get_tau()
         self.t = c.SX.sym('t',1)
 
     def _cost(self, ac_model: AcadosModel) -> AcadosOcpCost:
@@ -78,7 +78,7 @@ class OCP:
         # combinded
         self.w_cost_stability = 1
         self.w_cost_head = 0.5
-        self.w_reg = 10**-2
+        self.w_reg = 10**-20
 
         ac_model.cost_y_expr = self.w_cost_stability * self.cost_stability + self.w_cost_head * self.cost_head + self.w_reg * self.cost_reg
         ocp_cost.yref = 0.0
@@ -104,13 +104,6 @@ class OCP:
         max_tau_waist = 220 # [Nm]
         max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
 
-        ocp_cons.idxbx = np.arange(2 * nq)
-        ocp_cons.ubx = np.hstack((qub, np.full(nq, max_velocity)))
-        ocp_cons.lbx = np.hstack((qlb, np.full(nq, -max_velocity)))
-        ocp_cons.idxbu = np.arange(nq)
-        ocp_cons.ubu = np.full(nq, max_acceleration)
-        ocp_cons.lbu = np.full(nq, -max_acceleration)
-        
         hip_id = self.h1.getJointId('left_hip_pitch_joint')-1
         knee_id = self.h1.getJointId('left_knee_joint')-1
         ankle_id = self.h1.getJointId('left_ankle_pitch_joint')-1
@@ -118,19 +111,23 @@ class OCP:
         max_tau[hip_id] = max_tau_hip
         max_tau[knee_id] = max_tau_knee
         max_tau[ankle_id] = max_tau_ankle_pitch
+
+        ocp_cons.idxbx = np.arange(nq)
+        ocp_cons.ubx = qub
+        ocp_cons.lbx = qlb
+        ocp_cons.idxbu = np.arange(nq)
+        ocp_cons.ubu = max_tau
+        ocp_cons.lbu = -max_tau
         
         #       stability constraint and torque constraints
         ac_model.con_h_expr = c.vertcat(
             self.h1._ZMP[2],  # y-coord
-            self.h1.get_tau(),
             )
         ocp_cons.uh = np.hstack((
             self.h1._PoS.yu,
-            max_tau
             ))
         ocp_cons.lh = np.hstack((
             self.h1._PoS.yl,
-            -max_tau
             ))
 
         # terminal
@@ -149,14 +146,27 @@ class OCP:
         return solver
     
     def set_inital_guess(self, solver : AcadosOcpSolver, N : int) -> AcadosOcpSolver:
-        # interpolate hip
         nq = self.h1.get_nq(reduced=True)
+        # set v = 0 and q = q0
         x_arr = np.zeros((2*nq, N+1))
         x_arr[:,:nq] = self._q0
+
+        # manual interpolate
+        w = np.arange(0, N+1) / (N+1)
         hip_id = self.h1.getJointId('left_hip_pitch_joint')-1
-        w = np.arange(0, 1, 1/(N+1))
-        x_arr[hip_id,:] = self._q0[hip_id]*w+1.55*(1-w)
+        knee_id = self.h1.getJointId('left_knee_joint')-1       
+        ankle_id = self.h1.getJointId('left_ankle_pitch_joint')-1
+
+#        x_arr[hip_id,:] = self._q0[hip_id]*w-0.9*(1-w)
+#        x_arr[knee_id,:] = self._q0[knee_id]*w+1.8*(1-w)
+#        x_arr[ankle_id,:] = self._q0[ankle_id]*w-0.9*(1-w)
+
         solver.set_flat('x', x_arr.flatten())
+
+        # controls from acceleration controlled version
+        u_arr = np.load("/home/robot/ws/tau.npy").transpose()
+        solver.set_flat('u', u_arr.flatten())
+
 
         return solver
 
@@ -180,14 +190,19 @@ class OCP:
         ocp.solver_options.N_horizon = self.N
         ocp.solver_options.print_level = 1  # full verbosity
         ocp.solver_options.nlp_solver_max_iter = 1000
-        ocp.solver_options.nlp_solver_tol_stat = float(10**-3)
+        # ocp.solver_options.tol = float(10**-3)
         ocp.solver_options.qp_solver_iter_max = 100
+        # ocp.solver_options.hessian_approx = "EXACT"
 
         solver = AcadosOcpSolver(ocp)
         solver = self.set_time_var(solver)
         # solver = self.set_inital_guess(solver, self.N)
         solver.solve()
         solver.print_statistics()
+        qp_dict = solver.qp_diagnostics('FULL_HESSIAN')
+        qp_prt_keys = ["max_eigv_global", "min_eigv_global", "condition_number_global"]
+        for k in qp_prt_keys:
+            print(k+": ", str(qp_dict[k]))
 
         if plot:
             simX = np.zeros((self.N + 1, self.x.size1()))
@@ -210,8 +225,6 @@ class OCP:
                 x_min=None,
                 x_max=None,
                 single_column=True,
-                x_labels=["$q_0$","$q_1$","$q_2$","$\dot q_0$","$\dot q_1$","$\dot q_2$"],
-                u_labels=["$\ddot q_0$","$\ddot q_1$","$\ddot q_2$"],
                 show_legend=False,
                 show_plot=False, # plot but stay interactie
             )
