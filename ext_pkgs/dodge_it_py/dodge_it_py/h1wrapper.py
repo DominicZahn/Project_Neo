@@ -186,21 +186,9 @@ class PolygonOfSupport():
         return c.fmax(dy0, dy1)
 
 class H1Wrapper():
-    def _dynamic2fixedJoints(self,
-                            dynamic_joint_names : list[str]) -> list[str]:
-        fixed_joint_names = []
-        for joint_name in self.robot.model.names:
-            if not self.robot.model.existJointName(joint_name):
-                print("Warning: joint " + str(joint_name) + " does not belong to the model!")
-                continue
-            if joint_name in dynamic_joint_names:
-                continue
-            fixed_joint_names.append(joint_name) 
-        return fixed_joint_names
-
-    def __init__(self):
+    def __init__(self, inverseDynamics=True):
         self.gazebo = False
-
+        self._inverseDynamics = inverseDynamics
         self.robot = pin.RobotWrapper.BuildFromURDF(model_dir+urdf_file)
         self.all_joint_names = stdvec2list(self.robot.model.names)
         self.all_joint_values0 = np.zeros(len(self.all_joint_names)).tolist()
@@ -216,8 +204,21 @@ class H1Wrapper():
             'ZMP'
             ])
         self.joint_node = self.rviz_node
+        
+        self.init_casadi(self._inverseDynamics)
 
-        self.init_casadi()
+    def _dynamic2fixedJoints(self,
+                            dynamic_joint_names : list[str]) -> list[str]:
+        fixed_joint_names = []
+        for joint_name in self.robot.model.names:
+            if not self.robot.model.existJointName(joint_name):
+                print("Warning: joint " + str(joint_name) + " does not belong to the model!")
+                continue
+            if joint_name in dynamic_joint_names:
+                continue
+            fixed_joint_names.append(joint_name) 
+        return fixed_joint_names
+
 
     def init_gazebo(self, q0_map : dict[str,float]):
         if type(self.joint_node) is GazeboCom_Node:
@@ -260,7 +261,7 @@ class H1Wrapper():
         ZMP[2] = zmp_z
         return ZMP
     
-    def zmp_angular_linear_casadi(self, cmodel, cdata) -> c.SX:
+    def zmp_centroidal_casadi(self, cmodel, cdata) -> c.SX:
         zmp_z = 0.0
         g = cmodel.gravity.linear[2]
         M = cpin.computeTotalMass(cmodel,cdata)
@@ -275,7 +276,7 @@ class H1Wrapper():
             cmodel,
             cdata,
             self._q,
-            self._qddot,
+            self._qdot,
             self._qddot
         )
         dP = dPdL.linear
@@ -319,15 +320,16 @@ class H1Wrapper():
                 cdata,
                 self._q,
                 self._qdot,
-                self._tau
+                self._tau,
+                cpin.Convention.LOCAL
             )
-            self._qddot = cdata._qddot
+            self._qddot = cdata.ddq
 
         cpin.computeAllTerms(cmodel, cdata, self._q, self._qdot)
         cpin.updateFramePlacements(cmodel, cdata)
 
         # self._ZMP = self.zmp_approx_casadi(cmodel, cdata)
-        self._ZMP = self.zmp_angular_linear_casadi(cmodel, cdata)
+        self._ZMP = self.zmp_centroidal_casadi(cmodel, cdata)
         
         # CoM
         self._CoM = cpin.centerOfMass(cmodel, cdata, self._q)
@@ -424,6 +426,9 @@ class H1Wrapper():
                 if mirrored_id == id:
                     return e[0]
         return -1
+    
+    def usesInverseDynamics(self):
+        return self._inverseDynamics
 
     def proj2PoS(self, p : c.SX) -> c.SX:
         p_proj = c.SX(3,1)
@@ -456,7 +461,7 @@ class H1Wrapper():
         
         print('Warning: Mirror Layer was reset.')
         self.mirror_layer = MirrorLayer(self.robot.nq+1)
-        self.init_casadi()
+        self.init_casadi(self._inverseDynamics)
         
     def mirrorJoints(self,
                      joint_name_real : str,
@@ -470,7 +475,7 @@ class H1Wrapper():
         m_id = model.getJointId(joint_name_mirrored)
         
         res = self.mirror_layer.set_mirror(r_id, m_id)
-        self.init_casadi()
+        self.init_casadi(self._inverseDynamics)
         return res
     
     def full2mirrored(self, q : np.ndarray | c.SX) -> np.ndarray | c.SX:
@@ -531,8 +536,9 @@ class H1Wrapper():
     def visualize(self,
                       q : list[float],
                       names : list[str],
-                      qdot : list[float] = [],
-                      qddot : list[float] = []) -> list[str]:
+                      qdot : list[float],
+                      qddot : list[float],
+                      tau : list[float]) -> list[str]:
         assert(len(q) == len(names))
         
         # publish joint_states
@@ -540,6 +546,7 @@ class H1Wrapper():
         full_q = self.all_joint_values0
         full_qdot = np.zeros(len(full_names)).tolist()
         full_qddot = np.zeros(len(full_names)).tolist()
+        full_tau = np.zeros(len(full_names)).tolist() # for torque control later [TODO]
         error_names = []
         for i_param in range(len(names)):
             name = names[i_param]
@@ -553,10 +560,8 @@ class H1Wrapper():
                 continue
             i_full = full_names.index(name)
             full_q[i_full] = q[i_param]
-            if len(qdot) > 0:
-                full_qdot[i_full] = qdot[i_param]
-            if len(qddot) > 0:
-                full_qddot[i_full] = qddot[i_param]
+            full_qdot[i_full] = qdot[i_param]
+            full_qddot[i_full] = qddot[i_param]
 
         self.joint_node.update_joints(
             full_q,
@@ -569,14 +574,15 @@ class H1Wrapper():
         q_red = c.SX(nq_reduced,1)
         qdot_red = c.SX(nq_reduced,1)
         qddot_red = c.SX(nq_reduced,1)
-        for qi, qdoti, qddoti, namei in zip(q, qdot, qddot, names):
+        tau_red = c.SX(nq_reduced,1)
+        for qi, qdoti, qddoti, taui, namei in zip(q, qdot, qddot, tau, names):
             id = self.getJointId(namei) - 1
             q_red[id] = qi
             qdot_red[id] = qdoti
             qddot_red[id] = qddoti
+            tau_red[id] = taui
         q_sym = self.get_q(reduced=True)
         qdot_sym = self.get_qdot(reduced=True)
-        qddot_sym = self.get_qddot(reduced=True)
 
         CoM_proj_func = c.Function('CoM_func', [q_sym], [self._CoM_proj])
         CoM_proj_q = np.array(c.DM(CoM_proj_func(q_red)))
@@ -588,8 +594,14 @@ class H1Wrapper():
         if (not self.rviz_node.publish_point(CoM_q, 'CoM')):
             print('ERROR: CoM could not be published')
 
-        ZMP_func = c.Function('ZMP', [q_sym, qdot_sym, qddot_sym], [self._ZMP])
-        ZMP_q = np.array(c.DM(ZMP_func(q_red, qdot_red, qddot_red)))
+        if self._inverseDynamics:
+            qddot_sym = self.get_qddot(reduced=True)
+            ZMP_func = c.Function('ZMP', [q_sym, qdot_sym, qddot_sym], [self._ZMP])
+            ZMP_q = np.array(c.DM(ZMP_func(q_red, qdot_red, qddot_red)))
+        else:
+            tau_sym = self.get_tau(reduced=True)
+            ZMP_func = c.Function('ZMP', [q_sym, qdot_sym, tau_sym], [self._ZMP])
+            ZMP_q = np.array(c.DM(ZMP_func(q_red, qdot_red, tau_red)))
         if (not self.rviz_node.publish_point(ZMP_q, 'ZMP')):
             print('ERROR: ZMP could not be published')
 
