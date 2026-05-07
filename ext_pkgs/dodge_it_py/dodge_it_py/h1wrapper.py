@@ -328,15 +328,15 @@ class H1Wrapper():
         cpin.computeAllTerms(cmodel, cdata, self._q, self._qdot)
         cpin.updateFramePlacements(cmodel, cdata)
 
-        # self._ZMP = self.zmp_approx_casadi(cmodel, cdata)
-        self._ZMP = self.zmp_centroidal_casadi(cmodel, cdata)
+        self.ZMP_approx = self.zmp_approx_casadi(cmodel, cdata)
+        self.ZMP_centroidal = self.zmp_centroidal_casadi(cmodel, cdata)
         
         # CoM
-        self._CoM = cpin.centerOfMass(cmodel, cdata, self._q)
-        self._CoM_proj = self.proj2PoS(self._CoM)
+        self.CoM = cpin.centerOfMass(cmodel, cdata, self._q)
+        self.CoM_proj = self.proj2PoS(self.CoM)
 
         # PoS (hardcoded)
-        self._PoS = PolygonOfSupport()
+        self.PoS = PolygonOfSupport()
         
         # head (lidar_link)
         id_head = self.robot.model.getFrameId('lidar_link')
@@ -378,7 +378,7 @@ class H1Wrapper():
         return self.mirrored2reduced(qlb)
     
     def get_PoS_center(self) -> c.SX:
-        return self._PoS.get_center()
+        return self.PoS.get_center()
     def get_head_pos(self):
         return self._head_pos
 
@@ -406,7 +406,7 @@ class H1Wrapper():
             if e: nq += 1
         return nq - 1 # remove universe
 
-    def getJointId(self, name : str) -> int:
+    def getJointId(self, name : str, withoutUniverse=False) -> int:
         model = self.robot.model
         if not model.existJointName(name):
             return -1 
@@ -415,7 +415,7 @@ class H1Wrapper():
 
         entry = self.mirror_layer.mapper[id]
         if len(entry) > 0: # not mirrored id
-            return entry[0]
+            return entry[0]-1 if withoutUniverse else entry[0]
         
         # mirrored id
         for i in range(len(self.mirror_layer.mapper)):
@@ -424,7 +424,7 @@ class H1Wrapper():
                 continue
             for mirrored_id in e[1:]:
                 if mirrored_id == id:
-                    return e[0]
+                    return e[0]-1 if withoutUniverse else e[0]
         return -1
     
     def usesInverseDynamics(self):
@@ -576,7 +576,7 @@ class H1Wrapper():
         qddot_red = c.SX(nq_reduced,1)
         tau_red = c.SX(nq_reduced,1)
         for qi, qdoti, qddoti, taui, namei in zip(q, qdot, qddot, tau, names):
-            id = self.getJointId(namei) - 1
+            id = self.getJointId(namei, True)
             q_red[id] = qi
             qdot_red[id] = qdoti
             qddot_red[id] = qddoti
@@ -584,28 +584,28 @@ class H1Wrapper():
         q_sym = self.get_q(reduced=True)
         qdot_sym = self.get_qdot(reduced=True)
 
-        CoM_proj_func = c.Function('CoM_func', [q_sym], [self._CoM_proj])
+        CoM_proj_func = c.Function('CoM_func', [q_sym], [self.CoM_proj])
         CoM_proj_q = np.array(c.DM(CoM_proj_func(q_red)))
         if (not self.rviz_node.publish_point(CoM_proj_q, 'CoM_proj')):
             print('ERROR: CoM_proj could not be published')
 
-        CoM_func = c.Function('CoM', [q_sym], [self._CoM])
+        CoM_func = c.Function('CoM', [q_sym], [self.CoM])
         CoM_q = np.array(c.DM(CoM_func(q_red)))
         if (not self.rviz_node.publish_point(CoM_q, 'CoM')):
             print('ERROR: CoM could not be published')
 
         if self._inverseDynamics:
             qddot_sym = self.get_qddot(reduced=True)
-            ZMP_func = c.Function('ZMP', [q_sym, qdot_sym, qddot_sym], [self._ZMP])
+            ZMP_func = c.Function('ZMP', [q_sym, qdot_sym, qddot_sym], [self.ZMP_centroidal])
             ZMP_q = np.array(c.DM(ZMP_func(q_red, qdot_red, qddot_red)))
         else:
             tau_sym = self.get_tau(reduced=True)
-            ZMP_func = c.Function('ZMP', [q_sym, qdot_sym, tau_sym], [self._ZMP])
+            ZMP_func = c.Function('ZMP', [q_sym, qdot_sym, tau_sym], [self.ZMP_centroidal])
             ZMP_q = np.array(c.DM(ZMP_func(q_red, qdot_red, tau_red)))
         if (not self.rviz_node.publish_point(ZMP_q, 'ZMP')):
             print('ERROR: ZMP could not be published')
 
-        PoS_func = c.Function('PoS_func', [q_sym], [self._PoS.get_center()])
+        PoS_func = c.Function('PoS_func', [q_sym], [self.PoS.get_center()])
         PoS_q = np.array(c.DM(PoS_func(q_red)))
         if (not self.rviz_node.publish_point(PoS_q, 'PoS_center')):
             print('ERROR: PoS_center could not be published')
