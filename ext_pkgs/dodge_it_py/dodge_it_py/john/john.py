@@ -40,36 +40,36 @@ def main(args=None) -> int:
         return -1
     names_reduced = h1.jointNames(reduced=True)[1:] # no universe
     q0 = np.zeros(len(names_reduced))
-    q0[h1.getJointId('left_hip_pitch_joint')-1] = -0.15 # x2
-    q0[h1.getJointId('left_knee_joint')-1] = 0.4 # x1
-    q0[h1.getJointId('left_ankle_pitch_joint')-1] = -0.226 # x0
+    q0[h1.getJointId('left_ankle_pitch_joint',True)] = -0.226 # x0
+    q0[h1.getJointId('left_knee_joint',True)] = 0.4 # x1
+    q0[h1.getJointId('left_hip_pitch_joint',True)] = -0.15 # x2
 
     # --------------- OCP -----------------
     Tf = 5
-    N = 30*int(Tf)
+    N = 10*int(Tf)
     nq = h1.get_nq(reduced=True)
     ocp = OCP(h1, dict(zip(names_reduced, q0)), Tf, N)
     solver = ocp.solve(True)
     if solver.status != 0:
         rclpy.shutdown()
         print('Total Cost:', solver.get_cost())
-        breakpoint()
         return -1
 
     # --------------- vis -----------------
     f_cost_stability = c.Function('f_cost_stability', [h1.get_q(True),h1.get_qdot(True), h1.get_tau(True)], [ocp.cost_stability])
     f_cost_head = c.Function('f_cost_head', [h1.get_q(True), ocp.t], [ocp.cost_head])
-    # f_cost_reg = c.Function('f_cost_reg', [h1.get_q(True), h1.get_qddot(True)], [ocp.cost_reg])
+    f_cost_reg = c.Function('f_cost_reg', [h1.get_tau(True)], [ocp.cost_reg])
+
     f_aba_qddot = c.Function('f_aba_addot', [h1.get_q(True), h1.get_qdot(True), h1.get_tau(True)], [h1.get_qddot(True)])
 
     plt.ion()
     fig, ax = plt.subplots()
-    ax.set_title('Cost Graph (without weights)')
+    ax.set_title('Cost Graph (with weights)')
     ax.set_xlabel('t')
     ax.set_ylabel('Cost')
     line_stability, = ax.plot([], [], label='stability')
     line_head, = ax.plot([], [], label='head')
-    # line_reg, = ax.plot([], [], label='regularisation')
+    line_reg, = ax.plot([], [], label='regularisation')
     ax.legend()
 
     while rclpy.ok():
@@ -77,7 +77,7 @@ def main(args=None) -> int:
         t_data = []
         cost_stability_data = []
         cost_head_data = []
-        # cost_reg_data = []
+        cost_reg_data = []
         for n in range(N):
             qi = solver.get(n, 'x')[:nq]
             qdoti = solver.get(n, 'x')[nq:]
@@ -93,13 +93,16 @@ def main(args=None) -> int:
 
             # visualize cost in plot
             t_data.append(float(t))
-            cost_stability = f_cost_stability(c.SX(qi), c.SX(qdoti), c.SX(qddoti))
-            cost_stability_data.append(float(cost_stability)) # type: ignore
-            cost_head = f_cost_head(c.SX(qi), c.SX(t))
-            cost_head_data.append(float(cost_head)) # type: ignore
+            cost_stability = float(f_cost_stability(c.SX(qi), c.SX(qdoti), c.SX(qddoti))) * ocp.w_cost_stability # type: ignore
+            cost_stability_data.append(cost_stability)
+            cost_head = float(f_cost_head(c.SX(qi), c.SX(t))) * ocp.w_cost_head # type: ignore
+            cost_head_data.append(cost_head)
+            cost_reg = float(f_cost_reg(c.SX(taui))) * ocp.w_cost_reg # type: ignore
+            cost_reg_data.append(cost_reg)
 
             line_stability.set_data(t_data, cost_stability_data)
             line_head.set_data(t_data, cost_head_data)
+            line_reg.set_data(t_data, cost_reg_data)
             ax.relim()
             ax.autoscale_view()
 

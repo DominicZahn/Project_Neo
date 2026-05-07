@@ -28,7 +28,7 @@ class OCP:
         nq = self.h1.get_nq(reduced=True)
         q0_vec = np.zeros((nq))
         for name, value in self.q0_map.items():
-            id = self.h1.getJointId(name) - 1  # no universe
+            id = self.h1.getJointId(name, True)
             print(id, name, value)
             q0_vec[id] = value
         self._q0 = q0_vec
@@ -50,10 +50,10 @@ class OCP:
         ocp_cost.cost_type = "NONLINEAR_LS"
 
         # stability
-        self.cost_stability = self.h1._PoS.stability_centerDistParable(self.h1._ZMP)
+        self.cost_stability = self.h1.PoS.stability_centerDistParable(self.h1.ZMP_centroidal)
 
         # head
-        amplitude = 0.5
+        amplitude = 0.8
         f_head_h = c.Function('f_head_h',[self.h1.get_q(True)], [self.h1.get_head_pos()])
         head_pos0 = f_head_h(self._q0)
         if head_pos0 is None:
@@ -77,10 +77,10 @@ class OCP:
 
         # combinded
         self.w_cost_stability = 1
-        self.w_cost_head = 0.5
-        self.w_reg = 10**-20
+        self.w_cost_head = 0.25
+        self.w_cost_reg = 10**-20
 
-        ac_model.cost_y_expr = self.w_cost_stability * self.cost_stability + self.w_cost_head * self.cost_head + self.w_reg * self.cost_reg
+        ac_model.cost_y_expr = self.w_cost_stability * self.cost_stability + self.w_cost_head * self.cost_head + self.w_cost_reg * self.cost_reg
         ocp_cost.yref = 0.0
         ocp_cost.W = np.eye(1)
 
@@ -104,9 +104,9 @@ class OCP:
         max_tau_waist = 220 # [Nm]
         max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
 
-        hip_id = self.h1.getJointId('left_hip_pitch_joint')-1
-        knee_id = self.h1.getJointId('left_knee_joint')-1
-        ankle_id = self.h1.getJointId('left_ankle_pitch_joint')-1
+        hip_id = self.h1.getJointId('left_hip_pitch_joint', True)
+        knee_id = self.h1.getJointId('left_knee_joint', True)
+        ankle_id = self.h1.getJointId('left_ankle_pitch_joint', True)
         max_tau = np.zeros(nq)
         max_tau[hip_id] = max_tau_hip
         max_tau[knee_id] = max_tau_knee
@@ -120,21 +120,15 @@ class OCP:
         ocp_cons.lbu = -max_tau
         
         #       stability constraint and torque constraints
-        ac_model.con_h_expr = c.vertcat(
-            self.h1._ZMP[2],  # y-coord
-            )
-        ocp_cons.uh = np.hstack((
-            self.h1._PoS.yu,
-            ))
-        ocp_cons.lh = np.hstack((
-            self.h1._PoS.yl,
-            ))
+        ac_model.con_h_expr = self.cost_stability
+        ocp_cons.lh = -0.1
+        ocp_cons.uh = 0.9
 
         # terminal
         #       limit velocity to end
         ocp_cons.idxbx_e = np.arange(nq,2*nq)
-        ocp_cons.ubx_e = np.full(nq, 0.001)
-        ocp_cons.lbx_e = np.full(nq, -0.001)
+        ocp_cons.ubx_e = np.full(nq, 0.01)
+        ocp_cons.lbx_e = np.full(nq, -0.01)
 
         return ocp_cons
     
@@ -153,19 +147,19 @@ class OCP:
 
         # manual interpolate
         w = np.arange(0, N+1) / (N+1)
-        hip_id = self.h1.getJointId('left_hip_pitch_joint')-1
-        knee_id = self.h1.getJointId('left_knee_joint')-1       
-        ankle_id = self.h1.getJointId('left_ankle_pitch_joint')-1
+        hip_id = self.h1.getJointId('left_hip_pitch_joint', True)
+        knee_id = self.h1.getJointId('left_knee_joint', True)
+        ankle_id = self.h1.getJointId('left_ankle_pitch_joint', True)
 
-#        x_arr[hip_id,:] = self._q0[hip_id]*w-0.9*(1-w)
-#        x_arr[knee_id,:] = self._q0[knee_id]*w+1.8*(1-w)
-#        x_arr[ankle_id,:] = self._q0[ankle_id]*w-0.9*(1-w)
+        x_arr[hip_id,:] = self._q0[hip_id]*w-0.9*(1-w)
+        x_arr[knee_id,:] = self._q0[knee_id]*w+1.8*(1-w)
+        x_arr[ankle_id,:] = self._q0[ankle_id]*w-0.9*(1-w)
 
         solver.set_flat('x', x_arr.flatten())
 
         # controls from acceleration controlled version
-        u_arr = np.load("/home/robot/ws/tau.npy").transpose()
-        solver.set_flat('u', u_arr.flatten())
+#        u_arr = np.load("/home/robot/ws/tau.npy").transpose()
+#        solver.set_flat('u', u_arr.flatten())
 
 
         return solver
@@ -190,7 +184,12 @@ class OCP:
         ocp.solver_options.N_horizon = self.N
         ocp.solver_options.print_level = 1  # full verbosity
         ocp.solver_options.nlp_solver_max_iter = 1000
-        # ocp.solver_options.tol = float(10**-3)
+        ocp.solver_options.tol = float(10**-3)
+        ocp.solver_options.nlp_solver_tol_ineq = float(10**-1)
+        # ocp.solver_options.qp_tol = float(10**-3)
+        ocp.solver_options.qpscaling_scale_objective = "OBJECTIVE_GERSHGORIN"
+        ocp.solver_options.qpscaling_scale_constraints = "INF_NORM"
+        ocp.solver_options.nlp_qp_tol_strategy = "ADAPTIVE_QPSCALING"
         ocp.solver_options.qp_solver_iter_max = 100
         # ocp.solver_options.hessian_approx = "EXACT"
 
