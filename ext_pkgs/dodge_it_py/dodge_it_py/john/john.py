@@ -45,8 +45,8 @@ def main(args=None) -> int:
     q0[h1.getJointId('left_hip_pitch_joint',True)] = -0.15 # x2
 
     # --------------- OCP -----------------
-    Tf = 5
-    N = 10*int(Tf)
+    Tf = 1.0
+    N = 100
     nq = h1.get_nq(reduced=True)
     ocp = OCP(h1, dict(zip(names_reduced, q0)), Tf, N)
     solver = ocp.solve(True)
@@ -56,26 +56,32 @@ def main(args=None) -> int:
         return -1
 
     # --------------- vis -----------------
-    f_cost_stability = c.Function('f_cost_stability', [h1.get_q(True),h1.get_qdot(True), h1.get_tau(True)], [ocp.cost_stability])
+    f_cons_stability = c.Function('f_cons_stability', [h1.get_q(True),h1.get_qdot(True), h1.get_tau(True)], [ocp.cons_stability])
     f_cost_head = c.Function('f_cost_head', [h1.get_q(True), ocp.t], [ocp.cost_head])
     f_cost_reg = c.Function('f_cost_reg', [h1.get_tau(True)], [ocp.cost_reg])
 
     f_aba_qddot = c.Function('f_aba_addot', [h1.get_q(True), h1.get_qdot(True), h1.get_tau(True)], [h1.get_qddot(True)])
 
     plt.ion()
-    fig, ax = plt.subplots()
-    ax.set_title('Cost Graph (with weights)')
-    ax.set_xlabel('t')
-    ax.set_ylabel('Cost')
-    line_stability, = ax.plot([], [], label='stability')
-    line_head, = ax.plot([], [], label='head')
-    line_reg, = ax.plot([], [], label='regularisation')
-    ax.legend()
+    ax_cost = plt.subplot(211)
+    ax_cost.set_title('Cost Graph (with weights)')
+    ax_cost.set_xlabel('t [s]')
+    ax_cost.set_ylabel('Cost')
+    line_cost_head, = ax_cost.plot([], [], label='head')
+    line_cost_reg, = ax_cost.plot([], [], label='regularisation')
+    ax_cost.legend()
+    
+    ax_cons = plt.subplot(212, sharex=ax_cost)
+    ax_cons.set_title('Constraints')
+    ax_cons.set_xlabel('t [s]')
+    ax_cons.set_ylabel('unitless constraint')
+    line_cons_stability, = ax_cons.plot([], [], label='stability')
+    ax_cons.legend()
 
     while rclpy.ok():
-        h1.init_gazebo(dict(zip(h1.jointNames(reduced=False)[1:], h1.reduced2mirrored(q0))))
+        # h1.init_gazebo(dict(zip(h1.jointNames(reduced=False)[1:], h1.reduced2mirrored(q0))))
         t_data = []
-        cost_stability_data = []
+        cons_stability_data = []
         cost_head_data = []
         cost_reg_data = []
         for n in range(N):
@@ -91,20 +97,23 @@ def main(args=None) -> int:
                 h1.reduced2mirrored(qddoti).tolist(),
                 h1.reduced2mirrored(taui).tolist())
 
-            # visualize cost in plot
+            # visualize in plot
             t_data.append(float(t))
-            cost_stability = float(f_cost_stability(c.SX(qi), c.SX(qdoti), c.SX(qddoti))) * ocp.w_cost_stability # type: ignore
-            cost_stability_data.append(cost_stability)
+            cons_stability = float(f_cons_stability(c.SX(qi), c.SX(qdoti), c.SX(qddoti))) # type: ignore
+            cons_stability_data.append(cons_stability)
+            line_cons_stability.set_data(t_data, cons_stability_data)
+            ax_cons.relim()
+            ax_cons.autoscale_view()
+
             cost_head = float(f_cost_head(c.SX(qi), c.SX(t))) * ocp.w_cost_head # type: ignore
             cost_head_data.append(cost_head)
             cost_reg = float(f_cost_reg(c.SX(taui))) * ocp.w_cost_reg # type: ignore
             cost_reg_data.append(cost_reg)
-
-            line_stability.set_data(t_data, cost_stability_data)
-            line_head.set_data(t_data, cost_head_data)
-            line_reg.set_data(t_data, cost_reg_data)
-            ax.relim()
-            ax.autoscale_view()
+            line_cost_head.set_data(t_data, cost_head_data)
+            line_cost_reg.set_data(t_data, cost_reg_data)
+            
+            ax_cost.relim()
+            ax_cost.autoscale_view()
 
             if n % 10 == 0:
                 plt.pause(Tf / N)

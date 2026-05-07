@@ -49,9 +49,6 @@ class OCP:
         ocp_cost = AcadosOcpCost()
         ocp_cost.cost_type = "NONLINEAR_LS"
 
-        # stability
-        self.cost_stability = self.h1.PoS.stability_centerDistParable(self.h1.ZMP_centroidal)
-
         # head
         amplitude = 0.8
         f_head_h = c.Function('f_head_h',[self.h1.get_q(True)], [self.h1.get_head_pos()])
@@ -76,13 +73,14 @@ class OCP:
         self.cost_reg = c.dot(self.u,self.u)
 
         # combinded
-        self.w_cost_stability = 1
-        self.w_cost_head = 0.25
+        self.w_cost_head = 1.0
         self.w_cost_reg = 10**-20
 
-        ac_model.cost_y_expr = self.w_cost_stability * self.cost_stability + self.w_cost_head * self.cost_head + self.w_cost_reg * self.cost_reg
-        ocp_cost.yref = 0.0
-        ocp_cost.W = np.eye(1)
+        ac_model.cost_y_expr = c.vertcat(self.cost_head, self.cost_reg)
+        ocp_cost.yref = np.zeros((2,1))
+        ocp_cost.W = np.eye(2)
+        ocp_cost.W[0,0] = np.array(self.w_cost_head)
+        ocp_cost.W[1,1] = np.array(self.w_cost_reg)
 
         return ocp_cost
 
@@ -119,10 +117,11 @@ class OCP:
         ocp_cons.ubu = max_tau
         ocp_cons.lbu = -max_tau
         
-        #       stability constraint and torque constraints
-        ac_model.con_h_expr = self.cost_stability
+        #       stability constraint
+        self.cons_stability = self.h1.PoS.stability_centerDistParable(self.h1.ZMP_centroidal)
+        ac_model.con_h_expr = self.cons_stability
         ocp_cons.lh = -0.1
-        ocp_cons.uh = 0.9
+        ocp_cons.uh = 0.3
 
         # terminal
         #       limit velocity to end
