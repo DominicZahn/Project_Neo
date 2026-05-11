@@ -92,16 +92,18 @@ class OCP:
         ocp_cons.x0 = np.hstack((self._q0, np.zeros(nq)))
 
         # path
-        #      joint limit
+        #       joint limit
         qub = self.h1.get_upperPosLimit()
         qlb = self.h1.get_lowerPosLimit()
-        max_velocity = 100 # [rad/s]
-        max_acceleration = 100 # [rad/s²]
+        ocp_cons.idxbx = np.arange(nq)
+        ocp_cons.ubx = qub
+        ocp_cons.lbx = qlb
+
+        #       torque limit
         max_tau_knee = 360 # [Nm]
         max_tau_hip = 220 # [Nm]
         max_tau_waist = 220 # [Nm]
         max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
-
         hip_id = self.h1.getJointId('left_hip_pitch_joint', True)
         knee_id = self.h1.getJointId('left_knee_joint', True)
         ankle_id = self.h1.getJointId('left_ankle_pitch_joint', True)
@@ -110,9 +112,6 @@ class OCP:
         max_tau[knee_id] = max_tau_knee
         max_tau[ankle_id] = max_tau_ankle_pitch
 
-        ocp_cons.idxbx = np.arange(nq)
-        ocp_cons.ubx = qub
-        ocp_cons.lbx = qlb
         ocp_cons.idxbu = np.arange(nq)
         ocp_cons.ubu = max_tau
         ocp_cons.lbu = -max_tau
@@ -120,8 +119,19 @@ class OCP:
         #       stability constraint
         self.cons_stability = self.h1.PoS.stability_centerDistParable(self.h1.ZMP_centroidal)
         ac_model.con_h_expr = self.cons_stability
-        ocp_cons.lh = -0.1
-        ocp_cons.uh = 0.3
+        ocp_cons.lh = -0.2
+        ocp_cons.uh = 0.2
+        ac_model.con_h_expr_0 = self.cons_stability
+        ocp_cons.lh_0 = -0.2
+        ocp_cons.uh_0 = 0.2
+
+#        self.cons_stability = self.u[ankle_id]
+#        ac_model.con_h_expr = self.cons_stability
+#        ocp_cons.uh = 113 * 0.1
+#        ocp_cons.lh = -55 * 0.1
+#        ac_model.con_h_expr_0 = self.cons_stability
+#        ocp_cons.uh_0 = 113 * 0.1
+#        ocp_cons.lh_0 = -55 * 0.1
 
         # terminal
         #       limit velocity to end
@@ -183,12 +193,12 @@ class OCP:
         ocp.solver_options.N_horizon = self.N
         ocp.solver_options.print_level = 1  # full verbosity
         ocp.solver_options.nlp_solver_max_iter = 1000
-        ocp.solver_options.tol = float(10**-3)
-        ocp.solver_options.nlp_solver_tol_ineq = float(10**-1)
+        # ocp.solver_options.tol = float(10**-3)
+        # ocp.solver_options.nlp_solver_tol_ineq = float(10**-3)
         # ocp.solver_options.qp_tol = float(10**-3)
-        ocp.solver_options.qpscaling_scale_objective = "OBJECTIVE_GERSHGORIN"
-        ocp.solver_options.qpscaling_scale_constraints = "INF_NORM"
-        ocp.solver_options.nlp_qp_tol_strategy = "ADAPTIVE_QPSCALING"
+        # ocp.solver_options.qpscaling_scale_objective = "OBJECTIVE_GERSHGORIN"
+        # ocp.solver_options.qpscaling_scale_constraints = "INF_NORM"
+        # ocp.solver_options.nlp_qp_tol_strategy = "ADAPTIVE_QPSCALING"
         ocp.solver_options.qp_solver_iter_max = 100
         # ocp.solver_options.hessian_approx = "EXACT"
 

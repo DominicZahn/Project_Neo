@@ -89,6 +89,8 @@ def main(args=None) -> int:
             qdoti = solver.get(n, 'x')[nq:]
             taui = solver.get(n, 'u')
             qddoti = c.DM(f_aba_qddot(c.SX(qi), c.SX(qdoti), c.SX(taui))).toarray()
+            # lam = solver.get(n, 'lam')
+            # print(lam)
             t = solver.get(n, 'p')
             h1.visualize(
                 h1.reduced2mirrored(qi).tolist(),
@@ -99,7 +101,7 @@ def main(args=None) -> int:
 
             # visualize in plot
             t_data.append(float(t))
-            cons_stability = float(f_cons_stability(c.SX(qi), c.SX(qdoti), c.SX(qddoti))) # type: ignore
+            cons_stability = float(f_cons_stability(c.SX(qi), c.SX(qdoti), c.SX(taui))) # type: ignore
             cons_stability_data.append(cons_stability)
             line_cons_stability.set_data(t_data, cons_stability_data)
             ax_cons.relim()
