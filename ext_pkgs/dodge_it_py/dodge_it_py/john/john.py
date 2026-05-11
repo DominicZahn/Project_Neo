@@ -1,9 +1,5 @@
 import numpy as np
 import casadi as c
-import pinocchio.casadi as cpin
-from acados_template import (
-    AcadosOcpSolver
-)
 
 import matplotlib.pyplot as plt
 
@@ -16,7 +12,7 @@ def print_joints(cmodel, cdata):
     for name, oMi in zip(cmodel.names, cdata.oMi):
         print(name, '', oMi.translation.T)
 
-def main(args=None) -> int:
+def main(args=None, q0 = np.zeros(3)) -> int:
 
     # ---------------- H1 ---------------
     dynamic_joint_names = [
@@ -39,13 +35,14 @@ def main(args=None) -> int:
     if not mirrors_res:
         return -1
     names_reduced = h1.jointNames(reduced=True)[1:] # no universe
-    q0 = np.zeros(len(names_reduced))
-    q0[h1.getJointId('left_ankle_pitch_joint',True)] = -0.226 # x0
-    q0[h1.getJointId('left_knee_joint',True)] = 0.4 # x1
-    q0[h1.getJointId('left_hip_pitch_joint',True)] = -0.15 # x2
+    if not np.all(q0 != 0):
+        q0 = np.zeros(len(names_reduced))
+        q0[h1.getJointId('left_ankle_pitch_joint',True)] = -0.226 # x0
+        q0[h1.getJointId('left_knee_joint',True)] = 0.4 # x1
+        q0[h1.getJointId('left_hip_pitch_joint',True)] = -0.15 # x2
 
     # --------------- OCP -----------------
-    Tf = 1.0
+    Tf = 5.0
     N = 100
     nq = h1.get_nq(reduced=True)
     ocp = OCP(h1, dict(zip(names_reduced, q0)), Tf, N)
@@ -79,7 +76,7 @@ def main(args=None) -> int:
     ax_cons.legend()
 
     while rclpy.ok():
-        # h1.init_gazebo(dict(zip(h1.jointNames(reduced=False)[1:], h1.reduced2mirrored(q0))))
+        # gz_res = h1.init_gazebo(dict(zip(h1.jointNames(reduced=False)[1:], h1.reduced2mirrored(q0))))
         t_data = []
         cons_stability_data = []
         cost_head_data = []

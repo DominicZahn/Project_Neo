@@ -117,27 +117,28 @@ class OCP:
         ocp_cons.lbu = -max_tau
         
         #       stability constraint
+        useablePoS = 0.1
         self.cons_stability = self.h1.PoS.stability_centerDistParable(self.h1.ZMP_centroidal)
         ac_model.con_h_expr = self.cons_stability
-        ocp_cons.lh = -0.2
-        ocp_cons.uh = 0.2
+        ocp_cons.lh = -0.1
+        ocp_cons.uh = useablePoS
         ac_model.con_h_expr_0 = self.cons_stability
-        ocp_cons.lh_0 = -0.2
-        ocp_cons.uh_0 = 0.2
+        ocp_cons.lh_0 = -0.1
+        ocp_cons.uh_0 = useablePoS
 
 #        self.cons_stability = self.u[ankle_id]
 #        ac_model.con_h_expr = self.cons_stability
-#        ocp_cons.uh = 113 * 0.1
-#        ocp_cons.lh = -55 * 0.1
+#        ocp_cons.uh = 113 * useablePoS
+#        ocp_cons.lh = -55 * useablePoS
 #        ac_model.con_h_expr_0 = self.cons_stability
-#        ocp_cons.uh_0 = 113 * 0.1
-#        ocp_cons.lh_0 = -55 * 0.1
+#        ocp_cons.uh_0 = 113 * useablePoS
+#        ocp_cons.lh_0 = -55 * useablePoS
 
         # terminal
         #       limit velocity to end
         ocp_cons.idxbx_e = np.arange(nq,2*nq)
-        ocp_cons.ubx_e = np.full(nq, 0.01)
-        ocp_cons.lbx_e = np.full(nq, -0.01)
+        ocp_cons.ubx_e = np.full(nq, 0.001)
+        ocp_cons.lbx_e = np.full(nq, -0.001)
 
         return ocp_cons
     

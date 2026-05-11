@@ -195,6 +195,7 @@ class H1Wrapper():
 
         self.mirror_layer = MirrorLayer(self.robot.nq+1)
 
+
         rclpy.init()
         self.rviz_node = RVizCom_Node([
             'CoM_proj',
