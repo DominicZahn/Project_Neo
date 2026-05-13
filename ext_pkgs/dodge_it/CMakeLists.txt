@@ -13,7 +13,9 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(Eigen3 3.0.0 REQUIRED)
 find_package(neo_utils REQUIRED)
-find_package(RBDL COMPONENTS URDFREADER REQUIRED CONFIG)
+find_package(RBDL COMPONENTS URDFREADER REQUIRED)
+set(NLopt_DIR /opt/venv/lib/cmake/nlopt)
+find_package(NLopt REQUIRED)
 
 add_executable(smith src/smith.cpp)
 target_include_directories(smith PUBLIC
@@ -38,7 +40,7 @@ install(
 target_link_libraries(smith
   ${RBDL_LIBRARY}
   ${RBDL_URDFREADER_LIBRARY}
-  nlopt
+  NLopt::nlopt
   m
 )
 

@@ -17,8 +17,10 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(RBDL COMPONENTS URDFREADER REQUIRED CONFIG)
+find_package(RBDL COMPONENTS URDFREADER REQUIRED)
 find_package(Eigen3 3.0.0 REQUIRED)
+set(NLopt_DIR /opt/venv/lib/cmake/nlopt)
+find_package(NLopt REQUIRED)
 
 # Install project launch files
 install(
@@ -33,7 +35,7 @@ target_include_directories(staticJointMover PUBLIC ${RBDL_INCLUDE_DIR} ${EIGEN3_
 target_link_libraries(staticJointMover
   ${RBDL_LIBRARY}
   ${RBDL_URDFREADER_LIBRARY}
-  nlopt
+  NLopt::nlopt
   m
 )
 ament_target_dependencies(

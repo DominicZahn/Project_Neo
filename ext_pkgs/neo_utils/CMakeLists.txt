@@ -15,7 +15,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(ros_gz_interfaces REQUIRED)
 find_package(Eigen3 3.0.0 REQUIRED)
 find_package(tinyxml2 REQUIRED)
-find_package(RBDL COMPONENTS URDFREADER REQUIRED CONFIG)
+find_package(RBDL COMPONENTS URDFREADER REQUIRED)
 
 add_library(neo_utils
   src/stability.cpp
