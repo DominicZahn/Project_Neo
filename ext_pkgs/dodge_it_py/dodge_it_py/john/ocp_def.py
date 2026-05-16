@@ -50,7 +50,7 @@ class OCP:
         ocp_cost.cost_type = "NONLINEAR_LS"
 
         # head
-        amplitude = 0.8
+        amplitude = 0.5
         f_head_h = c.Function('f_head_h',[self.h1.get_q(True)], [self.h1.get_head_pos()])
         head_pos0 = f_head_h(self._q0)
         if head_pos0 is None:
@@ -117,7 +117,7 @@ class OCP:
         ocp_cons.lbu = -max_tau
         
         #       stability constraint
-        useablePoS = 0.1
+        useablePoS = 0.8
         self.cons_stability = self.h1.PoS.stability_centerDistParable(self.h1.ZMP_centroidal)
         ac_model.con_h_expr = self.cons_stability
         ocp_cons.lh = -0.1
@@ -192,9 +192,9 @@ class OCP:
         ocp.solver_options.integrator_type = "ERK"
         ocp.solver_options.tf = self.Tf
         ocp.solver_options.N_horizon = self.N
-        ocp.solver_options.print_level = 1  # full verbosity
+        ocp.solver_options.print_level = 3
         ocp.solver_options.nlp_solver_max_iter = 1000
-        # ocp.solver_options.tol = float(10**-3)
+        ocp.solver_options.tol = float(10**-3)
         # ocp.solver_options.nlp_solver_tol_ineq = float(10**-3)
         # ocp.solver_options.qp_tol = float(10**-3)
         # ocp.solver_options.qpscaling_scale_objective = "OBJECTIVE_GERSHGORIN"
