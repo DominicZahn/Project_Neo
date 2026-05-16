@@ -1,7 +1,7 @@
 ---
 theme: ./theme
 themeConfig:
-  paginationX: r
+  paginationX: l
   paginationY: b
   paginationPagesDisabled: 1 2
 info: |
@@ -21,7 +21,7 @@ transition: slide-left
 
 coverAuthor: Dominic Zahn
 coverDate: 5/18/2026
-coverBackgroundUrl: /dojo_white.jpg
+coverBackgroundUrl: wallpapers/dojo_white.jpg
 ---
 
 # <span style="color: lightgray"><b>Neo-Construct</b></span>
@@ -32,4 +32,16 @@ coverBackgroundUrl: /dojo_white.jpg
 src: ./pages/01_intro.md
 ---
 <!--- INTRO -->
-
+---
+src: ./pages/02_rbd.md
+---
+<!-- Rigid Body Dynamics -->
+---
+src: ./pages/03_oc.md
+---
+<!-- OPTIMAL CONTROL -->
+---
+src: ./pages/99_conclusion.md
+---
+<!-- CONCLUSION -->
+---
