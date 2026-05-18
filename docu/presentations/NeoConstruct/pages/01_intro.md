@@ -1,5 +1,5 @@
 ---
-title: Simple Example Showcase
+title: H1-2 Example Showcase
 layout: image-right
 image: /recordings/h1-2-duck-vertical.GIF
 backgroundSize: contain

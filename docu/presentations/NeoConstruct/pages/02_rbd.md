@@ -115,6 +115,18 @@ CoM:
 
 ```mermaid
 graph LR
+  classDef highlight color:#0093ff
+
+  idi["τ, q, q̈"]:::highlight --"Inverse\n Dynamics"--> ido["q̇"]:::highlight
+  fki["q"]:::highlight --"Forward\n Kinematics"--> fko["p"]:::highlight
+```
+
+  </template>
+
+  <template #10>
+
+```mermaid
+graph LR
   classDef highlight stroke:#0093ff,stroke-width:2px
 
   idi["τ, q, q̈"]:::highlight --"Inverse\n Dynamics"--> ido["q̇"]:::highlight
@@ -122,7 +134,7 @@ graph LR
 ```
 
   </template>
-  <template #10>
+  <template #11>
 
 ```mermaid
 graph LR
@@ -132,7 +144,7 @@ graph LR
 ```
 
   </template>
-  <template #11>
+  <template #12>
 
 ```mermaid
 graph LR
@@ -197,7 +209,7 @@ CoM = cpin.centerOfMass(cmodel, cdata, q0)
 print('CoM:', CoM)
 ```
 
-```python {15-17|18-20|*}
+```python {10-13|15-17|18-20|*}
 import pinocchio.casadi as cpin
 import casadi as ca
 from pinocchio import RobotWrapper
@@ -243,7 +255,7 @@ image: /TechStack/pinocchio_logo.png
 backgroundSize: contain
 ---
 
-<div class="h-20"/>
+<div class="h-14.5"/>
 <h1>Additional Features</h1>
 <div class="h-5"/>
 
@@ -252,9 +264,11 @@ backgroundSize: contain
 
 ✅ *Collision with [Coal $^1$](https://github.com/coal-library/coal) (aka HPP-FCL)*
 
-✅ *Programmatic Model Generation*
+✅ *Programmatic Model Adaption*
 
-✅ *Lightweight Visualizer*
+✅ *Lightweight Visualizer ([Meshcat $^2$](https://github.com/meshcat-dev/meshcat))*
+
+✅ *More Alogrithms (e.g. RNEA, CRBA)*
 
 <!-- > And if you find some free time take a look at -->
 > And even **more features** to discover at
@@ -263,7 +277,17 @@ backgroundSize: contain
 
 <Footnotes x= 'r'>
   <Footnote :number=1>https://github.com/coal-library/coal</Footnote>
+  <Footnote :number=2>https://github.com/meshcat-dev/meshcat</Footnote>
 </Footnotes>
+
+<!--
+Composite Rigid Body Dynamics Algorithm (CRBA)
+- Centroidal Momentum Matrix
+- Composite Ridig Body Inertia
+- Centroidal momenta
+
+according to the current joint configuration and velocity
+-->
 
 ---
 title: Pipeline (Casadi)

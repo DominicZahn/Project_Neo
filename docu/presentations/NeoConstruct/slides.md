@@ -3,7 +3,7 @@ theme: ./theme
 themeConfig:
   paginationX: l
   paginationY: b
-  paginationPagesDisabled: 1 2
+  paginationPagesDisabled: 1 19 22
 info: |
   # Presentation and Demo for Neo-Construct
 
@@ -44,4 +44,3 @@ src: ./pages/03_oc.md
 src: ./pages/99_conclusion.md
 ---
 <!-- CONCLUSION -->
----

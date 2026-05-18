@@ -9,6 +9,49 @@ hide: True
 <h1 class="absolute right-3em top-7em"><b>Conclusion</b></h1>
 
 ---
+title: Tech Stack
+layout: center
+class: text-center
+---
+
+# Neo-Construct
+
+<div class="h-5"/>
+<div class="grid items-center grid-cols-4 gap-x-15 gap-y-10">
+  <div><img class="mx-auto block" width="100em" src="/TechStack/ROS.svg"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/Docker.svg"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/gz.svg"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/rviz.png"/></div>
+  <div><img class="mx-auto block" width="200em" src="/TechStack/acados_logo.png"/></div>
+  <div><img class="mx-auto block" width="200em" src="/TechStack/casadi.png"/></div>
+  <div><img class="mx-auto block" width="200em" src="/TechStack/pinocchio_logo.png"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/rbdl.svg"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/nlopt.png"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/boost.svg"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/eigen.png"/></div>
+  <div><img class="mx-auto block" width="100em" src="/TechStack/OpenCV.svg"/></div>
+</div>
+
+---
+title: Gitlab Promotion
+layout: image
+image: /gitlab.png
+---
+
+<!-- Placeholder -->
+
+---
+title: Setup
+layout: center
+---
+
+# How to Use
+<h3>1. Pull OR Build Docker Container</h3> 
+<h3>2. <code>make run</code></h3> 
+<h3>3. Attach VS-Code</h3> 
+<h3>4. Get Started</h3> 
+
+---
 title: Limitations
 layout: center
 class: text-center
@@ -36,34 +79,8 @@ Steep Learning Curve
 <img v-click="4" class="absolute left-2em bottom-5em" src="/acados_darksouls.jpg" width="250em"/>
 
 ---
-title: Tech Stack
-layout: center
-class: text-center
----
-
-# Total Tech Stack
-
-<div class="h-5"/>
-<div class="grid items-center grid-cols-4 gap-x-15 gap-y-10">
-  <div><img class="mx-auto block" width="100em" src="/TechStack/ROS.svg"/></div>
-  <div><img class="mx-auto block" width="100em" src="/TechStack/Docker.svg"/></div>
-  <div><img class="mx-auto block" width="100em" src="/TechStack/gz.svg"/></div>
-  <div><img class="mx-auto block" width="100em" src="/TechStack/rviz.png"/></div>
-  <div><img class="mx-auto block" width="200em" src="/TechStack/acados_logo.png"/></div>
-  <div><img class="mx-auto block" width="200em" src="/TechStack/casadi.png"/></div>
-  <div><img class="mx-auto block" width="200em" src="/TechStack/pinocchio_logo.png"/></div>
-  <div><img class="mx-auto block" width="100em" src="/TechStack/rbdl.svg"/></div>
-  <div><img class="mx-auto block" width="100em" src="/TechStack/nlopt.png"/></div>
-  <div><img class="mx-auto block" width="100em" src="/TechStack/boost.svg"/></div>
-  <div><img class="mx-auto block" width="100em" src="/TechStack/eigen.png"/></div>
-  <div><img class="mx-auto block" width="100em" src="/TechStack/OpenCV.svg"/></div>
-</div>
-
----
 hideInToc: true
 layout: end
 ---
 # Thank you for following the White Rabbit. 🐇
-
----
 
