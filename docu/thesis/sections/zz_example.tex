@@ -1,0 +1,46 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Example section}
+\lipsum[1]
+
+% A simpler equation
+\begin{equation}
+    y = mx + b
+    \label{eqn:linear}
+\end{equation}
+
+% A slightly more complicated equation
+% Need to add \usepackage{amsmath} at the start of this document to use "subequations"
+\begin{subequations}
+    \begin{align}
+        \min_{x(\cdot),u(\cdot)} \quad & \sum_{i=1}^{2} \left( ||q(t_i) - q_{ref}(t_i)||^2 + \int_{{t}_{i-1}}^{{t}_{i}} {\phi(\cdot)dt} \right) \label{ma_ocp_objfunc} \\
+        \textrm{s.t.} \quad & \dot{x}(t) = f_{i}(t, x(t), u(t), p) \quad \textrm{for } t \in T \label{ma_ocp_eom}\\
+         & r_{eq}(x(0), ..., x(T), p) = 0 \label{ma_ocp_req}\\
+         & r_{ineq}(x(0), ..., x(T), p) \geq 0 \label{ma_ocp_rineq}\\
+         & g_{i}(t, x(t), u(t), p) \geq 0 \quad \textrm{for } t \in T \label{ma_ocp_g}\\
+         & T = [t_1, t_2]^T \label{T}
+    \end{align}
+    \label{eqn:ma_ocp}
+\end{subequations}
+
+\subsection{Example subsection}
+\lipsum[2]
+
+%% Table
+\begin{table}[h]
+\caption{Example table.}
+   \begin{tabularx}{0.48\textwidth}{llr}
+   		 \toprule 
+   		 Symbol & \multicolumn{1}{X}{Description} & Value [m] \\
+		 \midrule
+		  $A_x$ & Horizontal coordinate of A$^{*}$ & 0.0745 \\
+		  $A_z$ & Vertical coordinate of A$^{*}$ & 0.2650 \\  \noalign{\smallskip}
+		  
+		  $C_x$ & Horizontal coordinate of C$^{\#}$ & 0.0700 \\
+		  $C_z$ & Vertical coordinate of C$^{\#}$ & 0.1000 \\
+		  $D_x$ & Horizontal coordinate of D$^{\dag}$ & 0.0602 \\
+		  $D_z$ & Vertical coordinate of D$^{\dag}$ & 0.0860 \\
+		 \bottomrule
+   \end{tabularx}  \label{tab:initmodel}
+\end{table}
+
+
