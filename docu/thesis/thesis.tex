@@ -1,0 +1,294 @@
+\documentclass[a4paper, twoside]{article}
+
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{fullpage}
+\usepackage{fancyhdr}
+\usepackage[parfill]{parskip}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[linktocpage=true]{hyperref}
+\usepackage{caption}
+\captionsetup[listing]{position=top}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{listings}[numbered,framed]
+\usepackage[newfloat]{minted}
+\usepackage[ruled,vlined,linesnumbered,longend]{algorithm2e}
+\SetKwInput{KwData}{Input}
+\SetKwInput{KwResult}{Output}
+%\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\usepackage[style=numeric,sorting=none]{biblatex}
+\addbibresource{mybibfile.bib}
+\setlength{\bibitemsep}{0.5em}
+\DeclareDelimFormat{multicitedelim}{\addsemicolon\space}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage[super]{nth}
+
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{dsfont}
+\usepackage{csquotes}
+\usepackage{siunitx}
+
+% Titelseite
+% This is not used as /maketitel is never called
+% -----------------------------------------------
+\author{}
+\date{\dayofsubmission}
+\title{}
+% -----------------------------------------------
+\definecolor{blau}{HTML}{00618F}
+\definecolor{kitgreen}{HTML}{009682}
+\numberwithin{equation}{section}
+\linespread{1.1}
+
+% Page Style
+\fancyhf{}
+\fancyfoot[LE,RO]{\thepage}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{1pt}
+\renewcommand{\footrule}{{\color{kitgreen}\hrule}}
+
+\captionsetup[figure]{width=.9\textwidth}
+\captionsetup[subfigure]{margin=0pt}
+\captionsetup[table]{width=.9\textwidth}
+
+
+%\newcommand{\degree}{Bachelor of Science}
+\newcommand{\degree}{Master of Science}
+\newcommand{\authorname}{Dominic Zahn}
+\newcommand{\dayofsubmission}{\nth{1} December 2026}
+\newcommand{\supervisor}{Dr. Jonas Große Sundrup}
+\newcommand{\firstreview}{Prof. Dr. Katja Mombaur}
+\newcommand{\secondreview}{Prof. Dr. Susan Calvin}
+
+% code listing
+\lstset{
+	basicstyle=\footnotesize\ttfamily,
+	tabsize=2,
+	numbers=left,
+	numbersep=5pt,
+	xleftmargin=2em,
+	frame=none,
+	framexleftmargin=1.5em,
+	language=[5.2]Lua,
+	literate=%
+	{Ö}{{\"O}}1
+	{Ä}{{\"A}}1
+	{Ü}{{\"U}}1
+	{ß}{{\ss}}1
+	{ü}{{\"u}}1
+	{ä}{{\"a}}1
+	{ö}{{\"o}}1
+}
+
+\renewcommand{\lstlistingname}{Code}
+\DeclareCaptionType{code}[Code][Code Listings]
+\newfloat{Code}{t}{lop}
+
+\renewcommand{\theFancyVerbLine}{\small\arabic{FancyVerbLine}}
+\setminted{
+  linenos,
+  frame=lines,
+  framesep=2mm,
+  numbersep=5pt,
+  xleftmargin=2em,
+  breaklines
+}
+
+\DeclareCaptionSubType{listing}
+
+\setcounter{secnumdepth}{4}
+
+
+\usepackage{tabularx}
+\usepackage{lipsum}
+
+\bibliography{mybibfile}
+
+\begin{document}
+\pagestyle{empty}
+\pagenumbering{gobble}
+
+\input{sections/titlepage.tex}
+%
+%
+%
+\newpage
+\ \\
+\newpage
+\input{sections/eidesstaatliche_erklaerung.tex}
+
+%\newpage
+%\input{sections/personal_acknowledgements.tex}
+
+\ \\
+\newpage
+\section*{Zusammenfassung}
+
+Hier kommt die Zusammenfassung hin.
+
+\newpage
+\section*{Abstract}
+
+Abstract goes here.
+
+\newpage
+
+%
+%
+%
+\pagestyle{fancy}
+\pagenumbering{roman}
+\tableofcontents
+%
+%
+%
+\renewcommand \thesection{\Roman{section}}
+%\printglossary[type=\acronymtype, title=Akronyme und Abkürzungen, toctitle=Akronyme und Abkürzungen]
+% \printglossary
+\newpage
+%
+%
+%
+\newpage
+\pagestyle{fancy}
+\pagenumbering{arabic}
+\renewcommand \thesection{\arabic{section}}
+\setcounter{section}{0}
+\section{External Introduction}
+\input{sections/introduction.tex}
+%
+%
+%
+\newpage
+
+
+\section{Internal Introduction}
+This is a thesis template for writing a thesis at the HCR chair at KIT.
+
+The visualizations of the results in this thesis were created using Python, specifically NumPy \cite{numpy} and \cite{scipy} for simulation and the pandas library~\cite{pandas-paper,pandas-paper} for data manipulation. Unless specified otherwise, plots in this thesis have been created using matplotlib~\cite{matplotlib} and seaborn \cite{seaborn}.
+
+%% Figure
+\begin{figure}[h]
+   \centering
+   \includegraphics[width=0.1\textwidth]{fig/knubbi.png}
+   \caption{Example picture - You can use a reasonable number of figures as needed -  there is no exact limitl}
+   \label{fig:knubbi}
+\end{figure}
+
+\subsection{Bibliography styles}
+The \texttt{orbref-num.bst} bibliography style numbers the citations by their order of appearance. Here are two sample references: \cite{Newton1687,Mombaur2009}.
+
+\subsection{Lorem Ipsum}
+\lipsum[1]
+
+
+\section{Section}
+\subsection{Subsection}
+This subsection has two subsubsections.
+
+\subsubsection{Subsubsection 1}
+
+\textbf{Bold text} and \textit{Italicized text}
+
+\subsubsection{Subsubsection 2}
+
+\textbf{\textit{Bold and italicized text}} can happen at the same time. The order of bold and italicization doesn't matter. In this sentence, I want to include mathematical expressions: \(\lambda + \gamma - \pi*\alpha*\beta = 42 \pm 0.5 \).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Example section}
+\lipsum[1]
+
+% A simpler equation
+\begin{equation}
+    y = mx + b
+    \label{eqn:linear}
+\end{equation}
+
+% A slightly more complicated equation
+% Need to add \usepackage{amsmath} at the start of this document to use "subequations"
+\begin{subequations}
+    \begin{align}
+        \min_{x(\cdot),u(\cdot)} \quad & \sum_{i=1}^{2} \left( ||q(t_i) - q_{ref}(t_i)||^2 + \int_{{t}_{i-1}}^{{t}_{i}} {\phi(\cdot)dt} \right) \label{ma_ocp_objfunc} \\
+        \textrm{s.t.} \quad & \dot{x}(t) = f_{i}(t, x(t), u(t), p) \quad \textrm{for } t \in T \label{ma_ocp_eom}\\
+         & r_{eq}(x(0), ..., x(T), p) = 0 \label{ma_ocp_req}\\
+         & r_{ineq}(x(0), ..., x(T), p) \geq 0 \label{ma_ocp_rineq}\\
+         & g_{i}(t, x(t), u(t), p) \geq 0 \quad \textrm{for } t \in T \label{ma_ocp_g}\\
+         & T = [t_1, t_2]^T \label{T}
+    \end{align}
+    \label{eqn:ma_ocp}
+\end{subequations}
+
+\subsection{Example subsection}
+\lipsum[2]
+
+%% Table
+\begin{table}[h]
+\caption{Example table.}
+   \begin{tabularx}{0.48\textwidth}{llr}
+   		 \toprule 
+   		 Symbol & \multicolumn{1}{X}{Description} & Value [m] \\
+		 \midrule
+		  $A_x$ & Horizontal coordinate of A$^{*}$ & 0.0745 \\
+		  $A_z$ & Vertical coordinate of A$^{*}$ & 0.2650 \\  \noalign{\smallskip}
+		  
+		  $C_x$ & Horizontal coordinate of C$^{\#}$ & 0.0700 \\
+		  $C_z$ & Vertical coordinate of C$^{\#}$ & 0.1000 \\
+		  $D_x$ & Horizontal coordinate of D$^{\dag}$ & 0.0602 \\
+		  $D_z$ & Vertical coordinate of D$^{\dag}$ & 0.0860 \\
+		 \bottomrule
+   \end{tabularx}  \label{tab:initmodel}
+\end{table}
+
+
+\section{Example section title}
+\lipsum[1]
+
+\begin{enumerate}
+    \item This is the first numbered line with enumerate
+    \item This is the second numbered line with enumerate
+\end{enumerate}
+
+\begin{itemize}
+    \item This is the first line with itemize
+    \item This is the second line with itemize
+\end{itemize}
+
+\section{Another example for a section title}
+
+I would like to test this citation to see if the year shows up in the References section \cite{test}.
+
+\lipsum[2]
+
+\section{Conclusions and Outlook}
+
+\lipsum[2]
+
+\section*{Disclosure of the use of generative AI}
+
+In the writing of this thesis, various generative AI tools were used in accordance to the KIT's guidelines on the use of generative AI~\cite{KIT_GenerativeKI_Leitfaden_2024}. The GPT-5.2 model and DeepL were used for proofreading and improving the language of the thesis. The use of these tools is limited to these purposes, while all scientific content and ideas were developed by the author independently. The author has critically reviewed and edited all content modified by these tools to ensure accuracy.
+
+For assistance in the implementation of the algorithms presented in this thesis GitHub Copilot with the Claude Sonnet 4.5 model was used. This assistance was limited to small code suggestions and partial generation of documentation. The design of the algorithms, the general code structure and architecture and all scientific content were developed by the author independently.
+
+
+\newpage
+
+\printbibliography
+% \bibliographystyle{acm}
+
+\newpage
+\section*{Appendix}
+
+Appendix goes here (optional).
+
+\end{document}

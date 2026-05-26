@@ -19,7 +19,7 @@ class: text-center
 <div class="h-50"/>
 
 # Simple Example
-#### 3-Segement Arm
+#### 3-Segment Arm
 
 ---
 title: OCP Formulation
