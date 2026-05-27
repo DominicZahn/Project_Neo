@@ -16,11 +16,9 @@ pal_packages/
 
 .vscode/
 
-# Latex
-# Created by https://www.toptal.com/developers/gitignore/api/latex
-# Edit at https://www.toptal.com/developers/gitignore?templates=latex
 
 ### LaTeX ###
+# Created by https://www.toptal.com/developers/gitignore/api/latex
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
