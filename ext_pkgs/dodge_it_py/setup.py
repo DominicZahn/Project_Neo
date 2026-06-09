@@ -7,7 +7,7 @@ package_name = 'dodge_it_py'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(exclude=['test']),
+    packages=find_packages(),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -17,15 +17,11 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='robot',
-    maintainer_email='robot@todo.todo',
-    description='TODO: Package description',
+    maintainer='Dominic Zahn',
+    maintainer_email='zahndominic@web.de',
+    description='Dodge_it develops multiple different algorithms to learn more about dodge motions of H1.',
     license='MIT',
-    extras_require={
-        'test': [
-            'pytest',
-        ],
-    },
+    extras_require={},
     entry_points={
     'console_scripts': [
         'jackson = dodge_it_py.jackson.jackson:main',

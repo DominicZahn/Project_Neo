@@ -5,14 +5,10 @@ import pinocchio.casadi as cpin
 
 import numpy as np
 import casadi as c
-
 import rclpy
-from rclpy.node import Node
-from rclpy.executors import SingleThreadedExecutor
-from rclpy.wait_for_message import wait_for_message
-from sensor_msgs.msg import JointState
-from geometry_msgs.msg import PointStamped, Point
-from std_msgs.msg import Float64
+
+from ext_pkgs.dodge_it_py.dodge_it_py.stability import PolygonOfSupport
+from ext_pkgs.dodge_it_py.dodge_it_py.ros_vis_com import GazeboCom_Node, RVizCom_Node
 
 model_dir ='/home/robot/ws/src/ros2_heinz/h1_gazebo_sim/ros_gz_h1_description/models/h1_ign/'
 # urdf_file = 'h1_2_handless.urdf' # 'h1_2.urdf'
@@ -25,96 +21,6 @@ def stdvec2list(stdvec) -> list:
     for v in stdvec:
         l.append(v)
     return l
-
-class GazeboCom_Node(Node):
-    def __init__(self, joint_names : list[str], q0 : list[float]):
-        super().__init__('h1wrapper_pub_node_gz')
-        # create subscriber for joint_states
-        self.joint_states_map = {}
-        self.subscription = self.create_subscription(
-            JointState,
-            '/joint_states',
-            self.js_callback,
-            10)
-        res, msg_init = wait_for_message(
-            msg_type=JointState,
-            node=self,
-            topic='/joint_states',
-            time_to_wait=5)
-        assert(res)
-        self.js_callback(msg_init)
-
-        # create publishers
-        self.pub_dict = {}
-        for name in joint_names:
-             topic_name = self.joint2topic(name)
-             self.pub_dict[name] = self.create_publisher(Float64, topic_name, 10)
-        self.motor_command = Float64() # to reuse single command
-    
-    def js_callback(self, msg):
-        self.joint_states_map = dict(zip(msg.name, msg.position))
-        
-    def update_joints(self,
-        q : list[float],
-        names : list[str],
-        qdot : list[float] = [],
-        qddot : list[float] = []):
-        rclpy.spin_once(self)
-
-        for name, qi in zip(names, q):
-            if name == 'universe':
-                continue
-            self.motor_command.data = qi
-            self.pub_dict[name].publish(self.motor_command)
-        
-
-    def joint2topic(self, joint_name : str):
-        return '/h1/'+joint_name+'/cmd_pos'
-   
-class RVizCom_Node(Node):
-    def __init__(self, pub_name_list : list[str]):
-        super().__init__('h1wrapper_pub_node_rviz')
-        self.pub_joint_states = self.create_publisher(
-            JointState,
-            'joint_states',
-            1)
-        self.pub_dict = {}
-        for name in pub_name_list:
-            self.pub_dict[name] = self.create_publisher(
-                PointStamped,
-                name,
-                1)
-
-    def update_joints(self,
-        q : list[float],
-        names : list[str],
-        qdot : list[float] = [],
-        qddot : list[float] = []):
-
-        msg = JointState()
-        msg.name = names
-        msg.position = q
-        msg.velocity = qdot
-        msg.effort = qddot
-        msg.header.frame_id = ""
-        msg.header.stamp = self.get_clock().now().to_msg()
-        self.pub_joint_states.publish(msg)
-
-    def publish_point(self, p : np.ndarray | c.SX, pub_name : str) -> bool:
-        if pub_name not in self.pub_dict.keys():
-            return False
-        if type(p) == c.SX and p.size1() != 3:
-            return False
-        if type(p) == np.ndarray and p.size != 3:
-            return False
-        msg = PointStamped()
-        msg.point.x = p[0][0]
-        msg.point.y = p[1][0]
-        msg.point.z = p[2][0]
-        msg.header.frame_id = 'left_ankle_roll_link'
-        msg.header.stamp = self.get_clock().now().to_msg()
-        self.pub_dict[pub_name].publish(msg)
-        return True
 
 class MirrorLayer():
     def __init__(self, size : int):
@@ -133,58 +39,6 @@ class MirrorLayer():
                 self.mapper[i][0] -= 1
         return True
     
-class PolygonOfSupport():
-    """
-    01---11        
-    |     |
-    |     |
-    00---10
-    """
-    def __init__(self) -> None:
-        self.xl = 0.0339
-        self.xu = -0.363
-        self.yl = -0.07 # -0.0875
-        self.yu = 0.175 
-        self._center = c.SX([
-            (self.yu+self.yl)/2,
-            (self.xu+self.xl)/2,
-            0.0
-        ])
-    
-    def get_corners(self) -> list[c.SX]:
-        """
-        00, 10, 11, 01
-        """
-        return [
-            c.SX([self.xl,self.yl,0.0]),
-            c.SX([self.xu,self.yl,0.0]),
-            c.SX([self.xu,self.yu,0.0]),
-            c.SX([self.xl,self.yu,0.0])
-        ]
-    
-    def get_center(self) -> c.SX:
-        return self._center
-
-    def stability_centerDistParable(self, p : c.SX) -> c.SX:
-        yp = p[0]
-        yc = self._center[0]
-        return (yp-yc)**2/(self.yl-yc)**2
-    
-    def stability_centerDist(self, p : c.SX) -> c.SX:
-        d = self._center - p
-        return c.dot(d,d)
-    
-    def stability_minEdgeY(self, p : c.SX) -> c.SX:
-        xp = p[1]
-        yp = p[0]
-        xc = self._center[1]
-        yc = self._center[0]
-        # dx0 = (xp-self._x0)/(xc-self._x0)
-        # dx1 = (xp-self._x1)/(xc-self._x1)
-        dy0 = (yp-self.yl)/(yc-self.yl)-1
-        dy1 = (yp-self.yu)/(yc-self.yu)-1
-        return c.fmax(dy0, dy1)
-
 class H1Wrapper():
     def __init__(self, inverseDynamics=True):
         self.gazebo = False
