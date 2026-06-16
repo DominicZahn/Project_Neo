@@ -1,6 +1,8 @@
 import casadi as c
 import numpy as np
 
+import pinocchio.casadi as cpin
+
 class PolygonOfSupport():
     """
     01---11        
@@ -53,3 +55,64 @@ class PolygonOfSupport():
         dy1 = (yp-self.yu)/(yc-self.yu)-1
         return c.fmax(dy0, dy1)
 
+# --------------------------------------------
+
+def zmp_centroidal(
+        cmodel : cpin.Model,
+        cdata : cpin.Data,
+        q : c.SX,
+        qdot : c.SX,
+        qddot : c.SX) -> c.SX:
+    zmp_z = 0.0
+    g = cmodel.gravity.linear[2]
+    M = cpin.computeTotalMass(cmodel,cdata)
+    CoM = cpin.centerOfMass(
+        cmodel,
+        cdata,
+        q,
+        qdot,
+        qddot
+    )
+    dPdL = cpin.computeCentroidalMomentumTimeVariation(
+        cmodel,
+        cdata,
+        q,
+        qdot,
+        qddot
+    )
+    dP = dPdL.linear
+    dL = dPdL.angular
+
+    ZMP = c.SX([0,0,0])
+    zmp_num = M*g+dP[2]
+    ZMP[0] = (M*g*CoM[0]+zmp_z*dP[0]-dL[1]) / zmp_num
+    ZMP[1] = (M*g*CoM[1]+zmp_z*dP[2]+dL[0]) / zmp_num
+    ZMP[2] = zmp_z
+    return ZMP
+
+def zmp_approx(cmodel : cpin.Model, cdata : cpin.Data) -> c.SX:
+    # ignoring angular accelerations
+    g = 9.181
+    zmp_z = 0.0
+    zmp_x_den = 0.0
+    zmp_y_den = 0.0
+    zmp_num = 0.0
+    cpin.updateFramePlacements(cmodel, cdata)
+    for id in range(1,len(cmodel.frames)):
+        frame = cmodel.frames[id]
+        m = frame.inertia.mass
+        a = cpin.getFrameAcceleration(
+            cmodel,
+            cdata,
+            id
+        ).linear
+        com = cdata.oMf[id].translation
+        zmp_x_den += m*((a[2]+g)*com[0]-(com[2]-zmp_z)*a[0])
+        zmp_num += m*(a[2]+g)
+        zmp_y_den += m*((a[2]+g)*com[1]-(com[2]-zmp_z)*a[1])
+
+    ZMP = c.SX([0,0,0])
+    ZMP[0] = zmp_x_den / zmp_num
+    ZMP[1] = zmp_y_den / zmp_num
+    ZMP[2] = zmp_z
+    return ZMP
