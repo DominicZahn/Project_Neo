@@ -20,14 +20,20 @@ def main(args=None) -> int:
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4',
         dynamicJoints=dynamicJointNames)
-    h1.visualize(h1.q0)
+    h1.visualizeJointConfig(h1.q0)
 
     ocp = OCP(h1, Tf, N)
     status = ocp.solve(plot=True)
     if status != 0:
         return status
-
-    input("Press any key to rerun...")
+    
+    while True:
+        print(h1._vis.viewer.url())
+        if input("Press RETURN key to run visualization or stop with q ...\n") == 'q':
+            break
+        h1.visualizeJointTrajecotry(
+            ocp.getSimX()[:,:12],
+            ocp.getSimT())
 
     return 0
 

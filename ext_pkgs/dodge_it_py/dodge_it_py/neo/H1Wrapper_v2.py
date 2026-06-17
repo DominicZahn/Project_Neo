@@ -6,6 +6,7 @@ import casadi as c
 import numpy as np
 import numpy.typing as npt
 from pathlib import Path
+from time import sleep
 
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
   zmp_centroidal   
@@ -130,6 +131,11 @@ class H1Wrapper_v2():
                 frame.parentJoint,
                 frame.placement
             )
+#            bcp = pin.BaumgarteCorrectorParameters(
+#                Kp=1.0,
+#                Kd=2.0
+#            )
+#            contactModel.setBaumgarteCorrectorParameters(bcp)
             cContactModel = cpin.RigidConstraintModel(contactModel)
             contactData = cContactModel.createData()
 
@@ -150,7 +156,7 @@ class H1Wrapper_v2():
         self.tau = c.SX.sym('tau', nv)
 
         # define dynamics
-        proxSettings = cpin.ProximalSettings(1e-12, 1e-12, 2)
+        proxSettings = cpin.ProximalSettings(None, 1e-12, 9)
         cpin.initConstraintDynamics(
             self.cmodel,
             self.cdata,
@@ -196,5 +202,15 @@ class H1Wrapper_v2():
         jointId = self.model.getJointId(jointName)
         return idx_qs[jointId]
 
-    def visualize(self, q : npt.NDArray):
+    def visualizeJointConfig(self, q : npt.NDArray):
         self._vis.display(q)
+
+    def visualizeJointTrajecotry(self,
+                                 q_arr : npt.NDArray,
+                                 t_arr : npt.NDArray):
+        t_last = 0.0
+        for q, t in zip(q_arr, t_arr):
+            self.visualizeJointConfig(q)
+            sleep(t - t_last)
+            t_last = t
+            print(t, q)

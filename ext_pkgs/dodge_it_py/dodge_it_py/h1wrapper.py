@@ -1,4 +1,3 @@
-import time
 import pinocchio as pin
 from pinocchio import RobotWrapper
 import pinocchio.casadi as cpin

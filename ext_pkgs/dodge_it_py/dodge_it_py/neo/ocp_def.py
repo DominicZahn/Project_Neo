@@ -1,5 +1,6 @@
 import casadi as c
 import numpy as np
+import numpy.typing as npt
 import matplotlib.pyplot as plt
 
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.H1Wrapper_v2 import H1Wrapper_v2
@@ -51,15 +52,15 @@ class OCP:
 #        cost.W_e = np.eye(3)
 
         # torso
-#        self.ocp.model.cost_y_expr_e = self.ocp.model.x[:3]
-#        cost.yref_e = np.array([[0],[0],[1.1]])
-#        cost.W_e = np.eye(3)
+        self.ocp.model.cost_y_expr_e = self.ocp.model.x[:3]
+        cost.yref_e = np.array([[0],[0],[0.5]])
+        cost.W_e = np.eye(3)
 
-        assert(self.h1.model.nq is not None)
-        self.ocp.model.cost_y_expr_e = self.h1.q[6:]
-        offset = np.zeros(self.h1.model.nq-6)
-        cost.yref_e = self.h1.q0[6:] + offset
-        cost.W_e = np.eye(self.h1.model.nq-6)
+#        assert(self.h1.model.nq is not None)
+#        self.ocp.model.cost_y_expr_e = self.h1.q[6:]
+#        offset = np.zeros(self.h1.model.nq-6)
+#        cost.yref_e = self.h1.q0[6:] + offset
+#        cost.W_e = np.eye(self.h1.model.nq-6)
 
         return cost
     
@@ -104,19 +105,44 @@ class OCP:
         cons.ubu = max_tau
         cons.lbu = -max_tau
 
-        #       stability constraint
+
+        #       nonlinear constraints (h)
+        self.ocp.model.con_h_expr = c.SX()
+        cons.uh = np.array([])
+        cons.lh = np.array([])
+        #           remove foot drifting
+        epsFoot = 0.01
+        for feetFrame in self.h1.feetFrames:
+            id = self.h1.model.getFrameId(feetFrame)
+            func = c.Function(
+                "f_"+feetFrame,
+                [self.h1.q],
+                [self.h1.cdata.oMf[id].translation])
+            feetFramePos0 = c.SX(func(self.h1.q0))
+            d = func(self.h1.q) - feetFramePos0
+            self.ocp.model.con_h_expr = c.vertcat(
+                self.ocp.model.con_h_expr,
+                c.dot(d,d)
+            )
+            cons.uh = np.append(cons.uh, epsFoot)
+            cons.lh = np.append(cons.lh, -epsFoot)
+
+        #           stability constraint
         useablePoS = 0.8
         PoS = PolygonOfSupport()
         stabilityConstraint = PoS.stability_centerDistParable(self.h1.ZMP)
-        self.ocp.model.con_h_expr = stabilityConstraint
-        cons.uh = useablePoS
-        cons.lh = -0.1
+        self.ocp.model.con_h_expr = c.vertcat(
+            self.ocp.model.con_h_expr,
+            stabilityConstraint
+        )
+        cons.uh = np.append(cons.uh, useablePoS)
+        cons.lh = np.append(cons.lh, -0.1)
 
-       # terminal
-       #       limit end velocity
-        cons.idxbx_e = np.arange(nq+6, 2*nq)
-        cons.ubx_e = np.full(nq-6, 0.001)
-        cons.lbx_e = np.full(nq-6, -0.001)
+        # terminal
+        #       limit end velocity
+#        cons.idxbx_e = np.arange(nq+6, 2*nq)
+#        cons.ubx_e = np.full(nq-6, 0.1)
+#        cons.lbx_e = np.full(nq-6, -0.1)
 
         return cons
 
@@ -129,6 +155,7 @@ class OCP:
         options.nlp_solver_max_iter = 1000
         options.qp_solver_iter_max = 100
         options.tol = float(10**-3)
+        options.qp_solver_tol_ineq = float(10**-6)
         
         self.ocp.solver_options = options
         solver = AcadosOcpSolver(
@@ -138,21 +165,6 @@ class OCP:
         )
         return solver
     
-    def _plot(self):
-        simX = np.reshape(
-            self.solver.get_flat('x'),
-            (-1, self.ocp.model.x.size1()))
-        simU = np.reshape(
-            self.solver.get_flat('u'),
-            (-1, self.ocp.model.u.size1()))
-        simT = np.linspace(0, self.Tf, self.N + 1)
-        plot_trajectories(
-            x_traj_list=[simX],
-            u_traj_list=[simU],
-            time_traj_list=[simT],
-            labels_list=['OCP result'],
-        )
-
     def _initalValues(self):
         # controls u
         u_itConst = np.array([
@@ -179,8 +191,27 @@ class OCP:
 
         if plot:
             plt.ion()
-            self._plot()
+            plot_trajectories(
+                x_traj_list=[self.getSimX()],
+                u_traj_list=[self.getSimU()],
+                time_traj_list=[self.getSimT()],
+                labels_list=['OCP result'],
+            )
             plt.pause(1)
 
         return self.status
 
+    def getSimX(self) -> npt.NDArray:
+        assert(type(self.ocp.model.x) is c.SX)
+        return np.reshape(
+            self.solver.get_flat('x'),
+            (-1, self.ocp.model.x.size1()))
+    
+    def getSimU(self) -> npt.NDArray:
+        assert(type(self.ocp.model.u) is c.SX)
+        return np.reshape(
+            self.solver.get_flat('u'),
+            (-1, self.ocp.model.u.size1()))
+    
+    def getSimT(self) -> npt.NDArray:
+        return np.linspace(0, self.Tf, self.N + 1)
