@@ -111,21 +111,21 @@ class OCP:
         cons.uh = np.array([])
         cons.lh = np.array([])
         #           remove foot drifting
-#        epsFoot = 0.01
-#        for feetFrame in self.h1.feetFrames:
-#            id = self.h1.model.getFrameId(feetFrame)
-#            func = c.Function(
-#                "f_"+feetFrame,
-#                [self.h1.q],
-#                [self.h1.cdata.oMf[id].translation])
-#            feetFramePos0 = c.SX(func(self.h1.q0))
-#            d = func(self.h1.q) - feetFramePos0
-#            self.ocp.model.con_h_expr = c.vertcat(
-#                self.ocp.model.con_h_expr,
-#                c.dot(d,d)
-#            )
-#            cons.uh = np.append(cons.uh, epsFoot)
-#            cons.lh = np.append(cons.lh, -epsFoot)
+        epsFoot = 0.01
+        for feetFrame in self.h1.feetFrames:
+            id = self.h1.model.getFrameId(feetFrame)
+            func = c.Function(
+                "f_"+feetFrame,
+                [self.h1.q],
+                [self.h1.cdata.oMf[id].translation])
+            feetFramePos0 = c.SX(func(self.h1.q0))
+            d = func(self.h1.q) - feetFramePos0
+            self.ocp.model.con_h_expr = c.vertcat(
+                self.ocp.model.con_h_expr,
+                c.dot(d,d)
+            )
+            cons.uh = np.append(cons.uh, epsFoot)
+            cons.lh = np.append(cons.lh, -epsFoot)
 
         #           stability constraint
         useablePoS = 0.8
