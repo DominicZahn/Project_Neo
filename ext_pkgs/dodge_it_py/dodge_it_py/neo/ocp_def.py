@@ -51,17 +51,6 @@ class OCP:
         cost.yref_e = headPosDesired
         cost.W_e = np.eye(3)
 
-        # torso
-#        self.ocp.model.cost_y_expr_e = self.ocp.model.x[:3]
-#        cost.yref_e = np.array([[0],[0],[0.5]])
-#        cost.W_e = np.eye(3)
-
-#        assert(self.h1.model.nq is not None)
-#        self.ocp.model.cost_y_expr_e = self.h1.q[6:]
-#        offset = np.zeros(self.h1.model.nq-6)
-#        cost.yref_e = self.h1.q0[6:] + offset
-#        cost.W_e = np.eye(self.h1.model.nq-6)
-
         return cost
     
     def _constraints(self) -> AcadosOcpConstraints:
@@ -105,7 +94,6 @@ class OCP:
         cons.ubu = max_tau
         cons.lbu = -max_tau
 
-
         #       nonlinear constraints (h)
         self.ocp.model.con_h_expr = c.SX()
         cons.uh = np.array([])
@@ -128,7 +116,7 @@ class OCP:
             cons.lh = np.append(cons.lh, -epsFoot)
 
         #           stability constraint
-        useablePoS = 0.8
+        useablePoS = 0.1
         PoS = PolygonOfSupport()
         stabilityConstraint = PoS.stability_centerDistParable(self.h1.ZMP)
         self.ocp.model.con_h_expr = c.vertcat(

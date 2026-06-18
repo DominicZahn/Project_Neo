@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+import casadi as c
 
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.ocp_def import OCP
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.H1Wrapper_v2 import H1Wrapper_v2
@@ -13,14 +14,15 @@ def main(args=None) -> int:
         'left_ankle_pitch_joint',
         'right_ankle_pitch_joint'
     ]
-
-    Tf = 1.0
-    N = 33
-
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4',
         dynamicJoints=dynamicJointNames)
-    h1.visualizeJointConfig(h1.q0)
+    assert(h1.model.nq)
+    nq =  h1.model.nq
+    h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq))
+    
+    Tf = 1.0
+    N = 33
 
     ocp = OCP(h1, Tf, N)
     status = ocp.solve(plot=True)
@@ -31,8 +33,11 @@ def main(args=None) -> int:
         print(h1._vis.viewer.url())
         if input("Press RETURN key to run visualization or stop with q ...\n") == 'q':
             break
+
         h1.visualizeJointTrajecotry(
             ocp.getSimX()[:,:12],
+            ocp.getSimX()[:,12:],
+            ocp.getSimU(),
             ocp.getSimT())
 
     return 0

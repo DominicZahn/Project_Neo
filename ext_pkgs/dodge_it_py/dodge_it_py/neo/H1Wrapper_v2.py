@@ -1,10 +1,13 @@
 import pinocchio as pin
 from pinocchio.visualize import MeshcatVisualizer
+import meshcat.geometry as g
+
 import pinocchio.casadi as cpin
 import casadi as c
 
 import numpy as np
 import numpy.typing as npt
+from scipy.spatial.transform import Rotation
 from pathlib import Path
 from time import sleep
 
@@ -40,22 +43,14 @@ class H1Wrapper_v2():
     def __init__(self,
                  q0 : npt.NDArray[np.float32] | str = DEFAULT_REFERENCE_CONF,
                  dynamicJoints : list[str] = [],
-                 feetFrames : list[str] = DEFAULT_FEET_FRAMES,):
+                 feetFrames : list[str] = DEFAULT_FEET_FRAMES):
         self._setupModels()
         self._setInitalPose(q0)
         self._fixJoints(dynamicJoints)
         self._setupContacts(feetFrames)
         self._initCasadi()
-
-        self._vis = MeshcatVisualizer(
-            model=self.model,
-            collision_model=self.collisionModel,
-            visual_model=self.visualModel,
-            copy_models=True
-        )
-        self._vis.initViewer(loadModel=True)
-        self._vis.loadViewerModel()
-
+        self._setupVis()
+        
     def _setupModels(self):
         # custom floating base to avoid using quaternions in q
         rootJoint = pin.JointModelComposite()
@@ -131,11 +126,6 @@ class H1Wrapper_v2():
                 frame.parentJoint,
                 frame.placement
             )
-#            bcp = pin.BaumgarteCorrectorParameters(
-#                Kp=1.0,
-#                Kd=2.0
-#            )
-#            contactModel.setBaumgarteCorrectorParameters(bcp)
             cContactModel = cpin.RigidConstraintModel(contactModel)
             contactData = cContactModel.createData()
 
@@ -192,6 +182,53 @@ class H1Wrapper_v2():
         headId = self.model.getFrameId(HEAD_FRAME)
         self.headPos = self.cdata.oMf[headId].translation
 
+    def _setupVis(self):
+        self._vis = MeshcatVisualizer(
+            model=self.model,
+            collision_model=self.collisionModel,
+            visual_model=self.visualModel,
+            copy_models=True
+        )
+        self._vis.initViewer(loadModel=True)
+        self._vis.loadViewerModel()
+        self._vis.viewer["zmp"].set_object(
+            g.Sphere(0.02),
+            g.MeshPhongMaterial(0xf81802))
+        self._vis.viewer["F_l"].set_object(
+            g.Cylinder(1, 0.01),
+            g.MeshPhongMaterial(0xa2bb7d))
+        self._vis.viewer["F_r"].set_object(
+            g.Cylinder(1, 0.01),
+            g.MeshPhongMaterial(0xa2bb7d))
+
+    def visualizeZMP(self, pos : npt.NDArray):
+        mat = pin.SE3(
+            rotation=np.eye(3),
+            translation=pos
+        ).homogeneous
+        assert(mat is not None)
+        self._vis.viewer["zmp"].set_transform(mat)
+
+    def visualizeForceLeft(self,
+                        pos : npt.NDArray,
+                        orientation : Rotation):
+        mat = pin.SE3(
+                rotation=orientation.as_matrix(),
+                translation=pos
+                ).homogeneous
+        assert(mat is not None)
+        self._vis.viewer["F_l"].set_transform(mat)
+
+    def visualizeForceRight(self,
+                        pos : npt.NDArray,
+                        orientation : Rotation):
+        mat = pin.SE3(
+                rotation=orientation.as_matrix(),
+                translation=pos
+                ).homogeneous
+        assert(mat is not None)
+        self._vis.viewer["F_r"].set_transform(mat)
+
     def qId(self, jointName : str) -> int:
         assert(self.model.existJointName(jointName))
 
@@ -202,15 +239,28 @@ class H1Wrapper_v2():
         jointId = self.model.getJointId(jointName)
         return idx_qs[jointId]
 
-    def visualizeJointConfig(self, q : npt.NDArray):
+    def visualizeJointConfig(self,
+                             q : npt.NDArray,
+                             qdot : npt.NDArray,
+                             tau : npt.NDArray):
         self._vis.display(q)
+
+        # ZMP
+        func = c.Function("f_zmp",
+                   [self.q, self.qdot, self.tau],
+                   [self.ZMP])
+        zmp = c.DM(func(q, qdot, tau)).toarray()
+        assert(type(zmp) is np.ndarray)
+        self.visualizeZMP(zmp)
 
     def visualizeJointTrajecotry(self,
                                  q_arr : npt.NDArray,
+                                 qdot_arr : npt.NDArray,
+                                 tau_arr : npt.NDArray,
                                  t_arr : npt.NDArray):
         t_last = 0.0
-        for q, t in zip(q_arr, t_arr):
-            self.visualizeJointConfig(q)
+        for q, qdot, tau, t in zip(q_arr, qdot_arr, tau_arr, t_arr):
+            self.visualizeJointConfig(q, qdot, tau)
             sleep(t - t_last)
             t_last = t
             print(t, q)
