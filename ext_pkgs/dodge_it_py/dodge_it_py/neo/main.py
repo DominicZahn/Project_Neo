@@ -14,7 +14,7 @@ def main(args=None) -> int:
         'right_ankle_pitch_joint'
     ]
 
-    Tf = 5.0
+    Tf = 1.0
     N = 33
 
     h1 = H1Wrapper_v2(

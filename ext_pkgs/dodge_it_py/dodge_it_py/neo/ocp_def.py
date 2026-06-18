@@ -43,18 +43,18 @@ class OCP:
         cost.cost_type_e = 'NONLINEAR_LS'
 
         # head
-#        f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
-#        headPosDesired = f_headPos(self.h1.q0)
-#        assert(type(headPosDesired) is c.DM)
-#        headPosDesired = headPosDesired.toarray() - np.array([[0],[0],[0.1]])
-#        self.ocp.model.cost_y_expr_e = f_headPos(self.h1.q)
-#        cost.yref_e = headPosDesired
-#        cost.W_e = np.eye(3)
+        f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
+        headPosDesired = f_headPos(self.h1.q0)
+        assert(type(headPosDesired) is c.DM)
+        headPosDesired = headPosDesired.toarray() - np.array([[0],[0],[0.4]])
+        self.ocp.model.cost_y_expr_e = f_headPos(self.h1.q)
+        cost.yref_e = headPosDesired
+        cost.W_e = np.eye(3)
 
         # torso
-        self.ocp.model.cost_y_expr_e = self.ocp.model.x[:3]
-        cost.yref_e = np.array([[0],[0],[0.5]])
-        cost.W_e = np.eye(3)
+#        self.ocp.model.cost_y_expr_e = self.ocp.model.x[:3]
+#        cost.yref_e = np.array([[0],[0],[0.5]])
+#        cost.W_e = np.eye(3)
 
 #        assert(self.h1.model.nq is not None)
 #        self.ocp.model.cost_y_expr_e = self.h1.q[6:]
@@ -111,21 +111,21 @@ class OCP:
         cons.uh = np.array([])
         cons.lh = np.array([])
         #           remove foot drifting
-        epsFoot = 0.01
-        for feetFrame in self.h1.feetFrames:
-            id = self.h1.model.getFrameId(feetFrame)
-            func = c.Function(
-                "f_"+feetFrame,
-                [self.h1.q],
-                [self.h1.cdata.oMf[id].translation])
-            feetFramePos0 = c.SX(func(self.h1.q0))
-            d = func(self.h1.q) - feetFramePos0
-            self.ocp.model.con_h_expr = c.vertcat(
-                self.ocp.model.con_h_expr,
-                c.dot(d,d)
-            )
-            cons.uh = np.append(cons.uh, epsFoot)
-            cons.lh = np.append(cons.lh, -epsFoot)
+#        epsFoot = 0.01
+#        for feetFrame in self.h1.feetFrames:
+#            id = self.h1.model.getFrameId(feetFrame)
+#            func = c.Function(
+#                "f_"+feetFrame,
+#                [self.h1.q],
+#                [self.h1.cdata.oMf[id].translation])
+#            feetFramePos0 = c.SX(func(self.h1.q0))
+#            d = func(self.h1.q) - feetFramePos0
+#            self.ocp.model.con_h_expr = c.vertcat(
+#                self.ocp.model.con_h_expr,
+#                c.dot(d,d)
+#            )
+#            cons.uh = np.append(cons.uh, epsFoot)
+#            cons.lh = np.append(cons.lh, -epsFoot)
 
         #           stability constraint
         useablePoS = 0.8
@@ -140,9 +140,9 @@ class OCP:
 
         # terminal
         #       limit end velocity
-#        cons.idxbx_e = np.arange(nq+6, 2*nq)
-#        cons.ubx_e = np.full(nq-6, 0.1)
-#        cons.lbx_e = np.full(nq-6, -0.1)
+        cons.idxbx_e = np.arange(nq, nq+6)
+        cons.ubx_e = np.full(6, 0.1)
+        cons.lbx_e = np.full(6, -0.1)
 
         return cons
 
@@ -190,14 +190,13 @@ class OCP:
         print('Total Cost:', self.solver.get_cost())
 
         if plot:
-            plt.ion()
             plot_trajectories(
                 x_traj_list=[self.getSimX()],
                 u_traj_list=[self.getSimU()],
                 time_traj_list=[self.getSimT()],
                 labels_list=['OCP result'],
+                fig_filename='/home/robot/ws/neo_ocp_fig.png'
             )
-            plt.pause(1)
 
         return self.status
 
