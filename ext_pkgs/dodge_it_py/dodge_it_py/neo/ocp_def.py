@@ -119,7 +119,7 @@ class OCP:
             cons.lh = np.append(cons.lh, -epsFoot)
 
         #           stability constraint
-        useablePoS = 0.5
+        useablePoS = 0.8
         PoS = PolygonOfSupport()
         stabilityConstraint = PoS.stability_centerDistParable(self.h1.ZMP)
         self.ocp.model.con_h_expr = c.vertcat(
@@ -128,6 +128,29 @@ class OCP:
         )
         cons.uh = np.append(cons.uh, useablePoS)
         cons.lh = np.append(cons.lh, -0.1)
+
+        #           planar friction
+        fricCoeff = 0.5
+        FLz = self.h1.cdata.lambda_c[2]
+        FLx_cons = (FLz * fricCoeff)**2 - self.h1.cdata.lambda_c[0]**2
+        FLy_cons = (FLz * fricCoeff)**2 - self.h1.cdata.lambda_c[1]**2
+        FRz = self.h1.cdata.lambda_c[8]
+        FRx_cons = (FRz * fricCoeff)**2 - self.h1.cdata.lambda_c[6]**2
+        FRy_cons = (FRz * fricCoeff)**2 - self.h1.cdata.lambda_c[7]**2
+
+        self.ocp.model.con_h_expr = c.vertcat(
+            self.ocp.model.con_h_expr,
+            FLx_cons,
+            FLy_cons,
+            FRx_cons,
+            FRy_cons
+        )
+        cons.uh = np.append(
+            cons.uh, np.full(4, 10**6) # emulate unconstrainted
+        )
+        cons.lh = np.append(
+            cons.lh, np.zeros(4)
+        )
 
         # terminal
         #       limit end velocity

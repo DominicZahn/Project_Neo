@@ -33,6 +33,7 @@ def main(args=None) -> int:
     
     while True:
         print(h1._vis.viewer.url())
+        print(h1.model)
         if input("Press RETURN key to run visualization or stop with q ...\n") == 'q':
             break
 
