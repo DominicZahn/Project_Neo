@@ -7,6 +7,8 @@ from ext_pkgs.dodge_it_py.dodge_it_py.neo.H1Wrapper_v2 import H1Wrapper_v2
 
 def main(args=None) -> int:
     dynamicJointNames = [
+        # 'left_hip_roll_joint',
+        # 'right_hip_roll_joint',
         'left_hip_pitch_joint',
         'right_hip_pitch_joint',
         'left_knee_joint',
@@ -21,7 +23,7 @@ def main(args=None) -> int:
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq))
     
-    Tf = 1.0
+    Tf = 2.0
     N = 33
 
     ocp = OCP(h1, Tf, N)
@@ -35,10 +37,11 @@ def main(args=None) -> int:
             break
 
         h1.visualizeJointTrajecotry(
-            ocp.getSimX()[:,:12],
-            ocp.getSimX()[:,12:],
+            ocp.getSimX()[:,:nq],
+            ocp.getSimX()[:,nq:],
             ocp.getSimU(),
-            ocp.getSimT())
+            ocp.getSimT(),
+            1)
 
     return 0
 

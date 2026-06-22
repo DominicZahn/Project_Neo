@@ -41,6 +41,7 @@ class OCP:
     def _cost(self) -> AcadosOcpCost:
         cost = AcadosOcpCost()
         cost.cost_type_e = 'NONLINEAR_LS'
+        cost.cost_discretization_e = 'INTEGRATOR' # GNRK
 
         # head
         f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
@@ -82,11 +83,13 @@ class OCP:
         max_tau_hip = 220 # [Nm]
         max_tau_waist = 220 # [Nm]
         max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
-        hip_i = self.h1.qId('left_hip_pitch_joint')
+        hip_pitch_i = self.h1.qId('left_hip_pitch_joint')
+        # hip_roll_i = self.h1.qId('left_hip_roll_joint')
         knee_i = self.h1.qId('left_knee_joint')
         ankle_i = self.h1.qId('left_ankle_pitch_joint')
         max_tau = np.zeros(nq)
-        max_tau[hip_i] = max_tau_hip
+        max_tau[hip_pitch_i] = max_tau_hip
+        # max_tau[hip_roll_i] = max_tau_hip
         max_tau[knee_i] = max_tau_knee
         max_tau[ankle_i] = max_tau_ankle_pitch
 
@@ -116,7 +119,7 @@ class OCP:
             cons.lh = np.append(cons.lh, -epsFoot)
 
         #           stability constraint
-        useablePoS = 0.1
+        useablePoS = 0.5
         PoS = PolygonOfSupport()
         stabilityConstraint = PoS.stability_centerDistParable(self.h1.ZMP)
         self.ocp.model.con_h_expr = c.vertcat(
@@ -141,6 +144,7 @@ class OCP:
         options.tf = self.Tf
         options.print_level = 3
         options.nlp_solver_max_iter = 1000
+        # options.nlp_solver_type = 'SQP_WITH_FEASIBLE_QP'
         options.qp_solver_iter_max = 100
         options.tol = float(10**-3)
         options.qp_solver_tol_ineq = float(10**-6)
@@ -155,17 +159,18 @@ class OCP:
     
     def _initalValues(self):
         # controls u
-        u_itConst = np.array([
-            0.3, -0.1, 328, 0.1, -10, -0.05,
-            -0.3, 0.1, 328, 0.2, -10, -0.05
-        ])
-        u = np.tile(u_itConst, self.N)
-        self.solver.set_flat('u', u)
+#        u_itConst = np.array([
+#            0.3, -0.1, 328, 0.1, -10, -0.05,
+#            -0.3, 0.1, 328, 0.2, -10, -0.05
+#        ])
+#        u = np.tile(u_itConst, self.N)
+#        self.solver.set_flat('u', u)
 
         # states x
+        assert(self.h1.model.nq)
         x_itConst = np.concatenate([
-            [0,0,1,0,0,0], self.h1.q0,
-            np.zeros(6)
+            self.h1.q0,
+            np.zeros(self.h1.model.nq)
         ])
         x = np.tile(x_itConst, self.N+1)
         self.solver.set_flat('x', x)

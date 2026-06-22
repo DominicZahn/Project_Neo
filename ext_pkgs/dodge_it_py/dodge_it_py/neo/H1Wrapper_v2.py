@@ -146,7 +146,7 @@ class H1Wrapper_v2():
         self.tau = c.SX.sym('tau', nv)
 
         # define dynamics
-        proxSettings = cpin.ProximalSettings(None, 1e-12, 9)
+        proxSettings = cpin.ProximalSettings(None, 1e-12, 1)
         cpin.initConstraintDynamics(
             self.cmodel,
             self.cdata,
@@ -162,6 +162,7 @@ class H1Wrapper_v2():
             self.cContactData,
             proxSettings)
         self.qddot = self.cdata.ddq
+        self.contactForces = self.cdata.lambda_c
 
         cpin.computeAllTerms(self.cmodel, self.cdata, self.q, self.qdot)
         cpin.updateFramePlacements(self.cmodel, self.cdata)
@@ -201,7 +202,7 @@ class H1Wrapper_v2():
             g.Cylinder(1, 0.01),
             g.MeshPhongMaterial(0xa2bb7d))
 
-    def visualizeZMP(self, pos : npt.NDArray):
+    def _visualizeZMP(self, pos : npt.NDArray):
         mat = pin.SE3(
             rotation=np.eye(3),
             translation=pos
@@ -209,25 +210,19 @@ class H1Wrapper_v2():
         assert(mat is not None)
         self._vis.viewer["zmp"].set_transform(mat)
 
-    def visualizeForceLeft(self,
-                        pos : npt.NDArray,
-                        orientation : Rotation):
-        mat = pin.SE3(
+    def _visualizeForce(self,
+                       pos : npt.NDArray,
+                       orientation : Rotation,
+                       magnitude : float,
+                       name : str):
+        poseMat = pin.SE3(
                 rotation=orientation.as_matrix(),
                 translation=pos
                 ).homogeneous
-        assert(mat is not None)
-        self._vis.viewer["F_l"].set_transform(mat)
-
-    def visualizeForceRight(self,
-                        pos : npt.NDArray,
-                        orientation : Rotation):
-        mat = pin.SE3(
-                rotation=orientation.as_matrix(),
-                translation=pos
-                ).homogeneous
-        assert(mat is not None)
-        self._vis.viewer["F_r"].set_transform(mat)
+        assert(poseMat is not None)
+        scaleMat = np.diag([magnitude,magnitude,magnitude,1])
+        breakpoint()
+        self._vis.viewer[name].set_transform(poseMat)
 
     def qId(self, jointName : str) -> int:
         assert(self.model.existJointName(jointName))
@@ -251,16 +246,33 @@ class H1Wrapper_v2():
                    [self.ZMP])
         zmp = c.DM(func(q, qdot, tau)).toarray()
         assert(type(zmp) is np.ndarray)
-        self.visualizeZMP(zmp)
+        self._visualizeZMP(zmp)
+
+        # contact forces
+        func_F_l = c.Function("f_F_l",
+                              [self.q, self.qdot, self.tau],
+                              [self.contactForces[:6]])
+        F_l = c.DM(func_F_l(q, qdot, tau))
+
+        func_F_r = c.Function("f_F_r",
+                              [self.q, self.qdot, self.tau],
+                              [self.contactForces[6:]])
+        F_r = c.DM(func_F_r(q, qdot, tau))
+        print("F_l:", F_l)
+        print("F_r:", F_r)
+        print()
+
+        # self._visualizeForce()
 
     def visualizeJointTrajecotry(self,
                                  q_arr : npt.NDArray,
                                  qdot_arr : npt.NDArray,
                                  tau_arr : npt.NDArray,
-                                 t_arr : npt.NDArray):
+                                 t_arr : npt.NDArray,
+                                 timeMultiplier : float = 1.0):
         t_last = 0.0
         for q, qdot, tau, t in zip(q_arr, qdot_arr, tau_arr, t_arr):
             self.visualizeJointConfig(q, qdot, tau)
-            sleep(t - t_last)
+            sleep((t - t_last) * timeMultiplier)
             t_last = t
-            print(t, q)
+            # print(t, q)
