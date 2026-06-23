@@ -28,7 +28,7 @@ class OCP:
         self.ocp.constraints = self._constraints()
 
         self.solver = self._solver()
-        # self.solver = self._initalValues()
+        self.solver = self._initalValues()
     
     def _model(self) -> AcadosModel:
         model = AcadosModel()
@@ -41,7 +41,7 @@ class OCP:
     def _cost(self) -> AcadosOcpCost:
         cost = AcadosOcpCost()
         cost.cost_type_e = 'NONLINEAR_LS'
-        cost.cost_discretization_e = 'INTEGRATOR' # GNRK
+        # cost.cost_discretization_e = 'INTEGRATOR' # GNRK
 
         # head
         f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
@@ -67,8 +67,8 @@ class OCP:
         q_ub = self.h1.model.upperPositionLimit
         q_lb = self.h1.model.lowerPositionLimit
         assert(q_ub is not None and q_lb is not None)
-        q_ub[:6] = np.full(6, 10)
-        q_lb[:6] = np.full(6, -10)
+        q_ub[:6] = np.full(6, 2)
+        q_lb[:6] = np.full(6, -2)
         # qdot_ub = self.h1.model.upperVelocityLimit
         # qdot_lb = self.h1.model.lowerVelocityLimit
         qdot_ub = np.full(nq, 2)
@@ -83,15 +83,23 @@ class OCP:
         max_tau_hip = 220 # [Nm]
         max_tau_waist = 220 # [Nm]
         max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
-        hip_pitch_i = self.h1.qId('left_hip_pitch_joint')
-        # hip_roll_i = self.h1.qId('left_hip_roll_joint')
-        knee_i = self.h1.qId('left_knee_joint')
-        ankle_i = self.h1.qId('left_ankle_pitch_joint')
+        rhip_pitch_i = self.h1.qId('right_hip_pitch_joint')
+        lhip_pitch_i = self.h1.qId('left_hip_pitch_joint')
+        # rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
+        # lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
+        rknee_i = self.h1.qId('right_knee_joint')
+        lknee_i = self.h1.qId('left_knee_joint')
+        rankle_i = self.h1.qId('right_ankle_pitch_joint')
+        lankle_i = self.h1.qId('left_ankle_pitch_joint')
         max_tau = np.zeros(nq)
-        max_tau[hip_pitch_i] = max_tau_hip
-        # max_tau[hip_roll_i] = max_tau_hip
-        max_tau[knee_i] = max_tau_knee
-        max_tau[ankle_i] = max_tau_ankle_pitch
+        max_tau[rhip_pitch_i] = max_tau_hip
+        max_tau[lhip_pitch_i] = max_tau_hip
+        # max_tau[rhip_yaw_i] = max_tau_hip
+        # max_tau[lhip_yaw_i] = max_tau_hip
+        max_tau[rknee_i] = max_tau_knee
+        max_tau[lknee_i] = max_tau_knee
+        max_tau[rankle_i] = max_tau_ankle_pitch
+        max_tau[lankle_i] = max_tau_ankle_pitch
 
         cons.idxbu = np.arange(nq)
         cons.ubu = max_tau
@@ -168,9 +176,11 @@ class OCP:
         options.print_level = 3
         options.nlp_solver_max_iter = 1000
         # options.nlp_solver_type = 'SQP_WITH_FEASIBLE_QP'
+        # options.globalization_line_search_use_sufficient_descent = 1
+        # options.globalization = 'MERIT_BACKTRACKING'
         options.qp_solver_iter_max = 100
         options.tol = float(10**-3)
-        options.qp_solver_tol_ineq = float(10**-6)
+        options.qp_solver_tol_ineq = float(10**-5)
         
         self.ocp.solver_options = options
         solver = AcadosOcpSolver(
