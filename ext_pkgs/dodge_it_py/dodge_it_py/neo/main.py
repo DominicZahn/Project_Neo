@@ -1,5 +1,6 @@
 import sys
 import numpy as np
+import numpy.typing as npt
 import casadi as c
 
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.ocp_def import OCP
@@ -32,19 +33,26 @@ def main(args=None) -> int:
     status = ocp.solve(plot=True)
     if status != 0:
         return status
-    
+
+    x_full = []
+    u_full = []
     while True:
         print(h1._vis.viewer.url())
         print(h1.model)
-        if input("Press RETURN key to run visualization or stop with q ...\n") == 'q':
-            break
+
         x = ocp.getSimX()
         q = x[:,:nq]
         qdot = x[:,nq:]
         tau = ocp.getSimU()
         t = ocp.getSimT()
 
-        h1.visualizeJointTrajecotry(q, qdot, tau, t, 1)
+        key = input("Press RETURN for visalization; q to exit; s to save controls and states\n")
+        if key == 'q':
+            break
+        elif key == 's':
+            ocp.save()
+        else:
+            h1.visualizeJointTrajecotry(q, qdot, tau, t, 1)
 
     return 0
 

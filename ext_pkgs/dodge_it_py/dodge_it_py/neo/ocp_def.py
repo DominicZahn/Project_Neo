@@ -2,6 +2,7 @@ import casadi as c
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.H1Wrapper_v2 import H1Wrapper_v2
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import PolygonOfSupport, zmp_centroidal
@@ -15,6 +16,9 @@ from acados_template import (
     AcadosOcpSolver,
     AcadosOcpOptions
 )
+
+xFILE = '/home/robot/ws/neo_x.txt'
+uFILE = '/home/robot/ws/neo_u.txt'
 
 class OCP:
     def __init__(self, h1 : H1Wrapper_v2, Tf : float, N : int):
@@ -200,14 +204,16 @@ class OCP:
         return solver
     
     def _initalValues(self):
-        # states x
         assert(self.h1.model.nq)
-        x_itConst = np.concatenate([
-            self.h1.q0,
-            np.zeros(self.h1.model.nq)
-        ])
-        x = np.tile(x_itConst, self.N+1)
-        self.solver.set_flat('x', x)
+        if not Path(xFILE).exists() or not Path(uFILE).exists():
+            return self.solver
+
+        xInit = np.loadtxt('/home/robot/ws/neo_x.txt')
+        xInit = xInit.flatten()
+        uInit = np.loadtxt('/home/robot/ws/neo_u.txt')
+        uInit = uInit.flatten()
+        self.solver.set_flat('x', xInit)
+        self.solver.set_flat('u', uInit)
 
         return self.solver
 
@@ -244,3 +250,10 @@ class OCP:
     
     def getSimT(self) -> npt.NDArray:
         return np.linspace(0, self.Tf, self.N + 1)
+    
+    def save(self):
+        print('[INFO] Loaded inital values from files.')
+        x = self.solver.get_flat('x')
+        u = self.solver.get_flat('u')
+        np.savetxt(xFILE, x)
+        np.savetxt(uFILE, u)
