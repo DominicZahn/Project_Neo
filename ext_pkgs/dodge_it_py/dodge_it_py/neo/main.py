@@ -14,7 +14,9 @@ def main(args=None) -> int:
         'left_knee_joint',
         'right_knee_joint',
         'left_ankle_pitch_joint',
-        'right_ankle_pitch_joint'
+        'right_ankle_pitch_joint',
+        # 'left_ankle_roll_joint',
+        # 'right_ankle_roll_joint'
     ]
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4',
@@ -36,13 +38,13 @@ def main(args=None) -> int:
         print(h1.model)
         if input("Press RETURN key to run visualization or stop with q ...\n") == 'q':
             break
+        x = ocp.getSimX()
+        q = x[:,:nq]
+        qdot = x[:,nq:]
+        tau = ocp.getSimU()
+        t = ocp.getSimT()
 
-        h1.visualizeJointTrajecotry(
-            ocp.getSimX()[:,:nq],
-            ocp.getSimX()[:,nq:],
-            ocp.getSimU(),
-            ocp.getSimT(),
-            1)
+        h1.visualizeJointTrajecotry(q, qdot, tau, t, 1)
 
     return 0
 

@@ -34,14 +34,20 @@ class OCP:
         model = AcadosModel()
         model.name = "h1_2"
         model.x = c.vertcat(self.h1.q, self.h1.qdot)
-        model.u = self.h1.tau
+        model.u = self.h1.tau[6:]
+        
+        # set torques for floating base to 0Nm
+        model.p = self.h1.tau[:6]
+        self.ocp.parameter_values = np.zeros(6)
+
         model.f_expl_expr = c.vertcat(self.h1.qdot, self.h1.qddot)
+
         return model
 
     def _cost(self) -> AcadosOcpCost:
         cost = AcadosOcpCost()
         cost.cost_type_e = 'NONLINEAR_LS'
-        # cost.cost_discretization_e = 'INTEGRATOR' # GNRK
+        cost.cost_discretization_e = 'INTEGRATOR' # GNRK
 
         # head
         f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
@@ -78,7 +84,7 @@ class OCP:
         cons.lbx = np.hstack((q_lb, qdot_lb))
         cons.idxbx = np.arange(2*nq)
 
-        #       control limits
+       #       control limits
         max_tau_knee = 360 # [Nm]
         max_tau_hip = 220 # [Nm]
         max_tau_waist = 220 # [Nm]
@@ -101,7 +107,9 @@ class OCP:
         max_tau[rankle_i] = max_tau_ankle_pitch
         max_tau[lankle_i] = max_tau_ankle_pitch
 
-        cons.idxbu = np.arange(nq)
+        max_tau = max_tau[6:]
+
+        cons.idxbu = np.arange(max_tau.size)
         cons.ubu = max_tau
         cons.lbu = -max_tau
 
@@ -154,7 +162,7 @@ class OCP:
             FRy_cons
         )
         cons.uh = np.append(
-            cons.uh, np.full(4, 10**6) # emulate unconstrainted
+            cons.uh, np.full(4, 10**12) # emulate unconstrainted
         )
         cons.lh = np.append(
             cons.lh, np.zeros(4)
@@ -176,12 +184,13 @@ class OCP:
         options.print_level = 3
         options.nlp_solver_max_iter = 1000
         # options.nlp_solver_type = 'SQP_WITH_FEASIBLE_QP'
-        # options.globalization_line_search_use_sufficient_descent = 1
-        # options.globalization = 'MERIT_BACKTRACKING'
-        options.qp_solver_iter_max = 100
+        # options.hessian_approx = 'EXACT'
+        options.globalization_line_search_use_sufficient_descent = 1
+        options.globalization = 'FUNNEL_L1PEN_LINESEARCH'
+        options.qp_solver_iter_max = 10**2
         options.tol = float(10**-3)
         options.qp_solver_tol_ineq = float(10**-5)
-        
+
         self.ocp.solver_options = options
         solver = AcadosOcpSolver(
             self.ocp,
@@ -191,14 +200,6 @@ class OCP:
         return solver
     
     def _initalValues(self):
-        # controls u
-#        u_itConst = np.array([
-#            0.3, -0.1, 328, 0.1, -10, -0.05,
-#            -0.3, 0.1, 328, 0.2, -10, -0.05
-#        ])
-#        u = np.tile(u_itConst, self.N)
-#        self.solver.set_flat('u', u)
-
         # states x
         assert(self.h1.model.nq)
         x_itConst = np.concatenate([
@@ -234,9 +235,12 @@ class OCP:
     
     def getSimU(self) -> npt.NDArray:
         assert(type(self.ocp.model.u) is c.SX)
-        return np.reshape(
+        uBase = self.solver.get_flat('p')
+        uBase = np.reshape(uBase, (-1, 6))
+        uJoints = np.reshape(
             self.solver.get_flat('u'),
             (-1, self.ocp.model.u.size1()))
+        return np.concatenate([uBase[:-1], uJoints], axis=1)
     
     def getSimT(self) -> npt.NDArray:
         return np.linspace(0, self.Tf, self.N + 1)
