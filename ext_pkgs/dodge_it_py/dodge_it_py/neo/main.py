@@ -41,7 +41,7 @@ def main(args=None) -> int:
         x = ocp.getSimX()
         q = x[:,:nq]
         qdot = x[:,nq:]
-        tau = ocp.getSimU()
+        tau = ocp.getSimU(floatBase=True)
         t = ocp.getSimT()
 
         key = input("Press RETURN for visalization; q to exit; s to save controls and states\n")

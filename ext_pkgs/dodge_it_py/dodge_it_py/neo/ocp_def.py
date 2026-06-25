@@ -32,7 +32,11 @@ class OCP:
         self.ocp.constraints = self._constraints()
 
         self.solver = self._solver()
-        self.solver = self._initalValues()
+        self.solver = self._initalValues(0.0)
+
+#        assert(self.h1.model.nq)
+#        self.solver.set_flat('x', np.zeros((self.N+1) * (self.h1.model.nq*2)))
+#        self.solver.set_flat('u', np.zeros(self.N * (self.h1.model.nq-6)))
     
     def _model(self) -> AcadosModel:
         model = AcadosModel()
@@ -88,7 +92,7 @@ class OCP:
         cons.lbx = np.hstack((q_lb, qdot_lb))
         cons.idxbx = np.arange(2*nq)
 
-       #       control limits
+        #       control limits
         max_tau_knee = 360 # [Nm]
         max_tau_hip = 220 # [Nm]
         max_tau_waist = 220 # [Nm]
@@ -99,8 +103,10 @@ class OCP:
         lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
         rknee_i = self.h1.qId('right_knee_joint')
         lknee_i = self.h1.qId('left_knee_joint')
-        rankle_i = self.h1.qId('right_ankle_pitch_joint')
-        lankle_i = self.h1.qId('left_ankle_pitch_joint')
+        rankle_pitch_i = self.h1.qId('right_ankle_pitch_joint')
+        lankle_pitch_i = self.h1.qId('left_ankle_pitch_joint')
+        # rankle_roll_i = self.h1.qId('right_ankle_roll_joint')
+        # lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
         max_tau = np.zeros(nq)
         max_tau[rhip_pitch_i] = max_tau_hip
         max_tau[lhip_pitch_i] = max_tau_hip
@@ -108,8 +114,10 @@ class OCP:
         max_tau[lhip_yaw_i] = max_tau_hip
         max_tau[rknee_i] = max_tau_knee
         max_tau[lknee_i] = max_tau_knee
-        max_tau[rankle_i] = max_tau_ankle_pitch
-        max_tau[lankle_i] = max_tau_ankle_pitch
+        max_tau[rankle_pitch_i] = max_tau_ankle_pitch
+        max_tau[lankle_pitch_i] = max_tau_ankle_pitch
+        # max_tau[rankle_roll_i] = max_tau_ankle_pitch
+        # max_tau[lankle_roll_i] = max_tau_ankle_pitch
 
         max_tau = max_tau[6:]
 
@@ -136,7 +144,7 @@ class OCP:
                 c.dot(d,d)
             )
             cons.uh = np.append(cons.uh, epsFoot)
-            cons.lh = np.append(cons.lh, -epsFoot)
+            cons.lh = np.append(cons.lh, 0)
 
         #           stability constraint
         useablePoS = 0.8
@@ -194,7 +202,7 @@ class OCP:
         options.hpipm_mode = 'ROBUST'
         options.qp_solver_iter_max = 10**2
         options.tol = float(10**-3)
-        options.nlp_solver_tol_eq = float(0.5 * 10**-2)
+        options.nlp_solver_tol_eq = float(10**-2)
         options.qp_solver_tol_ineq = float(10**-5)
 
         self.ocp.solver_options = options
@@ -205,7 +213,7 @@ class OCP:
         )
         return solver
     
-    def _initalValues(self):
+    def _initalValues(self, rngPertubation : float = 0.0):
         assert(self.h1.model.nq)
         if not Path(xFILE).exists() or not Path(uFILE).exists():
             return self.solver
@@ -214,6 +222,12 @@ class OCP:
         xInit = xInit.flatten()
         uInit = np.loadtxt('/home/robot/ws/neo_u.txt')
         uInit = uInit.flatten()
+
+        # pertubation
+        if rngPertubation > 0.0:
+            xInit += np.random.rand(xInit.size) * rngPertubation
+            uInit += np.random.rand(uInit.size) * rngPertubation
+
         self.solver.set_flat('x', xInit)
         self.solver.set_flat('u', uInit)
 
@@ -241,7 +255,7 @@ class OCP:
             self.solver.get_flat('x'),
             (-1, self.ocp.model.x.size1()))
     
-    def getSimU(self, floatBase=True) -> npt.NDArray:
+    def getSimU(self, floatBase : bool) -> npt.NDArray:
         assert(type(self.ocp.model.u) is c.SX)
         
         uJoints = np.reshape(
