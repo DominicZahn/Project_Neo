@@ -8,8 +8,8 @@ from ext_pkgs.dodge_it_py.dodge_it_py.neo.H1Wrapper_v2 import H1Wrapper_v2
 
 def main(args=None) -> int:
     dynamicJointNames = [
-        # 'left_hip_yaw_joint',
-        # 'right_hip_yaw_joint',
+        'left_hip_yaw_joint',
+        'right_hip_yaw_joint',
         'left_hip_pitch_joint',
         'right_hip_pitch_joint',
         'left_knee_joint',
@@ -34,8 +34,6 @@ def main(args=None) -> int:
     if status != 0:
         return status
 
-    x_full = []
-    u_full = []
     while True:
         print(h1._vis.viewer.url())
         print(h1.model)

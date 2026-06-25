@@ -95,8 +95,8 @@ class OCP:
         max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
         rhip_pitch_i = self.h1.qId('right_hip_pitch_joint')
         lhip_pitch_i = self.h1.qId('left_hip_pitch_joint')
-        # rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
-        # lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
+        rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
+        lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
         rknee_i = self.h1.qId('right_knee_joint')
         lknee_i = self.h1.qId('left_knee_joint')
         rankle_i = self.h1.qId('right_ankle_pitch_joint')
@@ -104,8 +104,8 @@ class OCP:
         max_tau = np.zeros(nq)
         max_tau[rhip_pitch_i] = max_tau_hip
         max_tau[lhip_pitch_i] = max_tau_hip
-        # max_tau[rhip_yaw_i] = max_tau_hip
-        # max_tau[lhip_yaw_i] = max_tau_hip
+        max_tau[rhip_yaw_i] = max_tau_hip
+        max_tau[lhip_yaw_i] = max_tau_hip
         max_tau[rknee_i] = max_tau_knee
         max_tau[lknee_i] = max_tau_knee
         max_tau[rankle_i] = max_tau_ankle_pitch
@@ -191,8 +191,10 @@ class OCP:
         # options.hessian_approx = 'EXACT'
         options.globalization_line_search_use_sufficient_descent = 1
         options.globalization = 'FUNNEL_L1PEN_LINESEARCH'
+        options.hpipm_mode = 'ROBUST'
         options.qp_solver_iter_max = 10**2
         options.tol = float(10**-3)
+        options.nlp_solver_tol_eq = float(0.5 * 10**-2)
         options.qp_solver_tol_ineq = float(10**-5)
 
         self.ocp.solver_options = options
@@ -225,7 +227,7 @@ class OCP:
         if plot:
             plot_trajectories(
                 x_traj_list=[self.getSimX()],
-                u_traj_list=[self.getSimU()],
+                u_traj_list=[self.getSimU(floatBase=False)],
                 time_traj_list=[self.getSimT()],
                 labels_list=['OCP result'],
                 fig_filename='/home/robot/ws/neo_ocp_fig.png'
@@ -239,14 +241,20 @@ class OCP:
             self.solver.get_flat('x'),
             (-1, self.ocp.model.x.size1()))
     
-    def getSimU(self) -> npt.NDArray:
+    def getSimU(self, floatBase=True) -> npt.NDArray:
         assert(type(self.ocp.model.u) is c.SX)
-        uBase = self.solver.get_flat('p')
-        uBase = np.reshape(uBase, (-1, 6))
+        
         uJoints = np.reshape(
             self.solver.get_flat('u'),
             (-1, self.ocp.model.u.size1()))
+        
+        if not floatBase:
+            return uJoints
+        
+        uBase = self.solver.get_flat('p')
+        uBase = np.reshape(uBase, (-1, 6))
         return np.concatenate([uBase[:-1], uJoints], axis=1)
+
     
     def getSimT(self) -> npt.NDArray:
         return np.linspace(0, self.Tf, self.N + 1)
