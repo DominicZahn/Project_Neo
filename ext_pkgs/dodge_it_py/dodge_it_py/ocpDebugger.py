@@ -1,4 +1,5 @@
 from time import monotonic
+from dataclasses import dataclass
 
 from textual.app import App, ComposeResult
 from textual.containers import (
@@ -11,7 +12,11 @@ from textual.screen import Screen, ModalScreen
 from textual.reactive import reactive
 from textual_plotext import PlotextPlot
 
-from acados_template import AcadosOcpSolver, AcadosOcpIterate
+from acados_template import AcadosOcpSolver, AcadosOcpIterate, AcadosModel
+
+@dataclass
+class Field:
+    name: str
 
 class FieldSelectorScreen(ModalScreen[str]):
 
@@ -51,8 +56,14 @@ class OcpDebugger(App):
         super().__init__()
         self.solver = solver
         self.iter_i = reactive(0)
-        self.solver.get_from_qp_in(0, 'r')
-        breakpoint()
+
+        assert(self.solver.acados_ocp)
+        assert(self.solver.acados_ocp.model)
+        assert(type(self.solver.acados_ocp.model) is AcadosModel)
+        self.nu = self.solver.acados_ocp.model.u.size1()
+        self.nx = self.solver.acados_ocp.model.x.size1()
+
+        # TODO
 
     def compose(self) -> ComposeResult:
         yield Header()

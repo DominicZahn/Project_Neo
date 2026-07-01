@@ -9,8 +9,8 @@ from ext_pkgs.dodge_it_py.dodge_it_py.ocpDebugger import OcpDebugger
 
 def main(args=None) -> int:
     dynamicJointNames = [
-        'left_hip_yaw_joint',
-        'right_hip_yaw_joint',
+        # 'left_hip_yaw_joint',
+        # 'right_hip_yaw_joint',
         'left_hip_pitch_joint',
         'right_hip_pitch_joint',
         'left_knee_joint',

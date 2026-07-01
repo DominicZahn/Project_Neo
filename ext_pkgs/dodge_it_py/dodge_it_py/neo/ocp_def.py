@@ -28,15 +28,16 @@ class OCP:
 
         self.ocp = AcadosOcp()
         self.ocp.model = self._model()
+        self._stability()
         self.ocp.cost = self._cost()
         self.ocp.constraints = self._constraints()
 
         self.solver = self._solver()
-        self.solver = self._initalValues(0.0)
+        # self.solver = self._initalValues(0.0)
 
-#        assert(self.h1.model.nq)
-#        self.solver.set_flat('x', np.zeros((self.N+1) * (self.h1.model.nq*2)))
-#        self.solver.set_flat('u', np.zeros(self.N * (self.h1.model.nq-6)))
+        assert(self.h1.model.nq)
+        self.solver.set_flat('x', np.zeros((self.N+1) * (self.h1.model.nq*2)))
+        self.solver.set_flat('u', np.zeros(self.N * (self.h1.model.nq-6)))
     
     def _model(self) -> AcadosModel:
         model = AcadosModel()
@@ -51,13 +52,29 @@ class OCP:
         model.f_expl_expr = c.vertcat(self.h1.qdot, self.h1.qddot)
 
         return model
-
+    
+    def _stability(self) -> None:
+        PoS = PolygonOfSupport()
+        self.stabilityConstraint = PoS.stability_centerDistParable(self.h1.ZMP)
+       
     def _cost(self) -> AcadosOcpCost:
         cost = AcadosOcpCost()
+
+        # Lagrange
+        cost.cost_type = 'NONLINEAR_LS'
+        cost.cost_discretization = 'INTEGRATOR' # GNRKA
+
+        #       stability
+        self.ocp.model.cost_y_expr = self.stabilityConstraint
+        cost.yref = 0.0
+        cost.W = np.eye(1)
+
+
+        # Mayer
         cost.cost_type_e = 'NONLINEAR_LS'
         cost.cost_discretization_e = 'INTEGRATOR' # GNRK
 
-        # head
+        #       head
         f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
         headPosDesired = f_headPos(self.h1.q0)
         assert(type(headPosDesired) is c.DM)
@@ -99,8 +116,8 @@ class OCP:
         max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
         rhip_pitch_i = self.h1.qId('right_hip_pitch_joint')
         lhip_pitch_i = self.h1.qId('left_hip_pitch_joint')
-        rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
-        lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
+        # rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
+        # lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
         rknee_i = self.h1.qId('right_knee_joint')
         lknee_i = self.h1.qId('left_knee_joint')
         rankle_pitch_i = self.h1.qId('right_ankle_pitch_joint')
@@ -110,8 +127,8 @@ class OCP:
         max_tau = np.zeros(nq)
         max_tau[rhip_pitch_i] = max_tau_hip
         max_tau[lhip_pitch_i] = max_tau_hip
-        max_tau[rhip_yaw_i] = max_tau_hip
-        max_tau[lhip_yaw_i] = max_tau_hip
+        # max_tau[rhip_yaw_i] = max_tau_hip
+        # max_tau[lhip_yaw_i] = max_tau_hip
         max_tau[rknee_i] = max_tau_knee
         max_tau[lknee_i] = max_tau_knee
         max_tau[rankle_pitch_i] = max_tau_ankle_pitch
@@ -148,14 +165,13 @@ class OCP:
 
         #           stability constraint
         useablePoS = 0.8
-        PoS = PolygonOfSupport()
-        stabilityConstraint = PoS.stability_centerDistParable(self.h1.ZMP)
-        self.ocp.model.con_h_expr = c.vertcat(
-            self.ocp.model.con_h_expr,
-            stabilityConstraint
-        )
         cons.uh = np.append(cons.uh, useablePoS)
         cons.lh = np.append(cons.lh, -0.1)
+        self.ocp.model.con_h_expr = c.vertcat(
+            self.ocp.model.con_h_expr,
+            self.stabilityConstraint
+        )
+ 
 
         #           planar friction
         fricCoeff = 0.5
@@ -245,7 +261,8 @@ class OCP:
                 u_traj_list=[self.getSimU(floatBase=False)],
                 time_traj_list=[self.getSimT()],
                 labels_list=['OCP result'],
-                fig_filename='/home/robot/ws/neo_ocp_fig.png'
+                fig_filename='/home/robot/ws/neo_ocp_fig.png',
+                show_plot=False
             )
 
         return self.status

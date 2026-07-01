@@ -5,7 +5,7 @@ FieldSelectorScreen {
 #field_selector_grid {
     width: 20;
     height: 20;
-    border: thick $background 80%;
+    border: thick $background 50%;
     background: $surface;
 }
 
