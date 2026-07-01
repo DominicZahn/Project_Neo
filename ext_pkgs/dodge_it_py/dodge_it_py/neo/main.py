@@ -5,6 +5,7 @@ import casadi as c
 
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.ocp_def import OCP
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.H1Wrapper_v2 import H1Wrapper_v2
+from ext_pkgs.dodge_it_py.dodge_it_py.ocpDebugger import OcpDebugger
 
 def main(args=None) -> int:
     dynamicJointNames = [
@@ -31,6 +32,10 @@ def main(args=None) -> int:
 
     ocp = OCP(h1, Tf, N)
     status = ocp.solve(plot=True)
+
+    debugger = OcpDebugger(ocp.solver)
+    debugger.run()
+
     if status != 0:
         return status
 

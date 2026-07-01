@@ -206,10 +206,11 @@ class OCP:
         options.qp_solver_tol_ineq = float(10**-5)
 
         self.ocp.solver_options = options
+        self.ocp.solver_options.store_iterates = True
         solver = AcadosOcpSolver(
             self.ocp,
             generate=False,
-            build=False 
+            build=False
         )
         return solver
     
