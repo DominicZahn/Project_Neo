@@ -1,0 +1,60 @@
+var: "x"
+type: "NLP"
+description: "state vector"
+---
+var: "u"
+type: "NLP"
+description: "control control"
+---
+var: "z"
+type: "NLP"
+description: "algebraic state vector"
+---
+var: "pi"
+type: "NLP"
+description: "multipliers for dynamics equality constraints"
+---
+var: "lam"
+type: "NLP"
+description: "multipliers for inequalities"
+---
+var: "t"
+type: "NLP"
+description: "slack variables corresponding to evaluation of all inequalities (at the solution)"
+---
+var: "sl"
+type: "NLP"
+description: "slack variables of soft lower inequality constraints"
+---
+var: "su"
+type: "NLP"
+description: "slack variables of soft upper inequality constraints"
+---
+var: "sens_x"
+type: "NLP"
+description: "sensitivity of x"
+---
+var: "sens_u"
+type: "NLP"
+description: "sensitivity of u"
+---
+var: "sens_pi"
+type: "NLP"
+description: "sensitivity of pi"
+---
+var: "sens_lam"
+type: "NLP"
+description: "sensitivity of lam"
+---
+var: "sens_sl"
+type: "NLP"
+description: "sensitivity of sl"
+---
+var: "sens_su"
+type: "NLP"
+description: "sensitivity of su"
+---
+var: "S_p"
+type: "NLP"
+description: "?"
+---

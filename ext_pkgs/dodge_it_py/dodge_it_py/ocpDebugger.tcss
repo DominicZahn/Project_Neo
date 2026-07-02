@@ -2,18 +2,30 @@ FieldSelectorScreen {
     align: center middle;
 }
 
-#field_selector_grid {
-    width: 20;
-    height: 20;
-    border: thick $background 50%;
-    background: $surface;
+.FieldSelectorList {
+    width: 50%;
+    height: auto;
+    scrollbar-size: 1 1;
 }
 
-#field_label {
-    column-span: 2;
-    height: 1fr;
-    width: 1fr;
-    content-align: center middle;
+.FieldSelectorItem {
+    width: 100;
+    margin: 1 1;
+    grid-size: 3;
+    grid-columns: 10 5 1fr;
+    grid-gutter: 0 5;
+    height: 1;
+}
+
+.FieldSelectorHeader {
+    text-style: bold;
+    text-align: center;
+}
+
+.PlotterLegend {
+    width: 3;
+    margin: 1 1;
+    scrollbar-size: 1 1;
 }
 
 Grid {
