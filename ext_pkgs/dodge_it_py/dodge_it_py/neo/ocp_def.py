@@ -36,8 +36,12 @@ class OCP:
         # self.solver = self._initalValues(0.0)
 
         assert(self.h1.model.nq)
-        self.solver.set_flat('x', np.zeros((self.N+1) * (self.h1.model.nq*2)))
-        self.solver.set_flat('u', np.zeros(self.N * (self.h1.model.nq-6)))
+        x_itConst = np.concatenate([
+            self.h1.q0,
+            np.zeros(self.h1.model.nq)
+        ])
+        x = np.tile(x_itConst, self.N+1)
+        self.solver.set_flat('x', x)
     
     def _model(self) -> AcadosModel:
         model = AcadosModel()
@@ -65,9 +69,15 @@ class OCP:
         cost.cost_discretization = 'INTEGRATOR' # GNRKA
 
         #       stability
-        self.ocp.model.cost_y_expr = self.stabilityConstraint
-        cost.yref = 0.0
-        cost.W = np.eye(1)
+#        self.ocp.model.cost_y_expr = self.stabilityConstraint
+#        cost.yref = 0.0
+#        cost.W = np.eye(1)
+
+        #       effort
+#        self.ocp.model.cost_y_expr = self.ocp.model.u
+#        nu = self.ocp.model.u.size1()
+#        cost.yref = np.zeros(nu)
+#        cost.W = np.eye(nu)*10**-12
 
 
         # Mayer
@@ -161,7 +171,8 @@ class OCP:
                 c.dot(d,d)
             )
             cons.uh = np.append(cons.uh, epsFoot)
-            cons.lh = np.append(cons.lh, 0)
+            # cons.lh = np.append(cons.lh, 0)
+            cons.lh = np.append(cons.lh, -epsFoot)
 
         #           stability constraint
         useablePoS = 0.8
