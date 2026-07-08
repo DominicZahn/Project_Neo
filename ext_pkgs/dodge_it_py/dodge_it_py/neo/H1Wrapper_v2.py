@@ -146,7 +146,8 @@ class H1Wrapper_v2():
         self.tau = c.SX.sym('tau', nv)
 
         # define dynamics
-        proxSettings = cpin.ProximalSettings(None, 1e-12, 1)
+        # proxSettings = cpin.ProximalSettings(None, 1e-12, 3)
+        proxSettings = cpin.ProximalSettings(None, 0, 1)
         cpin.initConstraintDynamics(
             self.cmodel,
             self.cdata,
@@ -275,4 +276,3 @@ class H1Wrapper_v2():
             self.visualizeJointConfig(q, qdot, tau)
             sleep((t - t_last) * timeMultiplier)
             t_last = t
-            # print(t, q)

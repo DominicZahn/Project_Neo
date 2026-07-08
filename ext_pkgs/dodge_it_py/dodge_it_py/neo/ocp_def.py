@@ -31,7 +31,7 @@ class OCP:
         self._stability()
         self.ocp.cost = self._cost()
         self.ocp.constraints = self._constraints()
-
+        self._codeGenOptions()
         self.solver = self._solver()
         # self.solver = self._initalValues(0.0)
 
@@ -74,11 +74,10 @@ class OCP:
 #        cost.W = np.eye(1)
 
         #       effort
-#        self.ocp.model.cost_y_expr = self.ocp.model.u
-#        nu = self.ocp.model.u.size1()
-#        cost.yref = np.zeros(nu)
-#        cost.W = np.eye(nu)*10**-12
-
+        self.ocp.model.cost_y_expr = self.ocp.model.u
+        nu = self.ocp.model.u.size1()
+        cost.yref = np.zeros(nu)
+        cost.W = np.eye(nu)*10**-6
 
         # Mayer
         cost.cost_type_e = 'NONLINEAR_LS'
@@ -126,25 +125,29 @@ class OCP:
         max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
         rhip_pitch_i = self.h1.qId('right_hip_pitch_joint')
         lhip_pitch_i = self.h1.qId('left_hip_pitch_joint')
-        # rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
-        # lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
+        rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
+        lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
+        rhip_roll_i = self.h1.qId('right_hip_roll_joint')
+        lhip_roll_i = self.h1.qId('left_hip_roll_joint')
         rknee_i = self.h1.qId('right_knee_joint')
         lknee_i = self.h1.qId('left_knee_joint')
         rankle_pitch_i = self.h1.qId('right_ankle_pitch_joint')
         lankle_pitch_i = self.h1.qId('left_ankle_pitch_joint')
-        # rankle_roll_i = self.h1.qId('right_ankle_roll_joint')
-        # lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
+        rankle_roll_i = self.h1.qId('right_ankle_roll_joint')
+        lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
         max_tau = np.zeros(nq)
         max_tau[rhip_pitch_i] = max_tau_hip
         max_tau[lhip_pitch_i] = max_tau_hip
-        # max_tau[rhip_yaw_i] = max_tau_hip
-        # max_tau[lhip_yaw_i] = max_tau_hip
+        max_tau[rhip_yaw_i] = max_tau_hip
+        max_tau[lhip_yaw_i] = max_tau_hip
+        max_tau[rhip_roll_i] = max_tau_hip
+        max_tau[lhip_roll_i] = max_tau_hip
         max_tau[rknee_i] = max_tau_knee
         max_tau[lknee_i] = max_tau_knee
         max_tau[rankle_pitch_i] = max_tau_ankle_pitch
         max_tau[lankle_pitch_i] = max_tau_ankle_pitch
-        # max_tau[rankle_roll_i] = max_tau_ankle_pitch
-        # max_tau[lankle_roll_i] = max_tau_ankle_pitch
+        max_tau[rankle_roll_i] = max_tau_ankle_pitch
+        max_tau[lankle_roll_i] = max_tau_ankle_pitch
 
         max_tau = max_tau[6:]
 
@@ -157,25 +160,24 @@ class OCP:
         cons.uh = np.array([])
         cons.lh = np.array([])
         #           remove foot drifting
-        epsFoot = 0.01
-        for feetFrame in self.h1.feetFrames:
-            id = self.h1.model.getFrameId(feetFrame)
-            func = c.Function(
-                "f_"+feetFrame,
-                [self.h1.q],
-                [self.h1.cdata.oMf[id].translation])
-            feetFramePos0 = c.SX(func(self.h1.q0))
-            d = func(self.h1.q) - feetFramePos0
-            self.ocp.model.con_h_expr = c.vertcat(
-                self.ocp.model.con_h_expr,
-                c.dot(d,d)
-            )
-            cons.uh = np.append(cons.uh, epsFoot)
-            # cons.lh = np.append(cons.lh, 0)
-            cons.lh = np.append(cons.lh, -epsFoot)
-
+#        epsFoot = 10**-3
+#        for feetFrame in self.h1.feetFrames:
+#            id = self.h1.model.getFrameId(feetFrame)
+#            func = c.Function(
+#                "f_"+feetFrame,
+#                [self.h1.q],
+#                [self.h1.cdata.oMf[id].translation])
+#            feetFramePos0 = c.SX(func(self.h1.q0))
+#            d = func(self.h1.q) - feetFramePos0
+#            self.ocp.model.con_h_expr = c.vertcat(
+#                self.ocp.model.con_h_expr,
+#                c.dot(d,d)
+#            )
+#            cons.uh = np.append(cons.uh, epsFoot)
+#            cons.lh = np.append(cons.lh, -epsFoot)
+#
         #           stability constraint
-        useablePoS = 0.8
+        useablePoS = 0.5
         cons.uh = np.append(cons.uh, useablePoS)
         cons.lh = np.append(cons.lh, -0.1)
         self.ocp.model.con_h_expr = c.vertcat(
@@ -201,7 +203,7 @@ class OCP:
             FRy_cons
         )
         cons.uh = np.append(
-            cons.uh, np.full(4, 10**12) # emulate unconstrainted
+            cons.uh, np.full(4, 10**6) # emulate unconstrainted
         )
         cons.lh = np.append(
             cons.lh, np.zeros(4)
@@ -221,15 +223,15 @@ class OCP:
         options.N_horizon = self.N
         options.tf = self.Tf
         options.print_level = 3
-        options.nlp_solver_max_iter = 1000
+        options.nlp_solver_max_iter = 20
         # options.nlp_solver_type = 'SQP_WITH_FEASIBLE_QP'
         # options.hessian_approx = 'EXACT'
         options.globalization_line_search_use_sufficient_descent = 1
         options.globalization = 'FUNNEL_L1PEN_LINESEARCH'
         options.hpipm_mode = 'ROBUST'
-        options.qp_solver_iter_max = 10**2
+        options.qp_solver_iter_max = 10
         options.tol = float(10**-3)
-        options.nlp_solver_tol_eq = float(10**-2)
+        options.nlp_solver_tol_eq = float(10**-3)
         options.qp_solver_tol_ineq = float(10**-5)
 
         self.ocp.solver_options = options
@@ -240,6 +242,9 @@ class OCP:
             build=False
         )
         return solver
+    
+    def _codeGenOptions(self):
+        self.ocp.code_gen_options.ext_fun_compile_flags = "-O0"
     
     def _initalValues(self, rngPertubation : float = 0.0):
         assert(self.h1.model.nq)
