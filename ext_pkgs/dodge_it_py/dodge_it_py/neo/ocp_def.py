@@ -69,15 +69,15 @@ class OCP:
         cost.cost_discretization = 'INTEGRATOR' # GNRKA
 
         #       stability
-#        self.ocp.model.cost_y_expr = self.stabilityConstraint
-#        cost.yref = 0.0
-#        cost.W = np.eye(1)
+        self.ocp.model.cost_y_expr = self.stabilityConstraint
+        cost.yref = 0.0
+        cost.W = np.eye(1)*10**-3 / self.N
 
         #       effort
-        self.ocp.model.cost_y_expr = self.ocp.model.u
-        nu = self.ocp.model.u.size1()
-        cost.yref = np.zeros(nu)
-        cost.W = np.eye(nu)*10**-6
+#        self.ocp.model.cost_y_expr = self.ocp.model.u
+#        nu = self.ocp.model.u.size1()
+#        cost.yref = np.zeros(nu)
+#        cost.W = np.eye(nu)*10**-8
 
         # Mayer
         cost.cost_type_e = 'NONLINEAR_LS'
@@ -90,7 +90,7 @@ class OCP:
         headPosDesired = headPosDesired.toarray() - np.array([[0],[0],[0.4]])
         self.ocp.model.cost_y_expr_e = f_headPos(self.h1.q)
         cost.yref_e = headPosDesired
-        cost.W_e = np.eye(3)
+        cost.W_e = np.eye(3) / 0.4
 
         return cost
     
@@ -156,28 +156,8 @@ class OCP:
         cons.lbu = -max_tau
 
         #       nonlinear constraints (h)
-        self.ocp.model.con_h_expr = c.SX()
-        cons.uh = np.array([])
-        cons.lh = np.array([])
-        #           remove foot drifting
-#        epsFoot = 10**-3
-#        for feetFrame in self.h1.feetFrames:
-#            id = self.h1.model.getFrameId(feetFrame)
-#            func = c.Function(
-#                "f_"+feetFrame,
-#                [self.h1.q],
-#                [self.h1.cdata.oMf[id].translation])
-#            feetFramePos0 = c.SX(func(self.h1.q0))
-#            d = func(self.h1.q) - feetFramePos0
-#            self.ocp.model.con_h_expr = c.vertcat(
-#                self.ocp.model.con_h_expr,
-#                c.dot(d,d)
-#            )
-#            cons.uh = np.append(cons.uh, epsFoot)
-#            cons.lh = np.append(cons.lh, -epsFoot)
-#
         #           stability constraint
-        useablePoS = 0.5
+        useablePoS = 0.8
         cons.uh = np.append(cons.uh, useablePoS)
         cons.lh = np.append(cons.lh, -0.1)
         self.ocp.model.con_h_expr = c.vertcat(
@@ -223,7 +203,7 @@ class OCP:
         options.N_horizon = self.N
         options.tf = self.Tf
         options.print_level = 3
-        options.nlp_solver_max_iter = 20
+        options.nlp_solver_max_iter = 100
         # options.nlp_solver_type = 'SQP_WITH_FEASIBLE_QP'
         # options.hessian_approx = 'EXACT'
         options.globalization_line_search_use_sufficient_descent = 1
@@ -232,7 +212,8 @@ class OCP:
         options.qp_solver_iter_max = 10
         options.tol = float(10**-3)
         options.nlp_solver_tol_eq = float(10**-3)
-        options.qp_solver_tol_ineq = float(10**-5)
+        # options.qp_solver_tol_ineq = float(10**-5)
+        options.sim_method_num_steps = 10
 
         self.ocp.solver_options = options
         self.ocp.solver_options.store_iterates = True
