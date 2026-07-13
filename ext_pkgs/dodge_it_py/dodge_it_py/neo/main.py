@@ -1,7 +1,6 @@
 import sys
 import numpy as np
-import numpy.typing as npt
-import casadi as c
+from pathlib import Path
 
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.ocp_def import OCP
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.H1Wrapper_v2 import H1Wrapper_v2
@@ -51,11 +50,16 @@ def main(args=None) -> int:
         tau = ocp.getSimU(floatBase=True)
         t = ocp.getSimT()
 
-        key = input("Press RETURN for visalization; q to exit; s to save controls and states\n")
+        key = input("Press RETURN for visalization; q to exit; s to save controls and states; c to save joints in csv\n")
         if key == 'q':
             break
         elif key == 's':
             ocp.save()
+        elif key == 'c':
+            h1.saveJointTrajectory(
+                q,
+                Path("jointTrajectory.csv")
+            )
         else:
             h1.visualizeJointTrajecotry(q, qdot, tau, t, 1)
 

@@ -10,6 +10,7 @@ import numpy.typing as npt
 from scipy.spatial.transform import Rotation
 from pathlib import Path
 from time import sleep
+from csv import writer as CsvWriter
 
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
   zmp_centroidal   
@@ -276,3 +277,18 @@ class H1Wrapper_v2():
             self.visualizeJointConfig(q, qdot, tau)
             sleep((t - t_last) * timeMultiplier)
             t_last = t
+            # print(t, q)
+
+    def saveJointTrajectory(self,
+                            q : np.ndarray,
+                            fileName : Path):
+        file = open(fileName, 'w')
+        writer = CsvWriter(file)
+        assert(self.model.names)
+
+         # remove floating-base
+        jointNames = self.model.names.tolist()[2:]
+        jointValues = q[:,6:]
+
+        writer.writerow(jointNames)
+        writer.writerows(jointValues)
