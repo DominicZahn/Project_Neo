@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.H1Wrapper_v2 import H1Wrapper_v2
-from ext_pkgs.dodge_it_py.dodge_it_py.stability import PolygonOfSupport, zmp_centroidal
+from ext_pkgs.dodge_it_py.dodge_it_py.stability import PolygonOfSupport
 
 from acados_template import (
     plot_trajectories,
@@ -14,7 +14,7 @@ from acados_template import (
     AcadosOcpCost,
     AcadosOcpConstraints,
     AcadosOcpSolver,
-    AcadosOcpOptions
+    AcadosOcpOptions,
 )
 
 xFILE = '/home/robot/ws/neo_x.txt'
@@ -54,6 +54,8 @@ class OCP:
         self.ocp.parameter_values = np.zeros(6)
 
         model.f_expl_expr = c.vertcat(self.h1.qdot, self.h1.qddot)
+        # model.xdot = c.vertcat(self.h1.qdot, self.h1.qddot)
+        # model.f_impl_expr = c.vertcat(self.h1.q, self.h1.qdot) - model.xdot
 
         return model
     
@@ -90,7 +92,7 @@ class OCP:
         headPosDesired = headPosDesired.toarray() - np.array([[0],[0],[0.4]])
         self.ocp.model.cost_y_expr_e = f_headPos(self.h1.q)
         cost.yref_e = headPosDesired
-        cost.W_e = np.eye(3) / 0.4
+        cost.W_e = np.eye(3) / 0.4 # normalization
 
         return cost
     
@@ -200,6 +202,7 @@ class OCP:
     def _solver(self) -> AcadosOcpSolver:
         options = AcadosOcpOptions()
         options.integrator_type = 'ERK'
+        # options.integrator_type = 'IRK'
         options.N_horizon = self.N
         options.tf = self.Tf
         options.print_level = 3
