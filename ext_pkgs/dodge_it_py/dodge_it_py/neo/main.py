@@ -34,12 +34,6 @@ def main(args=None) -> int:
     ocp = OCP(h1, Tf, N)
     status = ocp.solve(plot=True)
 
-    debugger = OcpDebugger(ocp.solver)
-    debugger.run()
-
-    if status != 0:
-        return status
-
     while True:
         print(h1._vis.viewer.url())
         print(h1.model)
@@ -50,7 +44,12 @@ def main(args=None) -> int:
         tau = ocp.getSimU(floatBase=True)
         t = ocp.getSimT()
 
-        key = input("Press RETURN for visalization; q to exit; s to save controls and states; c to save joints in csv\n")
+        if status != 0:
+            print("------------------- ❌ NO CONVERGENCE -------------------")
+        else:
+            print("------------------- 🎉 CONVERGENCE 🎉 -------------------")
+
+        key = input("Press RETURN for visalization\n q to exit\n s to save controls and states\n c to save joints in csv\n d to start ocp debugger\n")
         if key == 'q':
             break
         elif key == 's':
@@ -60,10 +59,13 @@ def main(args=None) -> int:
                 q,
                 Path("jointTrajectory.csv")
             )
+        elif key == 'd':
+            debugger = OcpDebugger(ocp.solver)
+            debugger.run()           
         else:
             h1.visualizeJointTrajecotry(q, qdot, tau, t, 1)
 
-    return 0
+    return status
 
 if __name__ == "__main__":
     sys.exit(main())
