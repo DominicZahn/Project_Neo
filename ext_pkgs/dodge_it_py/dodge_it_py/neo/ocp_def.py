@@ -73,13 +73,8 @@ class OCP:
         #       stability
         self.ocp.model.cost_y_expr = self.stabilityConstraint
         cost.yref = 0.0
-        cost.W = np.eye(1)*10**-3 / self.N
-
-        #       effort
-#        self.ocp.model.cost_y_expr = self.ocp.model.u
-#        nu = self.ocp.model.u.size1()
-#        cost.yref = np.zeros(nu)
-#        cost.W = np.eye(nu)*10**-8
+        # cost.W = np.eye(1)*10**-3 / self.N
+        cost.W = np.eye(1) / self.N
 
         # Mayer
         cost.cost_type_e = 'NONLINEAR_LS'
@@ -109,16 +104,9 @@ class OCP:
         q_ub = self.h1.model.upperPositionLimit
         q_lb = self.h1.model.lowerPositionLimit
         assert(q_ub is not None and q_lb is not None)
-        q_ub[:6] = np.full(6, 2)
-        q_lb[:6] = np.full(6, -2)
-        # qdot_ub = self.h1.model.upperVelocityLimit
-        # qdot_lb = self.h1.model.lowerVelocityLimit
-        qdot_ub = np.full(nq, 2)
-        qdot_lb = np.full(nq, -2)
-        assert(qdot_ub is not None and qdot_lb is not None)
-        cons.ubx = np.hstack((q_ub, qdot_ub))
-        cons.lbx = np.hstack((q_lb, qdot_lb))
-        cons.idxbx = np.arange(2*nq)
+        cons.ubx = q_ub[6:]
+        cons.lbx = q_lb[6:]
+        cons.idxbx = np.arange(nq)[6:]
 
         #       control limits
         max_tau_knee = 360 # [Nm]
@@ -209,7 +197,7 @@ class OCP:
         options.nlp_solver_max_iter = 100
         # options.nlp_solver_type = 'SQP_WITH_FEASIBLE_QP'
         # options.hessian_approx = 'EXACT'
-        options.globalization_line_search_use_sufficient_descent = 1
+        # options.globalization_line_search_use_sufficient_descent = 1
         options.globalization = 'FUNNEL_L1PEN_LINESEARCH'
         options.hpipm_mode = 'ROBUST'
         options.qp_solver_iter_max = 10
