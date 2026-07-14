@@ -5,19 +5,20 @@ import pinocchio.casadi as cpin
 
 class PolygonOfSupport():
     """
-    01---11        
-    |     |
-    |     |
-    00---10
+    01--y--11        
+    |       |
+    x       x
+    |       |
+    00--y--10
     """
     def __init__(self) -> None:
-        self.xl = 0.0339
-        self.xu = -0.363
-        self.yl = -0.07 # -0.0875
-        self.yu = 0.175 
+        self.yl = 0.0339
+        self.yu = -0.363
+        self.xl = -0.07 # -0.0875
+        self.xu = 0.175 
         self._center = c.SX([
-            (self.yu+self.yl)/2,
             (self.xu+self.xl)/2,
+            (self.yu+self.yl)/2,
             0.0
         ])
     
@@ -27,18 +28,21 @@ class PolygonOfSupport():
         """
         return [
             c.SX([self.xl,self.yl,0.0]),
-            c.SX([self.xu,self.yl,0.0]),
+            c.SX([self.xl,self.yu,0.0]),
             c.SX([self.xu,self.yu,0.0]),
-            c.SX([self.xl,self.yu,0.0])
+            c.SX([self.xu,self.yl,0.0])
         ]
     
     def get_center(self) -> c.SX:
         return self._center
 
     def stability_centerDistParable(self, p : c.SX) -> c.SX:
-        yp = p[0]
-        yc = self._center[0]
-        return (yp-yc)**2/(self.yl-yc)**2
+        xp, yp = p[0], p[1]
+        xc, yc = self._center[0], self._center[1]
+        xSize, ySize = self.xl-xc, self.yl-yc
+        xVal = (xp-xc)**2/xSize**2
+        yVal = (yp-yc)**2/ySize**2
+        return xVal + yVal
     
     def stability_centerDist(self, p : c.SX) -> c.SX:
         d = self._center - p
@@ -51,8 +55,8 @@ class PolygonOfSupport():
         yc = self._center[0]
         # dx0 = (xp-self._x0)/(xc-self._x0)
         # dx1 = (xp-self._x1)/(xc-self._x1)
-        dy0 = (yp-self.yl)/(yc-self.yl)-1
-        dy1 = (yp-self.yu)/(yc-self.yu)-1
+        dy0 = (yp-self.xl)/(yc-self.xl)-1
+        dy1 = (yp-self.xu)/(yc-self.xu)-1
         return c.fmax(dy0, dy1)
 
 # --------------------------------------------
