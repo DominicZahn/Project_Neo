@@ -197,12 +197,12 @@ class H1Wrapper_v2():
         self._vis.viewer["zmp"].set_object(
             g.Sphere(0.02),
             g.MeshPhongMaterial(0xf81802))
-        self._vis.viewer["F_l"].set_object(
-            g.Cylinder(1, 0.01),
-            g.MeshPhongMaterial(0xa2bb7d))
-        self._vis.viewer["F_r"].set_object(
-            g.Cylinder(1, 0.01),
-            g.MeshPhongMaterial(0xa2bb7d))
+#        self._vis.viewer["F_l"].set_object(
+#            g.Cylinder(1, 0.01),
+#            g.MeshPhongMaterial(0xa2bb7d))
+#        self._vis.viewer["F_r"].set_object(
+#            g.Cylinder(1, 0.01),
+#            g.MeshPhongMaterial(0xa2bb7d))
 
     def _visualizeZMP(self, pos : npt.NDArray):
         mat = pin.SE3(
