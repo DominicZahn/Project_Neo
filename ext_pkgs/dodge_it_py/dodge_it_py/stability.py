@@ -94,6 +94,26 @@ def zmp_centroidal(
     ZMP[2] = zmp_z
     return ZMP
 
+def zmp_full(
+        cmodel : cpin.Model,
+        cdata : cpin.Data,
+        q : c.SX,
+        qdot : c.SX,
+        qddot : c.SX,
+        contactFrameIds : list[int]) -> c.SX:
+    Fl = cdata.lambda_c[:3]
+    taul = cdata.lambda_c[3:6]
+    Fr = cdata.lambda_c[6:9]
+    taur = cdata.lambda_c[9:]
+    pFootl = cdata.oMf[contactFrameIds[0]].translation
+    pFootr = cdata.oMf[contactFrameIds[1]].translation
+    pz = 0.0
+    px = ((-taul[1]-(pFootl[2]-pz)*Fl[0]+pFootl[0]*Fl[2]) + (-taur[1]-(pFootr[2]-pz)*Fr[0]+pFootr[0]*Fr[2])) / (Fl[2] + Fr[2])
+    py = ((taul[0]-(pFootl[2]-pz)*Fl[1]+pFootl[1]*Fl[2]) + (taur[0]-(pFootr[2]-pz)*Fr[1]+pFootr[1]*Fr[2])) / (Fl[2] + Fr[2])
+    zmp = c.SX([0,0,0])
+    zmp[0], zmp[1], zmp[2] = px, py, pz
+    return zmp
+
 def zmp_approx(cmodel : cpin.Model, cdata : cpin.Data) -> c.SX:
     # ignoring angular accelerations
     g = 9.181

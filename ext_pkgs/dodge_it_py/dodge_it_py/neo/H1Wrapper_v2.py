@@ -13,7 +13,7 @@ from time import sleep
 from csv import writer as CsvWriter
 
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
-  zmp_centroidal   
+  zmp_centroidal, zmp_full
 )
 
 # ----------------- MODEL LOCATION -----------------
@@ -114,12 +114,12 @@ class H1Wrapper_v2():
     def _setupContacts(self, feetFrameNames : list[str]):
         assert(any([self.model.existFrame(f) for f in feetFrameNames]))
         self.feetFrames = feetFrameNames
-        feetFrameIds = [self.model.getFrameId(frame_name) for frame_name in feetFrameNames]
+        self.feetFrameIds = [self.model.getFrameId(frame_name) for frame_name in feetFrameNames]
 
         self.cContactModels = []
         self.cContactData = []
         assert(self.model.frames)
-        for id in feetFrameIds:
+        for id in self.feetFrameIds:
             frame = self.model.frames[id]
             contactModel = pin.RigidConstraintModel(
                 pin.ContactType.CONTACT_6D,
@@ -147,7 +147,6 @@ class H1Wrapper_v2():
         self.tau = c.SX.sym('tau', nv)
 
         # define dynamics
-        # proxSettings = cpin.ProximalSettings(None, 1e-12, 3)
         proxSettings = cpin.ProximalSettings(None, 0, 1)
         cpin.initConstraintDynamics(
             self.cmodel,
@@ -170,12 +169,13 @@ class H1Wrapper_v2():
         cpin.updateFramePlacements(self.cmodel, self.cdata)
 
         # ZMP
-        self.ZMP = zmp_centroidal(
+        self.ZMP = zmp_full(
             self.cmodel,
             self.cdata,
             self.q,
             self.qdot,
-            self.qddot)
+            self.qddot,
+            self.feetFrameIds)
         
         # CoM
         self.CoM = cpin.centerOfMass(self.cmodel, self.cdata, self.q)
