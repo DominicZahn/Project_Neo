@@ -101,15 +101,20 @@ def zmp_full(
         qdot : c.SX,
         qddot : c.SX,
         contactFrameIds : list[int]) -> c.SX:
-    Fl = cdata.lambda_c[:3]
-    taul = cdata.lambda_c[3:6]
-    Fr = cdata.lambda_c[6:9]
-    taur = cdata.lambda_c[9:]
-    pFootl = cdata.oMf[contactFrameIds[0]].translation
-    pFootr = cdata.oMf[contactFrameIds[1]].translation
+    x_denum, x_num = c.SX(0.0), c.SX(0.0)
+    y_denum, y_num = c.SX(0.0), c.SX(0.0)
     pz = 0.0
-    px = ((-taul[1]-(pFootl[2]-pz)*Fl[0]+pFootl[0]*Fl[2]) + (-taur[1]-(pFootr[2]-pz)*Fr[0]+pFootr[0]*Fr[2])) / (Fl[2] + Fr[2])
-    py = ((taul[0]-(pFootl[2]-pz)*Fl[1]+pFootl[1]*Fl[2]) + (taur[0]-(pFootr[2]-pz)*Fr[1]+pFootr[1]*Fr[2])) / (Fl[2] + Fr[2])
+    x_num, y_num, denum = 0.0, 0.0, 0.0
+    for i in range(len(contactFrameIds)):
+        j = 6*i
+        F = cdata.lambda_c[j:j+3]
+        tau = cdata.lambda_c[j+3:j+6]
+        pFoot = cdata.oMf[contactFrameIds[i]].translation
+        x_num += -tau[1]-(pFoot[2]-pz)*F[0]+pFoot[0]*F[2]
+        y_num += tau[0]-(pFoot[2]-pz)*F[1]+pFoot[1]*F[2]
+        denum += F[2]
+    px = x_num / denum
+    py = y_num / denum
     zmp = c.SX([0,0,0])
     zmp[0], zmp[1], zmp[2] = px, py, pz
     return zmp
