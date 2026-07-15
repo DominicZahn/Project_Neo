@@ -73,8 +73,7 @@ class OCP:
         #       stability
         self.ocp.model.cost_y_expr = self.stabilityConstraint
         cost.yref = 0.0
-        # cost.W = np.eye(1)*10**-3 / self.N
-        cost.W = np.eye(1) / self.N
+        cost.W = np.eye(1)*10**-3 / self.N
 
         # Mayer
         cost.cost_type_e = 'NONLINEAR_LS'
@@ -115,29 +114,29 @@ class OCP:
         max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
         rhip_pitch_i = self.h1.qId('right_hip_pitch_joint')
         lhip_pitch_i = self.h1.qId('left_hip_pitch_joint')
-        rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
-        lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
-        rhip_roll_i = self.h1.qId('right_hip_roll_joint')
-        lhip_roll_i = self.h1.qId('left_hip_roll_joint')
+        # rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
+        # lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
+        # rhip_roll_i = self.h1.qId('right_hip_roll_joint')
+        # lhip_roll_i = self.h1.qId('left_hip_roll_joint')
         rknee_i = self.h1.qId('right_knee_joint')
         lknee_i = self.h1.qId('left_knee_joint')
         rankle_pitch_i = self.h1.qId('right_ankle_pitch_joint')
         lankle_pitch_i = self.h1.qId('left_ankle_pitch_joint')
-        rankle_roll_i = self.h1.qId('right_ankle_roll_joint')
-        lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
+        # rankle_roll_i = self.h1.qId('right_ankle_roll_joint')
+        # lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
         max_tau = np.zeros(nq)
         max_tau[rhip_pitch_i] = max_tau_hip
         max_tau[lhip_pitch_i] = max_tau_hip
-        max_tau[rhip_yaw_i] = max_tau_hip
-        max_tau[lhip_yaw_i] = max_tau_hip
-        max_tau[rhip_roll_i] = max_tau_hip
-        max_tau[lhip_roll_i] = max_tau_hip
+        # max_tau[rhip_yaw_i] = max_tau_hip
+        # max_tau[lhip_yaw_i] = max_tau_hip
+        # max_tau[rhip_roll_i] = max_tau_hip
+        # max_tau[lhip_roll_i] = max_tau_hip
         max_tau[rknee_i] = max_tau_knee
         max_tau[lknee_i] = max_tau_knee
         max_tau[rankle_pitch_i] = max_tau_ankle_pitch
         max_tau[lankle_pitch_i] = max_tau_ankle_pitch
-        max_tau[rankle_roll_i] = max_tau_ankle_pitch
-        max_tau[lankle_roll_i] = max_tau_ankle_pitch
+        # max_tau[rankle_roll_i] = max_tau_ankle_pitch
+        # max_tau[lankle_roll_i] = max_tau_ankle_pitch
 
         max_tau = max_tau[6:]
 
@@ -154,7 +153,6 @@ class OCP:
             self.ocp.model.con_h_expr,
             self.stabilityConstraint
         )
- 
 
         #           planar friction
         fricCoeff = 0.5
@@ -204,7 +202,7 @@ class OCP:
         options.tol = float(10**-3)
         options.nlp_solver_tol_eq = float(10**-3)
         # options.qp_solver_tol_ineq = float(10**-5)
-        options.sim_method_num_steps = 10
+        options.sim_method_num_steps = 20
 
         self.ocp.solver_options = options
         self.ocp.solver_options.store_iterates = True

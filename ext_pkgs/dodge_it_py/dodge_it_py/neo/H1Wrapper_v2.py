@@ -147,7 +147,8 @@ class H1Wrapper_v2():
         self.tau = c.SX.sym('tau', nv)
 
         # define dynamics
-        proxSettings = cpin.ProximalSettings(None, 0, 1)
+        proxSettings = cpin.ProximalSettings(None, 1e-12, 5)
+        # proxSettings = cpin.ProximalSettings(None, 0, 1)
         cpin.initConstraintDynamics(
             self.cmodel,
             self.cdata,
@@ -176,6 +177,13 @@ class H1Wrapper_v2():
             self.qdot,
             self.qddot,
             self.feetFrameIds)
+#        self.ZMP = zmp_centroidal(
+#            self.cmodel,
+#            self.cdata,
+#            self.q,
+#            self.qdot,
+#            self.qddot)
+ 
         
         # CoM
         self.CoM = cpin.centerOfMass(self.cmodel, self.cdata, self.q)
