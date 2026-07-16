@@ -35,13 +35,13 @@ class OCP:
         self.solver = self._solver()
         # self.solver = self._initalValues(0.0)
 
-        assert(self.h1.model.nq)
-        x_itConst = np.concatenate([
-            self.h1.q0,
-            np.zeros(self.h1.model.nq)
-        ])
-        x = np.tile(x_itConst, self.N+1)
-        self.solver.set_flat('x', x)
+#        assert(self.h1.model.nq)
+#        x_itConst = np.concatenate([
+#            self.h1.q0,
+#            np.zeros(self.h1.model.nq)
+#        ])
+#        x = np.tile(x_itConst, self.N+1)
+#        self.solver.set_flat('x', x)
     
     def _model(self) -> AcadosModel:
         model = AcadosModel()
@@ -73,20 +73,21 @@ class OCP:
         #       stability
         self.ocp.model.cost_y_expr = self.stabilityConstraint
         cost.yref = 0.0
-        cost.W = np.eye(1)*10**-3 / self.N
+        cost.W = np.eye(1) / self.N
 
         # Mayer
-        cost.cost_type_e = 'NONLINEAR_LS'
-        cost.cost_discretization_e = 'INTEGRATOR' # GNRK
+#        cost.cost_type_e = 'NONLINEAR_LS'
+#        cost.cost_discretization_e = 'INTEGRATOR' # GNRK
 
         #       head
-        f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
-        headPosDesired = f_headPos(self.h1.q0)
-        assert(type(headPosDesired) is c.DM)
-        headPosDesired = headPosDesired.toarray() - np.array([[0],[0],[0.4]])
-        self.ocp.model.cost_y_expr_e = f_headPos(self.h1.q)
-        cost.yref_e = headPosDesired
-        cost.W_e = np.eye(3) / 0.4 # normalization
+#        h_diff = 0.4
+#        f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
+#        headPosDesired = f_headPos(self.h1.q0)
+#        assert(type(headPosDesired) is c.DM)
+#        headPosDesired = headPosDesired.toarray() - np.array([[0],[0],[h_diff]])
+#        self.ocp.model.cost_y_expr_e = f_headPos(self.h1.q)
+#        cost.yref_e = headPosDesired
+#        cost.W_e = np.eye(3) / h_diff # normalization
 
         return cost
     
@@ -114,29 +115,29 @@ class OCP:
         max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
         rhip_pitch_i = self.h1.qId('right_hip_pitch_joint')
         lhip_pitch_i = self.h1.qId('left_hip_pitch_joint')
-        # rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
-        # lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
-        # rhip_roll_i = self.h1.qId('right_hip_roll_joint')
-        # lhip_roll_i = self.h1.qId('left_hip_roll_joint')
+        rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
+        lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
+        rhip_roll_i = self.h1.qId('right_hip_roll_joint')
+        lhip_roll_i = self.h1.qId('left_hip_roll_joint')
         rknee_i = self.h1.qId('right_knee_joint')
         lknee_i = self.h1.qId('left_knee_joint')
         rankle_pitch_i = self.h1.qId('right_ankle_pitch_joint')
         lankle_pitch_i = self.h1.qId('left_ankle_pitch_joint')
-        # rankle_roll_i = self.h1.qId('right_ankle_roll_joint')
-        # lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
+        rankle_roll_i = self.h1.qId('right_ankle_roll_joint')
+        lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
         max_tau = np.zeros(nq)
         max_tau[rhip_pitch_i] = max_tau_hip
         max_tau[lhip_pitch_i] = max_tau_hip
-        # max_tau[rhip_yaw_i] = max_tau_hip
-        # max_tau[lhip_yaw_i] = max_tau_hip
-        # max_tau[rhip_roll_i] = max_tau_hip
-        # max_tau[lhip_roll_i] = max_tau_hip
+        max_tau[rhip_yaw_i] = max_tau_hip
+        max_tau[lhip_yaw_i] = max_tau_hip
+        max_tau[rhip_roll_i] = max_tau_hip
+        max_tau[lhip_roll_i] = max_tau_hip
         max_tau[rknee_i] = max_tau_knee
         max_tau[lknee_i] = max_tau_knee
         max_tau[rankle_pitch_i] = max_tau_ankle_pitch
         max_tau[lankle_pitch_i] = max_tau_ankle_pitch
-        # max_tau[rankle_roll_i] = max_tau_ankle_pitch
-        # max_tau[lankle_roll_i] = max_tau_ankle_pitch
+        max_tau[rankle_roll_i] = max_tau_ankle_pitch
+        max_tau[lankle_roll_i] = max_tau_ankle_pitch
 
         max_tau = max_tau[6:]
 
@@ -146,9 +147,9 @@ class OCP:
 
         #       nonlinear constraints (h)
         #           stability constraint
-        useablePoS = 0.8
+        useablePoS = 1.0
         cons.uh = np.append(cons.uh, useablePoS)
-        cons.lh = np.append(cons.lh, -0.1)
+        cons.lh = np.append(cons.lh, 1e-6)
         self.ocp.model.con_h_expr = c.vertcat(
             self.ocp.model.con_h_expr,
             self.stabilityConstraint
@@ -177,6 +178,24 @@ class OCP:
             cons.lh, np.zeros(4)
         )
 
+        #           head pos
+        allowedHeadOffset = 1e-2
+        f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
+        headPosDesired = f_headPos(self.h1.q0)
+        assert(type(headPosDesired) is c.DM)
+        headOffset = headPosDesired - f_headPos(self.h1.q)
+        self.ocp.model.con_h_expr = c.vertcat(
+            self.ocp.model.con_h_expr,
+            headOffset[0],
+            headOffset[1], 
+        )
+        cons.uh = np.append(
+            cons.uh, np.full(2, allowedHeadOffset)
+        )
+        cons.lh = np.append(
+            cons.lh, np.full(2, -allowedHeadOffset)
+        )
+
         # terminal
         #       limit end velocity
         cons.idxbx_e = np.arange(nq, nq+6)
@@ -192,17 +211,16 @@ class OCP:
         options.N_horizon = self.N
         options.tf = self.Tf
         options.print_level = 3
-        options.nlp_solver_max_iter = 100
+        options.nlp_solver_max_iter = 300
         # options.nlp_solver_type = 'SQP_WITH_FEASIBLE_QP'
         # options.hessian_approx = 'EXACT'
         # options.globalization_line_search_use_sufficient_descent = 1
         options.globalization = 'FUNNEL_L1PEN_LINESEARCH'
         options.hpipm_mode = 'ROBUST'
-        options.qp_solver_iter_max = 10
+        options.qp_solver_iter_max = 100
         options.tol = float(10**-3)
         options.nlp_solver_tol_eq = float(10**-3)
-        # options.qp_solver_tol_ineq = float(10**-5)
-        options.sim_method_num_steps = 20
+        options.sim_method_num_steps = 100
 
         self.ocp.solver_options = options
         self.ocp.solver_options.store_iterates = True

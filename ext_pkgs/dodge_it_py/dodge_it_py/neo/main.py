@@ -8,18 +8,18 @@ from ext_pkgs.dodge_it_py.dodge_it_py.ocpDebugger import OcpDebugger
 
 def main(args=None) -> int:
     dynamicJointNames = [
-        # 'left_hip_yaw_joint',
-        # 'right_hip_yaw_joint',
-        # 'left_hip_roll_joint',
-        # 'right_hip_roll_joint',
+        'left_hip_yaw_joint',
+        'right_hip_yaw_joint',
+        'left_hip_roll_joint',
+        'right_hip_roll_joint',
         'left_hip_pitch_joint',
         'right_hip_pitch_joint',
         'left_knee_joint',
         'right_knee_joint',
         'left_ankle_pitch_joint',
         'right_ankle_pitch_joint',
-        # 'left_ankle_roll_joint',
-        # 'right_ankle_roll_joint'
+        'left_ankle_roll_joint',
+        'right_ankle_roll_joint'
     ]
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4',
@@ -28,8 +28,8 @@ def main(args=None) -> int:
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq))
     
-    Tf = 2.0
-    N = 33
+    Tf = 1.0
+    N = int(33*Tf)
 
     ocp = OCP(h1, Tf, N)
     status = ocp.solve(plot=True)
