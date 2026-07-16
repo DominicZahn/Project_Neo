@@ -12,10 +12,12 @@ class PolygonOfSupport():
     00--y--10
     """
     def __init__(self) -> None:
-        self.yl = 0.0339
-        self.yu = -0.363
+        # self.yl = 0.0339
+        # self.yu = -0.363
         self.xl = -0.07 # -0.0875
         self.xu = 0.175 
+        self.yl = -0.20
+        self.yu = 0.20
         self._center = c.SX([
             (self.xu+self.xl)/2,
             (self.yu+self.yl)/2,
