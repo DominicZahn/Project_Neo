@@ -29,7 +29,7 @@ def main(args=None) -> int:
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq))
     
     Tf = 1.0
-    N = int(33*Tf)
+    N = 33
 
     ocp = OCP(h1, Tf, N)
     status = ocp.solve(plot=True)

@@ -33,15 +33,7 @@ class OCP:
         self.ocp.constraints = self._constraints()
         self._codeGenOptions()
         self.solver = self._solver()
-        # self.solver = self._initalValues(0.0)
-
-#        assert(self.h1.model.nq)
-#        x_itConst = np.concatenate([
-#            self.h1.q0,
-#            np.zeros(self.h1.model.nq)
-#        ])
-#        x = np.tile(x_itConst, self.N+1)
-#        self.solver.set_flat('x', x)
+        self.solver = self._initalValues(0.0)
     
     def _model(self) -> AcadosModel:
         model = AcadosModel()
@@ -54,8 +46,6 @@ class OCP:
         self.ocp.parameter_values = np.zeros(6)
 
         model.f_expl_expr = c.vertcat(self.h1.qdot, self.h1.qddot)
-        # model.xdot = c.vertcat(self.h1.qdot, self.h1.qddot)
-        # model.f_impl_expr = c.vertcat(self.h1.q, self.h1.qdot) - model.xdot
 
         return model
     
@@ -76,18 +66,18 @@ class OCP:
         cost.W = np.eye(1) / self.N
 
         # Mayer
-#        cost.cost_type_e = 'NONLINEAR_LS'
-#        cost.cost_discretization_e = 'INTEGRATOR' # GNRK
+        cost.cost_type_e = 'NONLINEAR_LS'
+        cost.cost_discretization_e = 'INTEGRATOR' # GNRK
 
         #       head
-#        h_diff = 0.4
-#        f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
-#        headPosDesired = f_headPos(self.h1.q0)
-#        assert(type(headPosDesired) is c.DM)
-#        headPosDesired = headPosDesired.toarray() - np.array([[0],[0],[h_diff]])
-#        self.ocp.model.cost_y_expr_e = f_headPos(self.h1.q)
-#        cost.yref_e = headPosDesired
-#        cost.W_e = np.eye(3) / h_diff # normalization
+        h_diff = 0.35
+        f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
+        headPosDesired = f_headPos(self.h1.q0)
+        assert(type(headPosDesired) is c.DM)
+        headPosDesired = headPosDesired.toarray() - np.array([[0],[0],[h_diff]])
+        self.ocp.model.cost_y_expr_e = f_headPos(self.h1.q)
+        cost.yref_e = headPosDesired
+        cost.W_e = np.eye(3) / h_diff # normalization
 
         return cost
     
@@ -178,24 +168,6 @@ class OCP:
             cons.lh, np.zeros(4)
         )
 
-        #           head pos
-        allowedHeadOffset = 1e-2
-        f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
-        headPosDesired = f_headPos(self.h1.q0)
-        assert(type(headPosDesired) is c.DM)
-        headOffset = headPosDesired - f_headPos(self.h1.q)
-        self.ocp.model.con_h_expr = c.vertcat(
-            self.ocp.model.con_h_expr,
-            headOffset[0],
-            headOffset[1], 
-        )
-        cons.uh = np.append(
-            cons.uh, np.full(2, allowedHeadOffset)
-        )
-        cons.lh = np.append(
-            cons.lh, np.full(2, -allowedHeadOffset)
-        )
-
         # terminal
         #       limit end velocity
         cons.idxbx_e = np.arange(nq, nq+6)
@@ -211,7 +183,7 @@ class OCP:
         options.N_horizon = self.N
         options.tf = self.Tf
         options.print_level = 3
-        options.nlp_solver_max_iter = 300
+        options.nlp_solver_max_iter = 1000
         # options.nlp_solver_type = 'SQP_WITH_FEASIBLE_QP'
         # options.hessian_approx = 'EXACT'
         # options.globalization_line_search_use_sufficient_descent = 1
@@ -220,7 +192,7 @@ class OCP:
         options.qp_solver_iter_max = 100
         options.tol = float(10**-3)
         options.nlp_solver_tol_eq = float(10**-3)
-        options.sim_method_num_steps = 100
+        options.sim_method_num_steps = 10
 
         self.ocp.solver_options = options
         self.ocp.solver_options.store_iterates = True
