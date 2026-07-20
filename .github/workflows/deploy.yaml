@@ -20,7 +20,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: docu/projectNeo/ProjectNeo-Reloaded
+        working-directory: docu/presentations/ProjectNeo-Reloaded
 
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docu/projectNeo/ProjectNeo-Reloaded/dist
+          path: docu/presentations/ProjectNeo-Reloaded/dist
 
   deploy:
     environment:
