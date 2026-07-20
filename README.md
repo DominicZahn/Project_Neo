@@ -11,24 +11,35 @@
 </div>
 
 # Quick Start
+
 To get started recursively clone the repository with
+
 ```git
 git clone --recursive https://github.com/DominicZahn/ROS2-Gazebo-Docker.git
 ```
-It is important that the subrepositories [ROS2-Gazebo-Docker](https://github.com/DominicZahn/ROS2-Gazebo-Docker/tree/574c054fbd8337f6363a4b97bfed7b0e586321eb#) and [ros2_heinz](https://github.com/K-d4wg/ros2_heinz/tree/6d28be5d449fc5cbbe89e5be2110f219c400cbe9) are included.
+
+It is important that the subrepositories [Neo-Construct](https://github.com/DominicZahn/Neo-Construct/tree/main) and [ros2_heinz](https://github.com/K-d4wg/ros2_heinz/tree/6d28be5d449fc5cbbe89e5be2110f219c400cbe9) are included.
+
 ## Setup and Docker Control
-The general interaction with the Docker container can be seen in the subrepository [ROS2-Gazebo-Docker](https://github.com/DominicZahn/ROS2-Gazebo-Docker/blob/574c054fbd8337f6363a4b97bfed7b0e586321eb/README.md).
 
-## Launch `Smith`
-Inside the running docker the dodge example can be executed by launching all nodes with a single launch file.
+The general interaction with the Docker container can be seen in the subrepository [Neo-Construct](https://github.com/DominicZahn/Neo-Construct/tree/main).
+
+## Launch `Neo`
+
+Inside the docker the main 'neo' formulation can be launched with the following command.
+
 ```bash
-ros2 launch dodge_it stability.launch.py sim:=rviz_manual
+ros2 run dodge_it_py neo
 ```
-This command launches the following nodes
-- center_of_mass
-- support_polygon
-- robot_state_publisher
-- rviz2
 
-Now the RViz window should appear and show how the optimization is solved step by step.
-The time each step takes is highly depended on the computational capabilities of your system.
+This implementation is still actively worked on so it is subject to change.
+Below we present the roadmap for Project Neo.
+
+```mermaid
+
+timeline
+  ✅ v0.0 - Static Pose : ✅ statically stable : ✅ duck under given height
+  ✅ v0.1 - Squatting : ✅ dynamically stable (ZMP) : ✅ optimal control : ✅ lower body : ✅ bilateral contacts
+  ⏳️ v0.2 - Dodging : dodge formulation
+  v0.3 - Stepping : dynamic Polygon of Support adjustment
+```
