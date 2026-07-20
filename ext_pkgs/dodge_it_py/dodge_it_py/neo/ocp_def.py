@@ -33,7 +33,7 @@ class OCP:
         self.ocp.constraints = self._constraints()
         self._codeGenOptions()
         self.solver = self._solver()
-        self.solver = self._initalValues(0.0)
+        # self.solver = self._initalValues(0.0)
     
     def _model(self) -> AcadosModel:
         model = AcadosModel()
@@ -61,16 +61,19 @@ class OCP:
         cost.cost_discretization = 'INTEGRATOR' # GNRKA
 
         #       stability
-        self.ocp.model.cost_y_expr = self.stabilityConstraint
+        u = self.ocp.model.u
+        self.ocp.model.cost_y_expr = self.stabilityConstraint + c.dot(u,u)*1e-6
         cost.yref = 0.0
         cost.W = np.eye(1) / self.N
+
+
 
         # Mayer
         cost.cost_type_e = 'NONLINEAR_LS'
         cost.cost_discretization_e = 'INTEGRATOR' # GNRK
 
         #       head
-        h_diff = 0.35
+        h_diff = 0.2
         f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
         headPosDesired = f_headPos(self.h1.q0)
         assert(type(headPosDesired) is c.DM)
@@ -137,7 +140,7 @@ class OCP:
 
         #       nonlinear constraints (h)
         #           stability constraint
-        useablePoS = 1.0
+        useablePoS = 0.8
         cons.uh = np.append(cons.uh, useablePoS)
         cons.lh = np.append(cons.lh, 1e-6)
         self.ocp.model.con_h_expr = c.vertcat(

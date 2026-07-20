@@ -28,7 +28,7 @@ def main(args=None) -> int:
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq))
     
-    Tf = 1.0
+    Tf = 0.5
     N = 33
 
     ocp = OCP(h1, Tf, N)
