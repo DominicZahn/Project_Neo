@@ -23,7 +23,8 @@ def main(args=None) -> int:
     ]
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4',
-        dynamicJoints=dynamicJointNames)
+        dynamicJoints=dynamicJointNames,
+        showCollisionSDF=True)
     assert(h1.model.nq)
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq))
@@ -47,7 +48,7 @@ def main(args=None) -> int:
         if status != 0:
             print("------------------- ❌ NO CONVERGENCE -------------------")
         else:
-            print("------------------- 🎉 CONVERGENCE 🎉 -------------------")
+            print("------------------- ✅ CONVERGENCE -------------------")
 
         key = input("Press RETURN for visalization\n q to exit\n s to save controls and states\n c to save joints in csv\n d to start ocp debugger\n")
         if key == 'q':

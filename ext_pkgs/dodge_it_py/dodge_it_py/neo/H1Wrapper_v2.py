@@ -15,6 +15,7 @@ from csv import writer as CsvWriter
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
   zmp_centroidal, zmp_full
 )
+from ext_pkgs.dodge_it_py.dodge_it_py.neo.collisionSDF import CollisionSDF
 
 # ----------------- MODEL LOCATION -----------------
 MODEL_PATH = Path('/home/robot/ws/src/ros2_heinz/h1_gazebo_sim/ros_gz_h1_description/models/')
@@ -44,13 +45,17 @@ class H1Wrapper_v2():
     def __init__(self,
                  q0 : npt.NDArray[np.float32] | str = DEFAULT_REFERENCE_CONF,
                  dynamicJoints : list[str] = [],
-                 feetFrames : list[str] = DEFAULT_FEET_FRAMES):
+                 feetFrames : list[str] = DEFAULT_FEET_FRAMES,
+                 showCollisionSDF = False):
         self._setupModels()
         self._setInitalPose(q0)
         self._fixJoints(dynamicJoints)
         self._setupContacts(feetFrames)
         self._initCasadi()
         self._setupVis()
+        self.showCollisionSDF = showCollisionSDF
+        if self.showCollisionSDF:
+            self._setupCollision(np.array([0.2, 0.3, 0.8]))
         
     def _setupModels(self):
         # custom floating base to avoid using quaternions in q
@@ -68,6 +73,12 @@ class H1Wrapper_v2():
         self.model : pin.Model = model
         self.collisionModel : pin.GeometryModel = collisionModel
         self.visualModel : pin.GeometryModel = visualModel
+
+    def _setupCollision(self, ellipsoidRadius : npt.NDArray):
+        self.collisionSDF = CollisionSDF(
+            ellipsoidRadius,
+            self.q0)
+        self.collisionSDF.enableVis(self._vis, int(1e3))
     
     def _setInitalPose(self, q0 : npt.NDArray[np.float32] | str | None):
         pin.loadReferenceConfigurations(self.model, SRDF_FULL_PATH, verbose=False)
@@ -257,6 +268,10 @@ class H1Wrapper_v2():
         zmp = c.DM(func(q, qdot, tau)).toarray()
         assert(type(zmp) is np.ndarray)
         self._visualizeZMP(zmp)
+
+        # collision SDF
+        if self.showCollisionSDF:
+            self.collisionSDF.updateJoints(q)
 
         # contact forces
         func_F_l = c.Function("f_F_l",
