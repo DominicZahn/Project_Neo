@@ -8,31 +8,31 @@ from ext_pkgs.dodge_it_py.dodge_it_py.ocpDebugger import OcpDebugger
 
 def main(args=None) -> int:
     dynamicJointNames = [
-        'left_hip_yaw_joint',
-        'right_hip_yaw_joint',
-        'left_hip_roll_joint',
-        'right_hip_roll_joint',
+        # 'left_hip_yaw_joint',
+        # 'right_hip_yaw_joint',
+        # 'left_hip_roll_joint',
+        # 'right_hip_roll_joint',
         'left_hip_pitch_joint',
         'right_hip_pitch_joint',
         'left_knee_joint',
         'right_knee_joint',
         'left_ankle_pitch_joint',
         'right_ankle_pitch_joint',
-        'left_ankle_roll_joint',
-        'right_ankle_roll_joint'
+        # 'left_ankle_roll_joint',
+        # 'right_ankle_roll_joint'
     ]
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4',
         dynamicJoints=dynamicJointNames,
-        showCollisionSDF=True)
+        showCollisionSDF=False)
     assert(h1.model.nq)
     nq =  h1.model.nq
-    h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq))
+    h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq), 0.0)
     
-    Tf = 0.5
-    N = 33
+    Tf = 3.0
+    N = 60
 
-    ocp = OCP(h1, Tf, N)
+    ocp = OCP(h1, Tf, N, loadInitalValues=False)
     status = ocp.solve(plot=True)
 
     while True:
@@ -43,7 +43,8 @@ def main(args=None) -> int:
         q = x[:,:nq]
         qdot = x[:,nq:]
         tau = ocp.getSimU(floatBase=True)
-        t = ocp.getSimT()
+        # t = ocp.getSimT()
+        t = ocp.solver.get_flat('p')[-(ocp.solver.N+1):-1]
 
         if status != 0:
             print("------------------- ❌ NO CONVERGENCE -------------------")
@@ -64,7 +65,7 @@ def main(args=None) -> int:
             debugger = OcpDebugger(ocp.solver)
             debugger.run()           
         else:
-            h1.visualizeJointTrajecotry(q, qdot, tau, t, 1)
+            h1.visualizeJointTrajecotry(q, qdot, tau, t, 1.0)
 
     return status
 

@@ -1,11 +1,33 @@
-from time import time
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 import numpy.typing as npt
 from scipy.spatial.transform import Rotation
+import casadi as c
 from pinocchio import SE3
 from pinocchio.visualize import MeshcatVisualizer
 from meshcat.geometry import PointCloud
+
+def cRotMatFromEuler(xyz : c.SX) -> c.SX:
+    x, y, z = xyz[0], xyz[1], xyz[2]
+
+    Rx = c.vertcat(c.horzcat(1, 0, 0),
+                   c.horzcat(0, c.cos(x), -c.sin(x)),
+                   c.horzcat(0, c.sin(x),  c.cos(x)))
+
+    Ry = c.vertcat(c.horzcat( c.cos(y), 0, c.sin(y)),
+                   c.horzcat(0, 1, 0),
+                   c.horzcat(-c.sin(y), 0, c.cos(y)))
+
+    Rz = c.vertcat(c.horzcat(c.cos(z), -c.sin(z), 0),
+                   c.horzcat(c.sin(z),  c.cos(z), 0),
+                   c.horzcat(0, 0, 1))
+    return Rx @ Ry @ Rz
+
+def cHomogenousMat(R : c.SX, t : c.SX) -> c.SX:
+    mat = c.vertcat(
+        c.horzcat(R, t),
+        c.horzcat(c.SX.zeros(1, 3), c.SX.ones(1, 1)))
+    return c.SX(mat)
 
 class CollisionSDF:
     def __init__(self, radius : npt.NDArray, q0 : npt.NDArray):
@@ -14,6 +36,13 @@ class CollisionSDF:
         self.q = q0
         self._threadCount = 22
         self.pool = ThreadPoolExecutor(self._threadCount)
+
+    def cDistanceFunc(self, p : c.SX, q : c.SX) -> c.SX:
+        R = cRotMatFromEuler(q[3:6])
+        worldRobotTrans = cHomogenousMat(R.T, -R.T @ q[:3])
+        p_robot = worldRobotTrans @ c.vertcat(p, c.SX(1.0))
+        d = CollisionSDF._cEllipsoid(p_robot[:3], c.SX(self.radius))
+        return d
 
     def distanceFunc(self, p : npt.NDArray) -> float:
         # transform p to robot cs
@@ -66,7 +95,7 @@ class CollisionSDF:
         self._minStep[i] = d < d_max
 
     def _raymarch(self) -> npt.NDArray:
-        max_iter = 10
+        max_iter = 200
         
         self._minStep = np.full(self._pointCount, False)
         func = lambda i: self._singleRay(i)
@@ -93,3 +122,9 @@ class CollisionSDF:
         k1 = np.linalg.norm(p/(r*r))
         assert(k1 != 0)
         return float(k0*(k0-1.0)/k1)
+    
+    @staticmethod
+    def _cEllipsoid(p : c.SX, r : c.SX) -> c.SX:
+        k0 = c.norm_2(p/r)
+        k1 = c.norm_2(p/(r*r))
+        return k0*(k0-1.0)/k1

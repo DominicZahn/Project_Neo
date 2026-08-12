@@ -11,6 +11,7 @@ from scipy.spatial.transform import Rotation
 from pathlib import Path
 from time import sleep
 from csv import writer as CsvWriter
+from rich import print
 
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
   zmp_centroidal, zmp_full
@@ -52,10 +53,15 @@ class H1Wrapper_v2():
         self._fixJoints(dynamicJoints)
         self._setupContacts(feetFrames)
         self._initCasadi()
-        self._setupVis()
-        self.showCollisionSDF = showCollisionSDF
-        if self.showCollisionSDF:
-            self._setupCollision(np.array([0.2, 0.3, 0.8]))
+        self._setupVis(showCollisionSDF)
+        self._setupCollision(np.array([0.1, 0.3, 0.8]))
+
+        self.t = c.SX.sym("t", 1)
+        p0Object = c.SX([0.3 ,0. , 1.6])
+        vObject = c.SX([-0.2, 0., 0.])
+        self._cObjectPosFunc = c.Function("objPosFunc",
+                                    [self.t],
+                                    [p0Object+vObject*self.t])
         
     def _setupModels(self):
         # custom floating base to avoid using quaternions in q
@@ -78,7 +84,8 @@ class H1Wrapper_v2():
         self.collisionSDF = CollisionSDF(
             ellipsoidRadius,
             self.q0)
-        self.collisionSDF.enableVis(self._vis, int(1e3))
+        if self.showCollisionSDF:
+            self.collisionSDF.enableVis(self._vis, int(1e3))
     
     def _setInitalPose(self, q0 : npt.NDArray[np.float32] | str | None):
         pin.loadReferenceConfigurations(self.model, SRDF_FULL_PATH, verbose=False)
@@ -158,8 +165,8 @@ class H1Wrapper_v2():
         self.tau = c.SX.sym('tau', nv)
 
         # define dynamics
-        # proxSettings = cpin.ProximalSettings(None, 1e-12, 5)
-        proxSettings = cpin.ProximalSettings(None, 0, 1)
+        proxSettings = cpin.ProximalSettings(None, 1e-12, 5)
+        # proxSettings = cpin.ProximalSettings(None, 0, 1)
         cpin.initConstraintDynamics(
             self.cmodel,
             self.cdata,
@@ -194,17 +201,23 @@ class H1Wrapper_v2():
 #            self.q,
 #            self.qdot,
 #            self.qddot)
- 
-        
+
         # CoM
         self.CoM = cpin.centerOfMass(self.cmodel, self.cdata, self.q)
-        
+
         # head
         assert(self.model.existFrame(HEAD_FRAME))
         headId = self.model.getFrameId(HEAD_FRAME)
         self.headPos = self.cdata.oMf[headId].translation
 
-    def _setupVis(self):
+    def cObjectRobotDistance(self, t : c.SX) -> c.SX:
+        p_object = self._cObjectPosFunc(t)
+        assert(type(p_object) is c.SX)
+        d = self.collisionSDF.cDistanceFunc(p_object, self.q)
+        return d
+
+    def _setupVis(self, showCollisionSDF : bool):
+        self.showCollisionSDF = showCollisionSDF
         self._vis = MeshcatVisualizer(
             model=self.model,
             collision_model=self.collisionModel,
@@ -222,6 +235,9 @@ class H1Wrapper_v2():
 #        self._vis.viewer["F_r"].set_object(
 #            g.Cylinder(1, 0.01),
 #            g.MeshPhongMaterial(0xa2bb7d))
+        self._vis.viewer["object"].set_object(
+            g.Sphere(0.02),
+            g.MeshPhongMaterial(0x5e4f49))
 
     def _visualizeZMP(self, pos : npt.NDArray):
         mat = pin.SE3(
@@ -245,6 +261,15 @@ class H1Wrapper_v2():
         breakpoint()
         self._vis.viewer[name].set_transform(poseMat)
 
+    def _visualizeObject(self,
+                         pos : npt.NDArray):
+        poseMat = pin.SE3(
+            rotation=np.eye(3),
+            translation=pos
+        ).homogeneous
+        assert(poseMat is not None)
+        self._vis.viewer["object"].set_transform(poseMat)
+
     def qId(self, jointName : str) -> int:
         assert(self.model.existJointName(jointName))
 
@@ -258,7 +283,8 @@ class H1Wrapper_v2():
     def visualizeJointConfig(self,
                              q : npt.NDArray,
                              qdot : npt.NDArray,
-                             tau : npt.NDArray):
+                             tau : npt.NDArray,
+                             t : float):
         self._vis.display(q)
 
         # ZMP
@@ -272,6 +298,14 @@ class H1Wrapper_v2():
         # collision SDF
         if self.showCollisionSDF:
             self.collisionSDF.updateJoints(q)
+        # approaching object
+        pos = self._cObjectPosFunc(t)
+        assert(type(pos) is c.DM)
+        d = c.Function("d1", [self.q], [self.cObjectRobotDistance(c.SX(t))])(q)
+        color = "white" if d > 0.0 else "#ff0000"
+        print(f"[{color}]d: {d} [/{color}]")
+        pos = pos.toarray()
+        self._visualizeObject(pos) # type: ignore
 
         # contact forces
         func_F_l = c.Function("f_F_l",
@@ -297,10 +331,9 @@ class H1Wrapper_v2():
                                  timeMultiplier : float = 1.0):
         t_last = 0.0
         for q, qdot, tau, t in zip(q_arr, qdot_arr, tau_arr, t_arr):
-            self.visualizeJointConfig(q, qdot, tau)
+            self.visualizeJointConfig(q, qdot, tau, t)
             sleep((t - t_last) * timeMultiplier)
             t_last = t
-            # print(t, q)
 
     def saveJointTrajectory(self,
                             q : np.ndarray,
