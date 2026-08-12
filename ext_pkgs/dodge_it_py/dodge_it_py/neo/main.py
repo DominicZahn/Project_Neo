@@ -20,6 +20,7 @@ def main(args=None) -> int:
         'right_ankle_pitch_joint',
         # 'left_ankle_roll_joint',
         # 'right_ankle_roll_joint'
+        'torso_joint',
     ]
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4',

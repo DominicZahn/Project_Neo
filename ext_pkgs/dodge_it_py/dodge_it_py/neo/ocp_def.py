@@ -112,7 +112,7 @@ class OCP:
         lankle_pitch_i = self.h1.qId('left_ankle_pitch_joint')
         # rankle_roll_i = self.h1.qId('right_ankle_roll_joint')
         # lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
-        # torso_i = self.h1.qId('torso_joint')
+        torso_i = self.h1.qId('torso_joint')
         max_tau = np.zeros(nq)
         max_tau[rhip_pitch_i] = max_tau_hip
         max_tau[lhip_pitch_i] = max_tau_hip
@@ -126,7 +126,7 @@ class OCP:
         max_tau[lankle_pitch_i] = max_tau_ankle_pitch
         # max_tau[rankle_roll_i] = max_tau_ankle_pitch
         # max_tau[lankle_roll_i] = max_tau_ankle_pitch
-        # max_tau[torso_i] = max_tau_waist
+        max_tau[torso_i] = max_tau_waist
 
         max_tau = max_tau[6:]
 
