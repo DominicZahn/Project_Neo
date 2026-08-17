@@ -68,14 +68,14 @@ class OCP:
 
         # Lagrange
         cost.cost_type = 'NONLINEAR_LS'
-        cost.cost_discretization = 'INTEGRATOR' # GNRKA
         x = self.ocp.model.x
         u = self.ocp.model.u
         costTau = c.dot(u,u) * 1e-9
-        costStability = self.stabilityConstraint
+        # costStability = self.stabilityConstraint
+        costStability = 0.0
         self.ocp.model.cost_y_expr = costTau + costStability
         cost.yref = 0.0
-        cost.W = np.eye(1) / self.N
+        cost.W = np.eye(1)
         return cost
     
     def _constraints(self) -> AcadosOcpConstraints:
@@ -112,7 +112,7 @@ class OCP:
         lankle_pitch_i = self.h1.qId('left_ankle_pitch_joint')
         # rankle_roll_i = self.h1.qId('right_ankle_roll_joint')
         # lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
-        torso_i = self.h1.qId('torso_joint')
+        # torso_i = self.h1.qId('torso_joint')
         max_tau = np.zeros(nq)
         max_tau[rhip_pitch_i] = max_tau_hip
         max_tau[lhip_pitch_i] = max_tau_hip
@@ -126,7 +126,7 @@ class OCP:
         max_tau[lankle_pitch_i] = max_tau_ankle_pitch
         # max_tau[rankle_roll_i] = max_tau_ankle_pitch
         # max_tau[lankle_roll_i] = max_tau_ankle_pitch
-        max_tau[torso_i] = max_tau_waist
+        # max_tau[torso_i] = max_tau_waist
 
         max_tau = max_tau[6:]
 
@@ -150,10 +150,10 @@ class OCP:
         d = self.h1.cObjectRobotDistance(t)
         self.ocp.model.con_h_expr = c.vertcat(
             self.ocp.model.con_h_expr,
-            d
+            (d-d_safe)
         )
         cons.uh = np.append(cons.uh, float(1e6)) # emulate unconstrainted
-        cons.lh = np.append(cons.lh, d_safe)
+        cons.lh = np.append(cons.lh, 0.0)
 
         #           planar friction
         fricCoeff = 0.5
@@ -193,15 +193,6 @@ class OCP:
             np.full(nq-6, -qdot_stat)       # np-6
         ))
 
-        # set slacks to 0
-        nsh = cons.lh.size
-        cons.lsh = np.zeros(nsh)
-        cons.ush = np.zeros(nsh)
-        cons.idxsh = np.arange(nsh)
-        self.ocp.cost.zl = 100 * np.ones((nsh,))
-        self.ocp.cost.Zl = 0 * np.ones((nsh,))
-        self.ocp.cost.zu = 100 * np.ones((nsh,))
-        self.ocp.cost.Zu = 0 * np.ones((nsh,))
         return cons
 
     def _solver(self) -> AcadosOcpSolver:
@@ -220,7 +211,7 @@ class OCP:
         options.hpipm_mode = 'ROBUST'
         options.qp_solver_iter_max = int(1e3)
         options.tol = float(1e-3)
-        options.nlp_solver_tol_ineq = float(1e-3)
+        options.nlp_solver_tol_ineq = float(1e-6)
         options.nlp_solver_tol_stat = float(1e-3)
         options.sim_method_num_steps = 50
 
@@ -233,10 +224,10 @@ class OCP:
         )
         # set paramters
         time_arr = np.linspace(0, self.Tf, self.N+1)
-        p = np.vstack((
-            np.zeros((6,self.N+1)),       # floating base base torque
-            np.array([time_arr])))        # time at intervalls
-        solver.set_flat('p', p.flatten())
+        p = np.hstack((
+            np.zeros((self.N+1,6)),
+            np.array(time_arr)[:,None]))   # floating base base torque
+        solver.set_flat('p', p.flatten())  # time at intervalls
         return solver
     
     def _codeGenOptions(self):
@@ -250,7 +241,7 @@ class OCP:
 
         nu = self.ocp.model.u.size()[0]
         nx = self.ocp.model.x.size()[0]
-        uInit = np.full(nu*(self.N), float(1e-3))
+        uInit = np.repeat(self.h1.getStandControls(), self.N)
         xInit = np.zeros(((self.N+1), nx))
         xInit[:,:int(nx/2)] = self.h1.q0[None,:]
         xInit = xInit.flatten()

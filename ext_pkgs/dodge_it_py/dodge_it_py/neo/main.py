@@ -19,8 +19,8 @@ def main(args=None) -> int:
         'left_ankle_pitch_joint',
         'right_ankle_pitch_joint',
         # 'left_ankle_roll_joint',
-        # 'right_ankle_roll_joint'
-        'torso_joint',
+        # 'right_ankle_roll_joint',
+        # 'torso_joint',
     ]
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4',
@@ -30,8 +30,8 @@ def main(args=None) -> int:
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq), 0.0)
     
-    Tf = 3.0
-    N = 60
+    Tf = 4.0
+    N = 120
 
     ocp = OCP(h1, Tf, N, loadInitalValues=False)
     status = ocp.solve(plot=True)
@@ -44,8 +44,9 @@ def main(args=None) -> int:
         q = x[:,:nq]
         qdot = x[:,nq:]
         tau = ocp.getSimU(floatBase=True)
-        # t = ocp.getSimT()
-        t = ocp.solver.get_flat('p')[-(ocp.solver.N+1):-1]
+        
+        t = ocp.solver.get_flat('p')
+        t = t.reshape((N+1,7))[:,-1]
 
         if status != 0:
             print("------------------- ❌ NO CONVERGENCE -------------------")

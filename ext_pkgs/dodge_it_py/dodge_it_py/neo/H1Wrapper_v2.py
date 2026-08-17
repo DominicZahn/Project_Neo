@@ -31,6 +31,36 @@ DEFAULT_FEET_FRAMES = ["left_ankle_roll_link", "right_ankle_roll_link"]
 DEFAULT_REFERENCE_CONF = "knees_bend_0.4"
 # ------------------ FRAME MARKERS ------------------
 HEAD_FRAME = 'lidar_link'
+# -------------- EXPERIMENTAL CONTROLS --------------
+TAU_STAND = dict({
+    'left_hip_yaw_joint': 0.03796477759770445,
+    'left_hip_pitch_joint': 3.2653362685509135,
+    'left_hip_roll_joint': -0.38801762511388915,
+    'left_knee_joint': -37.09299323044395,
+    'left_ankle_pitch_joint': 10.334703368649418,
+    'left_ankle_roll_joint': -0.12570678970096427,
+    'right_hip_yaw_joint': -0.03660783790805394,
+    'right_hip_pitch_joint': 3.2649740053192255,
+    'right_hip_roll_joint': -0.005022745811303936,
+    'right_knee_joint': -37.068742354522044,
+    'right_ankle_pitch_joint': 10.322914141126112,
+    'right_ankle_roll_joint': -0.30208761181502863,
+    'torso_joint': -1.1657341758564144e-15,
+    'left_shoulder_pitch_joint': -3.124021972677831,
+    'left_shoulder_roll_joint': 0.02950822493999855,
+    'left_shoulder_yaw_joint': 1.1032841307212493e-15,
+    'left_elbow_joint': -2.9655000492300005,
+    'left_wrist_roll_joint': -0.015256825919999354,
+    'left_wrist_pitch_joint': -0.15518525327999977,
+    'left_wrist_yaw_joint': -4.163336342344337e-16,
+    'right_shoulder_pitch_joint': -3.12402197267783,
+    'right_shoulder_roll_joint': -0.0602554332599991,
+    'right_shoulder_yaw_joint': 2.220446049250313e-16,
+    'right_elbow_joint': -2.96550004923,
+    'right_wrist_roll_joint': -0.015490382400001446,
+    'right_wrist_pitch_joint': -0.15518525328000016,
+    'right_wrist_yaw_joint': 0.0
+})
 
 class H1Wrapper_v2():
     """
@@ -54,10 +84,10 @@ class H1Wrapper_v2():
         self._setupContacts(feetFrames)
         self._initCasadi()
         self._setupVis(showCollisionSDF)
-        self._setupCollision(np.array([0.1, 0.3, 0.8]))
+        self._setupCollision(np.array([0.1, 0.3, 0.78]))
 
         self.t = c.SX.sym("t", 1)
-        p0Object = c.SX([0.3 ,0. , 1.6])
+        p0Object = c.SX([0.4 ,0. , 1.6])
         vObject = c.SX([-0.2, 0., 0.])
         self._cObjectPosFunc = c.Function("objPosFunc",
                                     [self.t],
@@ -165,7 +195,7 @@ class H1Wrapper_v2():
         self.tau = c.SX.sym('tau', nv)
 
         # define dynamics
-        proxSettings = cpin.ProximalSettings(None, 1e-12, 5)
+        proxSettings = cpin.ProximalSettings(None, 1e-12, 10)
         # proxSettings = cpin.ProximalSettings(None, 0, 1)
         cpin.initConstraintDynamics(
             self.cmodel,
@@ -195,12 +225,12 @@ class H1Wrapper_v2():
             self.qdot,
             self.qddot,
             self.feetFrameIds)
-#        self.ZMP = zmp_centroidal(
-#            self.cmodel,
-#            self.cdata,
-#            self.q,
-#            self.qdot,
-#            self.qddot)
+        self.ZMP = zmp_centroidal(
+            self.cmodel,
+            self.cdata,
+            self.q,
+            self.qdot,
+            self.qddot)
 
         # CoM
         self.CoM = cpin.centerOfMass(self.cmodel, self.cdata, self.q)
@@ -214,6 +244,8 @@ class H1Wrapper_v2():
         p_object = self._cObjectPosFunc(t)
         assert(type(p_object) is c.SX)
         d = self.collisionSDF.cDistanceFunc(p_object, self.q)
+        # d = self.headPos - p_object
+        # d = c.dot(d,d)
         return d
 
     def _setupVis(self, showCollisionSDF : bool):
@@ -301,9 +333,10 @@ class H1Wrapper_v2():
         # approaching object
         pos = self._cObjectPosFunc(t)
         assert(type(pos) is c.DM)
-        d = c.Function("d1", [self.q], [self.cObjectRobotDistance(c.SX(t))])(q)
+        d_func = c.Function("d1", [self.q], [self.cObjectRobotDistance(c.SX(t))])
+        d = d_func(q)
         color = "white" if d > 0.0 else "#ff0000"
-        print(f"[{color}]d: {d} [/{color}]")
+        print(f"[{color}]d: {d}[/{color}]")
         pos = pos.toarray()
         self._visualizeObject(pos) # type: ignore
 
@@ -334,6 +367,15 @@ class H1Wrapper_v2():
             self.visualizeJointConfig(q, qdot, tau, t)
             sleep((t - t_last) * timeMultiplier)
             t_last = t
+
+    def getStandControls(self) -> npt.NDArray:
+        names = self.model.names.tolist()[2:]
+        assert(names)
+        tau = np.zeros(len(names))
+        for name in names:
+            i = self.qId(name) - 6
+            tau[i] = TAU_STAND[name]
+        return tau
 
     def saveJointTrajectory(self,
                             q : np.ndarray,
