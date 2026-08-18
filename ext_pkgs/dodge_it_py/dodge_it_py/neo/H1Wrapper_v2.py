@@ -115,7 +115,7 @@ class H1Wrapper_v2():
             ellipsoidRadius,
             self.q0)
         if self.showCollisionSDF:
-            self.collisionSDF.enableVis(self._vis, int(1e3))
+            self.collisionSDF.enableVis(self._vis)
     
     def _setInitalPose(self, q0 : npt.NDArray[np.float32] | str | None):
         pin.loadReferenceConfigurations(self.model, SRDF_FULL_PATH, verbose=False)

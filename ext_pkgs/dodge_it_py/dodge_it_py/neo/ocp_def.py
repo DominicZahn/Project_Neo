@@ -71,9 +71,8 @@ class OCP:
         x = self.ocp.model.x
         u = self.ocp.model.u
         costTau = c.dot(u,u) * 1e-9
-        # costStability = self.stabilityConstraint
-        costStability = 0.0
-        self.ocp.model.cost_y_expr = costTau + costStability
+        costVelocity = c.dot(x[:nq],x[:nq])
+        self.ocp.model.cost_y_expr = costTau
         cost.yref = 0.0
         cost.W = np.eye(1)
         return cost
@@ -112,7 +111,7 @@ class OCP:
         lankle_pitch_i = self.h1.qId('left_ankle_pitch_joint')
         # rankle_roll_i = self.h1.qId('right_ankle_roll_joint')
         # lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
-        # torso_i = self.h1.qId('torso_joint')
+        torso_i = self.h1.qId('torso_joint')
         max_tau = np.zeros(nq)
         max_tau[rhip_pitch_i] = max_tau_hip
         max_tau[lhip_pitch_i] = max_tau_hip
@@ -126,7 +125,7 @@ class OCP:
         max_tau[lankle_pitch_i] = max_tau_ankle_pitch
         # max_tau[rankle_roll_i] = max_tau_ankle_pitch
         # max_tau[lankle_roll_i] = max_tau_ankle_pitch
-        # max_tau[torso_i] = max_tau_waist
+        max_tau[torso_i] = max_tau_waist
 
         max_tau = max_tau[6:]
 
@@ -202,7 +201,7 @@ class OCP:
         options.N_horizon = self.N
         options.tf = self.Tf
         options.print_level = 2
-        options.nlp_solver_max_iter = 1000 # 300
+        options.nlp_solver_max_iter = 300
         # options.nlp_solver_type = 'SQP_WITH_FEASIBLE_QP'
         # options.hessian_approx = 'EXACT'
         # options.globalization_line_search_use_sufficient_descent = 1

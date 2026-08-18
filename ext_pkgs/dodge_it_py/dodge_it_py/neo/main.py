@@ -20,12 +20,12 @@ def main(args=None) -> int:
         'right_ankle_pitch_joint',
         # 'left_ankle_roll_joint',
         # 'right_ankle_roll_joint',
-        # 'torso_joint',
+        'torso_joint',
     ]
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4',
         dynamicJoints=dynamicJointNames,
-        showCollisionSDF=False)
+        showCollisionSDF=True)
     assert(h1.model.nq)
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq), 0.0)

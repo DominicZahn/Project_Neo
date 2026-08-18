@@ -1,11 +1,10 @@
-from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
-from scipy.spatial.transform import Rotation
+from skimage.measure import marching_cubes
 import casadi as c
-from pinocchio import SE3
 from pinocchio.visualize import MeshcatVisualizer
-from meshcat.geometry import PointCloud
+from meshcat.geometry import TriangularMeshGeometry, MeshLambertMaterial
 
 def cRotMatFromEuler(xyz : c.SX) -> c.SX:
     x, y, z = xyz[0], xyz[1], xyz[2]
@@ -34,7 +33,27 @@ class CollisionSDF:
         self.vis = None
         self.radius = radius
         self.q = q0
-        self.pool = ThreadPoolExecutor()
+        self._threadCount = 12
+
+        p_sym = c.SX.sym("p", 3)
+        q_sym = c.SX.sym("q", q0.size)
+        
+        self._dFunc = c.Function("dFunc",
+                                 [p_sym, q_sym],
+                                 [self.cDistanceFunc(p_sym, q_sym)])
+        self._mappedFuncCache = {}
+
+        self._resolution = 48
+        self._margin = 1.6
+
+    @staticmethod
+    def _smoothMin(d0 : c.SX, d1 : c.SX, k : c.SX) -> c.SX:
+        """
+        Adapted from Inigo Quilez (https://iquilezles.org/articles/smin/)
+        """
+        k *= c.log10(2.0)
+        x = d1 - d0
+        return d0 + x / (1.0 - 2**(x/k))
 
     def cDistanceFunc(self, p : c.SX, q : c.SX) -> c.SX:
         R = cRotMatFromEuler(q[3:6])
@@ -43,14 +62,18 @@ class CollisionSDF:
         d = CollisionSDF._cEllipsoid(p_robot[:3], c.SX(self.radius))
         return d
 
-    def enableVis(self, vis : MeshcatVisualizer, pointCount : int = int(1e2)):
+    def enableVis(self, vis : MeshcatVisualizer, resolution : int = 48, margin : float = 1.6):
+        """
+        resolution: grid points per axis for the marching-cubes sampling of
+                    cDistanceFunc. Total evaluations = resolution**3.
+        margin:     half-width of the sampled cube, as a multiple of
+                    max(radius). Must be large enough to fully contain the
+                    zero level set (the SDF surface), including margin for
+                    orientation, or the isosurface extraction finds nothing.
+        """
         self.vis = vis
-        self._pointCount = pointCount
-        
-        # start points
-        self.pts = np.random.random((3,self._pointCount))*2
-        self.pts[0:2,] -= 1
-
+        self._resolution = resolution
+        self._margin = margin
         self._displayRedraw()
 
     def disableVis(self):
@@ -61,47 +84,54 @@ class CollisionSDF:
         if self.vis:
             self._displayRedraw()
 
-    def _singleRay(self, i : int) -> None:
-        eps = 1e-10
-        d_max = eps / 2
-        p = self.pts[:,i]
-        # numerical gradient calculation
-        grad = np.zeros(3)
-        for j in range(3):
-            delta = np.zeros(3)
-            delta[j] = eps
-            d_pos = float(self.cDistanceFunc(c.SX(p + delta), c.SX(self.q)))
-            d_neg = float(self.cDistanceFunc(c.SX(p - delta), c.SX(self.q)))
-            grad[j] = (d_pos - d_neg) / (2*eps)
-        
-        # walk gradient for shortest distance
-        d = float(self.cDistanceFunc(c.SX(p), c.SX(self.q)))
-        self.pts[:,i] -= grad*d
-        self._minStep[i] = d < d_max
+    def _sdfGrid(self) -> tuple[npt.NDArray, float, npt.NDArray]:
+        """
+        Evaluate cDistanceFunc on a regular grid around the
+        robot.
+        @return values reshaped to (R,R,R), voxel spacing, grid origin
+        """
+        half = float(np.max(self.radius) * self._margin)
+        center = self.q[:3]
+        axis = np.linspace(-half, half, self._resolution)
+        gx, gy, gz = np.meshgrid(axis, axis, axis, indexing="ij")
+        pts = np.stack([gx.ravel(), gy.ravel(), gz.ravel()], axis=0) + center[:, None]  # (3, N)
 
-    def _raymarch(self) -> npt.NDArray:
-        max_iter = 10
-        
-        self._minStep = np.full(self._pointCount, False)
-        func = lambda i: self._singleRay(i)
-        for i in range(max_iter):
-            self.pool.map(
-                func,
-                range(self._pointCount))
-            # if np.sum(self._minStep) < self._pointCount * 0.001:
-                # break
-        return self.pts
+        N = pts.shape[1]
+        dFuncMap = self._mappedFuncCache.get(N)
+        if dFuncMap is None:
+            dFuncMap = self._dFunc.map(N, "thread", self._threadCount)
+            self._mappedFuncCache[N] = dFuncMap
+
+        qRep = np.tile(self.q.reshape(-1, 1), (1, N))
+        d = np.array(dFuncMap(pts, qRep)).reshape(self._resolution,
+                                                  self._resolution,
+                                                  self._resolution)
+        spacing = axis[1] - axis[0]
+        origin = center - half
+        return d, spacing, origin
 
     def _displayRedraw(self):
-        pts = self._raymarch()
-        colors = np.repeat(float(0.6), self._pointCount)
-        assert(self.vis is not None)
+        assert self.vis is not None
+        grid, spacing, origin = self._sdfGrid()
+
+        if grid.min() > 0 or grid.max() < 0:
+            self.vis.viewer["collision"].delete()
+            return
+
+        verts, faces, _, _ = marching_cubes(grid, level=0.0,
+                                             spacing=(spacing, spacing, spacing))
+        verts += origin
+
         self.vis.viewer["collision"].set_object(
-            PointCloud(position=pts, color=colors, size=0.01)
+            TriangularMeshGeometry(verts, faces),
+            MeshLambertMaterial(color=0x4287f5, opacity=0.55, transparent=True)
         )
-   
+    
     @staticmethod
     def _cEllipsoid(p : c.SX, r : c.SX) -> c.SX:
+        """
+        Adapted from Inigo Quilez (https://iquilezles.org/articles/distfunctions/)
+        """
         k0 = c.norm_2(p/r)
         k1 = c.norm_2(p/(r*r))
         return k0*(k0-1.0)/k1
