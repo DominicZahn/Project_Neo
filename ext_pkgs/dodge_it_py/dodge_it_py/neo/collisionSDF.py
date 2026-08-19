@@ -28,23 +28,27 @@ def cHomogenousMat(R : c.SX, t : c.SX) -> c.SX:
         c.horzcat(c.SX.zeros(1, 3), c.SX.ones(1, 1)))
     return c.SX(mat)
 
+@dataclass
+class CollisionSimplex:
+    worldToLocal : c.SX     # 4x4 (dependent on q)
+    ellipsoidRadius : c.SX  # 3
+
 class CollisionSDF:
-    def __init__(self, radius : npt.NDArray, q0 : npt.NDArray):
+    def __init__(self, simplexList : list[CollisionSimplex], q0 : npt.NDArray, smoothFactor : float, qSym : c.SX):
         self.vis = None
-        self.radius = radius
+        self.simplexList = simplexList
+        self.k = c.SX(smoothFactor)
         self.q = q0
         self._threadCount = 12
 
         p_sym = c.SX.sym("p", 3)
-        q_sym = c.SX.sym("q", q0.size)
-        
         self._dFunc = c.Function("dFunc",
-                                 [p_sym, q_sym],
-                                 [self.cDistanceFunc(p_sym, q_sym)])
+                                 [p_sym, qSym],
+                                 [self.cDistanceFunc(p_sym, qSym)])
         self._mappedFuncCache = {}
 
-        self._resolution = 48
-        self._margin = 1.6
+        self._resolution = 0.0
+        self._margin = 0.0
 
     @staticmethod
     def _smoothMin(d0 : c.SX, d1 : c.SX, k : c.SX) -> c.SX:
@@ -56,13 +60,21 @@ class CollisionSDF:
         return d0 + x / (1.0 - 2**(x/k))
 
     def cDistanceFunc(self, p : c.SX, q : c.SX) -> c.SX:
-        R = cRotMatFromEuler(q[3:6])
-        worldRobotTrans = cHomogenousMat(R.T, -R.T @ q[:3])
-        p_robot = worldRobotTrans @ c.vertcat(p, c.SX(1.0))
-        d = CollisionSDF._cEllipsoid(p_robot[:3], c.SX(self.radius))
-        return d
+        # R = cRotMatFromEuler(q[3:6])
+        # worldRobotTrans = cHomogenousMat(R.T, -R.T @ q[:3])
+        # p_robot = worldRobotTrans @ c.vertcat(p, c.SX(1.0))
+        d0 = None
+        for simplex in  self.simplexList:
+            pLocal = simplex.worldToLocal @ c.vertcat(p, c.SX(1.0))
+            d1 = CollisionSDF._cEllipsoid(pLocal[:3], c.SX(simplex.ellipsoidRadius))
+            d0 = d1 if (d0 is None) else CollisionSDF._smoothMin(d0, d1, self.k)
+        assert(d0 is not None)
+        return d0
 
-    def enableVis(self, vis : MeshcatVisualizer, resolution : int = 48, margin : float = 1.6):
+    def enableVis(self,
+                  vis : MeshcatVisualizer,
+                  resolution : int = 48,
+                  margin : float = 2.0):
         """
         resolution: grid points per axis for the marching-cubes sampling of
                     cDistanceFunc. Total evaluations = resolution**3.
@@ -90,7 +102,7 @@ class CollisionSDF:
         robot.
         @return values reshaped to (R,R,R), voxel spacing, grid origin
         """
-        half = float(np.max(self.radius) * self._margin)
+        half = self._margin
         center = self.q[:3]
         axis = np.linspace(-half, half, self._resolution)
         gx, gy, gz = np.meshgrid(axis, axis, axis, indexing="ij")

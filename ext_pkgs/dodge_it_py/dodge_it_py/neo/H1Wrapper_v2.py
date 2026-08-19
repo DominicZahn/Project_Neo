@@ -16,7 +16,7 @@ from rich import print
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
   zmp_centroidal, zmp_full
 )
-from ext_pkgs.dodge_it_py.dodge_it_py.neo.collisionSDF import CollisionSDF
+from ext_pkgs.dodge_it_py.dodge_it_py.neo.collisionSDF import CollisionSDF, CollisionSimplex
 
 # ----------------- MODEL LOCATION -----------------
 MODEL_PATH = Path('/home/robot/ws/src/ros2_heinz/h1_gazebo_sim/ros_gz_h1_description/models/')
@@ -61,6 +61,17 @@ TAU_STAND = dict({
     'right_wrist_pitch_joint': -0.15518525328000016,
     'right_wrist_yaw_joint': 0.0
 })
+# ------------- COLLISION ELLIPSOIDS -----------------
+COLLISION = dict({
+    #    NAME                  |          RADIUS         |          T_OFFSET
+    'lidar_link':               (c.SX([0.10,  0.10,  0.15]), c.SX([0.0,   0.0,  0.035])),
+    'torso_link':               (c.SX([0.12,  0.15,  0.35]), c.SX([0.00,  0.00, -0.25])),
+    'left_shoulder_yaw_link':   (c.SX([0.07,  0.07,  0.24]), c.SX([0.00,  0.00,  0.02])),
+    'left_wrist_roll_link':     (c.SX([0.20,  0.06,  0.06]), c.SX([0.00,  0.00,  0.00])),
+    'right_shoulder_yaw_link':  (c.SX([0.07,  0.07,  0.24]), c.SX([0.00,  0.00,  0.02])),
+    'right_wrist_roll_link':    (c.SX([0.20,  0.06,  0.06]), c.SX([0.00,  0.00,  0.00])),
+
+})
 
 class H1Wrapper_v2():
     """
@@ -84,10 +95,10 @@ class H1Wrapper_v2():
         self._setupContacts(feetFrames)
         self._initCasadi()
         self._setupVis(showCollisionSDF)
-        self._setupCollision(np.array([0.1, 0.3, 0.78]))
+        self._setupCollision()
 
         self.t = c.SX.sym("t", 1)
-        p0Object = c.SX([0.4 ,0. , 1.6])
+        p0Object = c.SX([0.4 ,0. , 1.4])
         vObject = c.SX([-0.2, 0., 0.])
         self._cObjectPosFunc = c.Function("objPosFunc",
                                     [self.t],
@@ -110,12 +121,28 @@ class H1Wrapper_v2():
         self.collisionModel : pin.GeometryModel = collisionModel
         self.visualModel : pin.GeometryModel = visualModel
 
-    def _setupCollision(self, ellipsoidRadius : npt.NDArray):
+    def _setupCollision(self):
+        cpin.framesForwardKinematics(self.cmodel, self.cdata, self.q)
+        simplexList = []
+        for frame, (radius, offset) in COLLISION.items():
+            assert(self.model.existFrame(frame))
+            frameId = self.model.getFrameId(frame)
+            localToWorld = self.cdata.oMf[frameId]
+            worldToLocal = localToWorld.inverse()
+            worldToLocalOffset = cpin.SE3(
+                worldToLocal.rotation,
+                worldToLocal.translation + offset
+            ).homogeneous
+            simplex = CollisionSimplex(worldToLocalOffset, radius)
+            simplexList.append(simplex)
+
         self.collisionSDF = CollisionSDF(
-            ellipsoidRadius,
-            self.q0)
+            simplexList,
+            self.q0,
+            1e-3,
+            self.q)
         if self.showCollisionSDF:
-            self.collisionSDF.enableVis(self._vis)
+            self.collisionSDF.enableVis(self._vis, 96, 2.0)
     
     def _setInitalPose(self, q0 : npt.NDArray[np.float32] | str | None):
         pin.loadReferenceConfigurations(self.model, SRDF_FULL_PATH, verbose=False)
@@ -244,8 +271,6 @@ class H1Wrapper_v2():
         p_object = self._cObjectPosFunc(t)
         assert(type(p_object) is c.SX)
         d = self.collisionSDF.cDistanceFunc(p_object, self.q)
-        # d = self.headPos - p_object
-        # d = c.dot(d,d)
         return d
 
     def _setupVis(self, showCollisionSDF : bool):
