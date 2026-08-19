@@ -65,10 +65,12 @@ TAU_STAND = dict({
 COLLISION = dict({
     #    NAME                  |          RADIUS         |          T_OFFSET
     'lidar_link':               (c.SX([0.10,  0.10,  0.15]), c.SX([0.0,   0.0,  0.035])),
-    'torso_link':               (c.SX([0.12,  0.15,  0.35]), c.SX([0.00,  0.00, -0.25])),
-    'left_shoulder_yaw_link':   (c.SX([0.07,  0.07,  0.24]), c.SX([0.00,  0.00,  0.02])),
+    'torso_link':               (c.SX([0.12,  0.12,  0.35]), c.SX([0.00,  0.00, -0.25])),
+    'left_shoulder_pitch_link':   (c.SX([0.06,  0.12,  0.06]), c.SX([0.00,  0.00,  0.00])),
+    'left_shoulder_yaw_link':   (c.SX([0.06,  0.06,  0.24]), c.SX([0.00,  0.00,  0.02])),
     'left_wrist_roll_link':     (c.SX([0.20,  0.06,  0.06]), c.SX([0.00,  0.00,  0.00])),
-    'right_shoulder_yaw_link':  (c.SX([0.07,  0.07,  0.24]), c.SX([0.00,  0.00,  0.02])),
+    'right_shoulder_pitch_link':   (c.SX([0.06,  0.12,  0.06]), c.SX([0.00,  0.00,  0.00])),
+    'right_shoulder_yaw_link':  (c.SX([0.06,  0.06,  0.24]), c.SX([0.00,  0.00,  0.02])),
     'right_wrist_roll_link':    (c.SX([0.20,  0.06,  0.06]), c.SX([0.00,  0.00,  0.00])),
 
 })
@@ -98,7 +100,7 @@ class H1Wrapper_v2():
         self._setupCollision()
 
         self.t = c.SX.sym("t", 1)
-        p0Object = c.SX([0.4 ,0. , 1.4])
+        p0Object = c.SX([0.4 ,0. , 1.5])
         vObject = c.SX([-0.2, 0., 0.])
         self._cObjectPosFunc = c.Function("objPosFunc",
                                     [self.t],
@@ -139,7 +141,7 @@ class H1Wrapper_v2():
         self.collisionSDF = CollisionSDF(
             simplexList,
             self.q0,
-            1e-3,
+            1e-2,
             self.q)
         if self.showCollisionSDF:
             self.collisionSDF.enableVis(self._vis, 96, 2.0)

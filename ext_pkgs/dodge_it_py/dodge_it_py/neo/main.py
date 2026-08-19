@@ -23,7 +23,8 @@ def main(args=None) -> int:
         'torso_joint',
     ]
     h1 = H1Wrapper_v2(
-        q0='knees_bend_0.4',
+        q0='knees_bend_0.4_straight',
+        # q0='T-pose',
         dynamicJoints=dynamicJointNames,
         showCollisionSDF=True)
     assert(h1.model.nq)

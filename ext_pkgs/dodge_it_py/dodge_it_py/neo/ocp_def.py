@@ -154,7 +154,7 @@ class OCP:
             self.ocp.model.con_h_expr,
             (d-d_safe)
         )
-        cons.uh = np.append(cons.uh, float(1e6)) # emulate unconstrainted
+        cons.uh = np.append(cons.uh, float(1e3)) # emulate unconstrainted
         cons.lh = np.append(cons.lh, 0.0)
 
         #           planar friction
