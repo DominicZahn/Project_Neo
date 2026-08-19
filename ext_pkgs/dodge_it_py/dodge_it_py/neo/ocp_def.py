@@ -70,9 +70,11 @@ class OCP:
         cost.cost_type = 'NONLINEAR_LS'
         x = self.ocp.model.x
         u = self.ocp.model.u
-        costTau = c.dot(u,u) * 1e-9
-        costVelocity = c.dot(x[:nq],x[:nq])
-        self.ocp.model.cost_y_expr = costTau
+        # costVelocity = c.dot(x[nq:],x[nq:])
+        costTau = c.dot(u,u) / (u.size1()*100.0**2)**2
+        qOffset = x[:nq] - self.h1.q0
+        costJoints = c.dot(qOffset,qOffset) / (x[:nq].size1()*(c.pi/2)**2)**2
+        self.ocp.model.cost_y_expr = costTau + costJoints
         cost.yref = 0.0
         cost.W = np.eye(1)
         return cost

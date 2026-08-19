@@ -101,7 +101,7 @@ class H1Wrapper_v2():
 
         self.t = c.SX.sym("t", 1)
         p0Object = c.SX([0.4 ,0. , 1.5])
-        vObject = c.SX([-0.2, 0., 0.])
+        vObject = c.SX([-0.3, 0., 0.])
         self._cObjectPosFunc = c.Function("objPosFunc",
                                     [self.t],
                                     [p0Object+vObject*self.t])

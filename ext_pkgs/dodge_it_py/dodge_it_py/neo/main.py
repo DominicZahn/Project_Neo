@@ -26,12 +26,14 @@ def main(args=None) -> int:
         q0='knees_bend_0.4_straight',
         # q0='T-pose',
         dynamicJoints=dynamicJointNames,
-        showCollisionSDF=True)
+        showCollisionSDF=False)
     assert(h1.model.nq)
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq), 0.0)
+
+    breakpoint()
     
-    Tf = 4.0
+    Tf = 2.5
     N = 120
 
     ocp = OCP(h1, Tf, N, loadInitalValues=False)
