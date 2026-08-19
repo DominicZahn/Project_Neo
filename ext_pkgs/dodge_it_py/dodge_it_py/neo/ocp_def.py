@@ -99,6 +99,9 @@ class OCP:
         max_tau_hip = 220 # [Nm]
         max_tau_waist = 220 # [Nm]
         max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
+        max_shoulder = 120 # [Nm]
+        max_elbow = 120 # [Nm]
+        max_wrist = 30 # [Nm]
         rhip_pitch_i = self.h1.qId('right_hip_pitch_joint')
         lhip_pitch_i = self.h1.qId('left_hip_pitch_joint')
         # rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
