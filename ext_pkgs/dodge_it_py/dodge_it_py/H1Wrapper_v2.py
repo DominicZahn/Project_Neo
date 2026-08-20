@@ -12,6 +12,10 @@ from pathlib import Path
 from time import sleep
 from csv import writer as CsvWriter
 from rich import print
+from dataclasses import dataclass
+from pathlib import Path
+import cv2
+from playwright.sync_api import sync_playwright
 
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
   zmp_centroidal, zmp_full
@@ -74,6 +78,13 @@ COLLISION = dict({
     'right_wrist_roll_link':    (c.SX([0.20,  0.06,  0.06]), c.SX([0.00,  0.00,  0.00])),
 
 })
+# --------------------- HEADLESS ---------------------
+@dataclass
+class HeadlessData:
+    dir : str
+    camPos : npt.NDArray
+    camLookAt : npt.NDArray
+    resolution : tuple[int,int]
 
 class H1Wrapper_v2():
     """
@@ -90,13 +101,14 @@ class H1Wrapper_v2():
                  q0 : npt.NDArray[np.float32] | str = DEFAULT_REFERENCE_CONF,
                  dynamicJoints : list[str] = [],
                  feetFrames : list[str] = DEFAULT_FEET_FRAMES,
-                 showCollisionSDF = False):
+                 showCollisionSDF : bool = False,
+                 headlessData : HeadlessData | None = None):
         self._setupModels()
         self._setInitalPose(q0)
         self._fixJoints(dynamicJoints)
         self._setupContacts(feetFrames)
         self._initCasadi()
-        self._setupVis(showCollisionSDF)
+        self._setupVis(showCollisionSDF, headlessData)
 
     def setCollision(self,
              projectileFunc : c.Function):
@@ -277,7 +289,9 @@ class H1Wrapper_v2():
         d = self.collisionSDF.cDistanceFunc(p_projectile, self.q)
         return d
 
-    def _setupVis(self, showCollisionSDF : bool):
+    def _setupVis(self,
+                  showCollisionSDF : bool,
+                  headlessData : HeadlessData | None):
         self.showCollisionSDF = showCollisionSDF
         self._vis = MeshcatVisualizer(
             model=self.model,
@@ -285,8 +299,36 @@ class H1Wrapper_v2():
             visual_model=self.visualModel,
             copy_models=True
         )
-        self._vis.initViewer(loadModel=True)
+        self._vis.initViewer(loadModel=True, open=False)
+
+        # launch headless playwright browser
+        if headlessData is not None:
+            p = Path(headlessData.dir)
+            if p.exists():
+                print("[bold red][ERROR] output headless directory already exists![/bold red]")
+                assert(False)
+            p.mkdir()
+
+            url = self._vis.viewer.url()
+            playwright = sync_playwright().start()
+            headlessBrowser = playwright.chromium.launch(
+                headless=True,
+                args = ["--use-gl=swiftshader",
+                        "--enable-webgl",
+                        "--ignore-gpu-blocklist"])
+            assert(headlessBrowser.is_connected())
+            print("[INFO] connected headless chromium")
+            page = headlessBrowser.new_page(viewport={
+                "width": headlessData.resolution[0],
+                "height": headlessData.resolution[1]})
+            page.goto(url)
+            assert(not page.is_closed())
+            print("[INFO] meshcat viewer opened")
+        self.headlessData = headlessData
+
         self._vis.loadViewerModel()
+        self._vis.setBackgroundColor("gray")
+
         self._vis.viewer["zmp"].set_object(
             g.Sphere(0.02),
             g.MeshPhongMaterial(0xf81802))
@@ -307,6 +349,33 @@ class H1Wrapper_v2():
         ).homogeneous
         assert(mat is not None)
         self._vis.viewer["zmp"].set_transform(mat)
+
+    def _moveCamera(self,
+                   pos: np.ndarray,
+                   lookAt: np.ndarray,
+                   up : npt.NDArray = np.array([0.,0.,1.])) -> None:
+            camInvDirection = pos - lookAt
+            camInvDirection /= np.linalg.norm(camInvDirection)
+            camRight = np.cross(up, camInvDirection)
+            camRight /= np.linalg.norm(camRight)
+            camUp = np.cross(camInvDirection, camRight)
+
+            R = np.eye(4)
+            R[:3,:3] = np.column_stack([camRight, camUp, camInvDirection])
+            T = np.eye(4)
+            T[:3,3] = pos
+            pose = R @ T
+            assert(pose is not None)
+            self._vis.setCameraPose(pose)
+
+    def autoCapture(self,
+                    outFile : str,
+                    camPos : npt.NDArray,
+                    camLookAt : npt.NDArray):
+        self._moveCamera(camPos, camLookAt)
+        imgRGB = self._vis.captureImage()
+        imgBGR = cv2.cvtColor(imgRGB, cv2.COLOR_RGB2BGR)
+        cv2.imwrite(outFile, imgBGR)
 
     def _visualizeForce(self,
                        pos : npt.NDArray,
@@ -392,10 +461,16 @@ class H1Wrapper_v2():
                                  t_arr : npt.NDArray,
                                  timeMultiplier : float = 1.0):
         t_last = 0.0
-        for q, qdot, tau, t in zip(q_arr, qdot_arr, tau_arr, t_arr):
+        for idx, q, qdot, tau, t in zip(range(len(q_arr)), q_arr, qdot_arr, tau_arr, t_arr):
             self.visualizeJointConfig(q, qdot, tau, t)
-            sleep((t - t_last) * timeMultiplier)
-            t_last = t
+            if self.headlessData is None:
+                sleep((t - t_last) * timeMultiplier)
+                t_last = t
+            else:
+                fileName = f"{self.headlessData.dir}/{str(idx).zfill(5)}.png"
+                self.autoCapture(fileName,
+                                 np.array([1.0, 1.0, 1.5]),
+                                 np.array([0.0, 0.0, 0.7]))
 
     def getStandControls(self) -> npt.NDArray:
         names = self.model.names.tolist()[2:]

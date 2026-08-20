@@ -2,9 +2,10 @@ import sys
 import numpy as np
 from pathlib import Path
 import casadi as c
+import subprocess
 
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.ocp_def import OCP
-from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2
+from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2, HeadlessData
 from ext_pkgs.dodge_it_py.dodge_it_py.ocpDebugger import OcpDebugger
 import ext_pkgs.dodge_it_py.dodge_it_py.projectile as projectile
 
@@ -24,23 +25,29 @@ def main(args=None) -> int:
         # 'right_ankle_roll_joint',
         'torso_joint',
     ]
+
+    headlessData = HeadlessData("/home/robot/ws/_tmp/",
+                                np.array([-0.5, 0.1, 0.5]),
+                                np.array([0.0, 0.0, 0.0]),
+                                (1920,1080))
     
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4_straight',
         dynamicJoints=dynamicJointNames,
-        showCollisionSDF=False)
+        showCollisionSDF=True,
+        headlessData=headlessData)
     h1.setCollision(
-        projectileFunc=projectile.linear(h1.t,
-                                         c.SX([0.4 ,0. , 1.5]),
-                                         c.SX([-0.3, 0., 0.])))
+        projectile.linear(h1.t,
+                          c.SX([1.0 ,0.25 , 1.3]),
+                          c.SX([-0.7, 0., 0.])))
     assert(h1.model.nq)
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq), 0.0)
     
-    Tf = 2.5
+    Tf = 2
     N = 120
 
-    ocp = OCP(h1, Tf, N, loadInitalValues=False)
+    ocp = OCP(h1, Tf, N, loadInitalValues=True)
     status = ocp.solve(plot=True)
 
     while True:
@@ -75,6 +82,11 @@ def main(args=None) -> int:
             debugger.run()           
         else:
             h1.visualizeJointTrajecotry(q, qdot, tau, t, 1.0)
+            subprocess.run(["ffmpeg",
+                            "-i", f"{headlessData.dir}/%05d.png",
+                            "-framerate", str(N/Tf),
+                            f"{headlessData.dir}/_video.gif"])
+
 
     return status
 
