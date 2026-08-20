@@ -3,7 +3,7 @@ import numpy as np
 import numpy.typing as npt
 from pathlib import Path
 
-from ext_pkgs.dodge_it_py.dodge_it_py.neo.H1Wrapper_v2 import H1Wrapper_v2
+from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import PolygonOfSupport
 
 from acados_template import (
@@ -70,7 +70,6 @@ class OCP:
         cost.cost_type = 'NONLINEAR_LS'
         x = self.ocp.model.x
         u = self.ocp.model.u
-        # costVelocity = c.dot(x[nq:],x[nq:])
         costTau = c.dot(u,u) / (u.size1()*100.0**2)**2
         qOffset = x[:nq] - self.h1.q0
         costJoints = c.dot(qOffset,qOffset) / (x[:nq].size1()*(c.pi/2)**2)**2
@@ -151,7 +150,7 @@ class OCP:
         #           dodge constraint
         d_safe = 0.1
         t = self.h1.t
-        d = self.h1.cObjectRobotDistance(t)
+        d = self.h1.cProjectileRobotDistance(t)
         self.ocp.model.con_h_expr = c.vertcat(
             self.ocp.model.con_h_expr,
             (d-d_safe)

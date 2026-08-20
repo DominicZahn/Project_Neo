@@ -16,7 +16,7 @@ from rich import print
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
   zmp_centroidal, zmp_full
 )
-from ext_pkgs.dodge_it_py.dodge_it_py.neo.collisionSDF import CollisionSDF, CollisionSimplex
+from ext_pkgs.dodge_it_py.dodge_it_py.collisionSDF import CollisionSDF, CollisionSimplex
 
 # ----------------- MODEL LOCATION -----------------
 MODEL_PATH = Path('/home/robot/ws/src/ros2_heinz/h1_gazebo_sim/ros_gz_h1_description/models/')
@@ -97,14 +97,11 @@ class H1Wrapper_v2():
         self._setupContacts(feetFrames)
         self._initCasadi()
         self._setupVis(showCollisionSDF)
-        self._setupCollision()
 
-        self.t = c.SX.sym("t", 1)
-        p0Object = c.SX([0.4 ,0. , 1.5])
-        vObject = c.SX([-0.3, 0., 0.])
-        self._cObjectPosFunc = c.Function("objPosFunc",
-                                    [self.t],
-                                    [p0Object+vObject*self.t])
+    def setCollision(self,
+             projectileFunc : c.Function):
+        self._setupCollision()
+        self._setupProjectile(projectileFunc)
         
     def _setupModels(self):
         # custom floating base to avoid using quaternions in q
@@ -156,6 +153,9 @@ class H1Wrapper_v2():
         assert(type(q0) is np.ndarray)
         assert(q0.size == self.model.nq)
         self.q0 = q0
+
+    def _setupProjectile(self, projectileFunc : c.Function):
+        self._projectileFunc = projectileFunc
 
     def _fixJoints(self, dynamicJoints : list[str]):
         assert(all([self.model.existJointName(q) for q in dynamicJoints]))
@@ -222,6 +222,8 @@ class H1Wrapper_v2():
         self.q = c.SX.sym('q', nq)
         self.qdot = c.SX.sym('qdot', nv)
         self.tau = c.SX.sym('tau', nv)
+        
+        self.t = c.SX.sym("t", 1)
 
         # define dynamics
         proxSettings = cpin.ProximalSettings(None, 1e-12, 10)
@@ -269,10 +271,10 @@ class H1Wrapper_v2():
         headId = self.model.getFrameId(HEAD_FRAME)
         self.headPos = self.cdata.oMf[headId].translation
 
-    def cObjectRobotDistance(self, t : c.SX) -> c.SX:
-        p_object = self._cObjectPosFunc(t)
-        assert(type(p_object) is c.SX)
-        d = self.collisionSDF.cDistanceFunc(p_object, self.q)
+    def cProjectileRobotDistance(self, t : c.SX) -> c.SX:
+        p_projectile = self._projectileFunc(t)
+        assert(type(p_projectile) is c.SX)
+        d = self.collisionSDF.cDistanceFunc(p_projectile, self.q)
         return d
 
     def _setupVis(self, showCollisionSDF : bool):
@@ -294,7 +296,7 @@ class H1Wrapper_v2():
 #        self._vis.viewer["F_r"].set_object(
 #            g.Cylinder(1, 0.01),
 #            g.MeshPhongMaterial(0xa2bb7d))
-        self._vis.viewer["object"].set_object(
+        self._vis.viewer["projectile"].set_object(
             g.Sphere(0.02),
             g.MeshPhongMaterial(0x5e4f49))
 
@@ -320,14 +322,14 @@ class H1Wrapper_v2():
         breakpoint()
         self._vis.viewer[name].set_transform(poseMat)
 
-    def _visualizeObject(self,
+    def _visualizeProjectile(self,
                          pos : npt.NDArray):
         poseMat = pin.SE3(
             rotation=np.eye(3),
             translation=pos
         ).homogeneous
         assert(poseMat is not None)
-        self._vis.viewer["object"].set_transform(poseMat)
+        self._vis.viewer["projectile"].set_transform(poseMat)
 
     def qId(self, jointName : str) -> int:
         assert(self.model.existJointName(jointName))
@@ -357,15 +359,15 @@ class H1Wrapper_v2():
         # collision SDF
         if self.showCollisionSDF:
             self.collisionSDF.updateJoints(q)
-        # approaching object
-        pos = self._cObjectPosFunc(t)
+        # approaching projectile 
+        pos = self._projectileFunc(t)
         assert(type(pos) is c.DM)
-        d_func = c.Function("d1", [self.q], [self.cObjectRobotDistance(c.SX(t))])
+        d_func = c.Function("d1", [self.q], [self.cProjectileRobotDistance(c.SX(t))])
         d = d_func(q)
         color = "white" if d > 0.0 else "#ff0000"
         print(f"[{color}]d: {d}[/{color}]")
         pos = pos.toarray()
-        self._visualizeObject(pos) # type: ignore
+        self._visualizeProjectile(pos) # type: ignore
 
         # contact forces
         func_F_l = c.Function("f_F_l",

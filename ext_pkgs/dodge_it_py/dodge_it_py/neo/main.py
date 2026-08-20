@@ -1,10 +1,12 @@
 import sys
 import numpy as np
 from pathlib import Path
+import casadi as c
 
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.ocp_def import OCP
-from ext_pkgs.dodge_it_py.dodge_it_py.neo.H1Wrapper_v2 import H1Wrapper_v2
+from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2
 from ext_pkgs.dodge_it_py.dodge_it_py.ocpDebugger import OcpDebugger
+import ext_pkgs.dodge_it_py.dodge_it_py.projectile as projectile
 
 def main(args=None) -> int:
     dynamicJointNames = [
@@ -22,16 +24,18 @@ def main(args=None) -> int:
         # 'right_ankle_roll_joint',
         'torso_joint',
     ]
+    
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4_straight',
-        # q0='T-pose',
         dynamicJoints=dynamicJointNames,
         showCollisionSDF=False)
+    h1.setCollision(
+        projectileFunc=projectile.linear(h1.t,
+                                         c.SX([0.4 ,0. , 1.5]),
+                                         c.SX([-0.3, 0., 0.])))
     assert(h1.model.nq)
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq), 0.0)
-
-    breakpoint()
     
     Tf = 2.5
     N = 120
