@@ -29,14 +29,14 @@ def cHomogenousMat(R : c.SX, t : c.SX) -> c.SX:
     return c.SX(mat)
 
 @dataclass
-class CollisionSimplex:
+class CollisionPrimitiv:
     worldToLocal : c.SX     # 4x4 (dependent on q)
     ellipsoidRadius : c.SX  # 3
 
 class CollisionSDF:
-    def __init__(self, simplexList : list[CollisionSimplex], q0 : npt.NDArray, smoothFactor : float, qSym : c.SX):
+    def __init__(self, primitivList : list[CollisionPrimitiv], q0 : npt.NDArray, smoothFactor : float, qSym : c.SX):
         self.vis = None
-        self.simplexList = simplexList
+        self.primitivList = primitivList
         self.k = c.SX(smoothFactor)
         self.q = q0
         self._threadCount = 12
@@ -64,9 +64,9 @@ class CollisionSDF:
         # worldRobotTrans = cHomogenousMat(R.T, -R.T @ q[:3])
         # p_robot = worldRobotTrans @ c.vertcat(p, c.SX(1.0))
         d0 = None
-        for simplex in  self.simplexList:
-            pLocal = simplex.worldToLocal @ c.vertcat(p, c.SX(1.0))
-            d1 = CollisionSDF._cEllipsoid(pLocal[:3], c.SX(simplex.ellipsoidRadius))
+        for primitv in  self.primitivList:
+            pLocal = primitv.worldToLocal @ c.vertcat(p, c.SX(1.0))
+            d1 = CollisionSDF._cEllipsoid(pLocal[:3], c.SX(primitv.ellipsoidRadius))
             d0 = d1 if (d0 is None) else CollisionSDF._smoothMin(d0, d1, self.k)
         assert(d0 is not None)
         return d0

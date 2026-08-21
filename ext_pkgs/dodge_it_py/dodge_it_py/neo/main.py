@@ -3,13 +3,16 @@ import numpy as np
 from pathlib import Path
 import casadi as c
 import subprocess
+import argparse
 
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.ocp_def import OCP
 from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2, HeadlessData
 from ext_pkgs.dodge_it_py.dodge_it_py.ocpDebugger import OcpDebugger
 import ext_pkgs.dodge_it_py.dodge_it_py.projectile as projectile
 
-def main(args=None) -> int:
+def mainInteractive(showCollision : bool,
+                    initalValues : bool,
+                    headless : bool) -> int:
     dynamicJointNames = [
         # 'left_hip_yaw_joint',
         # 'right_hip_yaw_joint',
@@ -34,20 +37,20 @@ def main(args=None) -> int:
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4_straight',
         dynamicJoints=dynamicJointNames,
-        showCollisionSDF=True,
-        headlessData=headlessData)
+        showCollisionSDF=showCollision,
+        headlessData=headlessData if headless else None)
     h1.setCollision(
         projectile.linear(h1.t,
-                          c.SX([1.0 ,0.25 , 1.3]),
-                          c.SX([-0.7, 0., 0.])))
+                          c.SX([0.9 ,0 , 1.6]),
+                          c.SX([-0.6, 0., 0.])))
     assert(h1.model.nq)
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq), 0.0)
     
-    Tf = 2
+    Tf = 2.5
     N = 120
 
-    ocp = OCP(h1, Tf, N, loadInitalValues=True)
+    ocp = OCP(h1, Tf, N, loadInitalValues=initalValues)
     status = ocp.solve(plot=True)
 
     while True:
@@ -71,7 +74,7 @@ def main(args=None) -> int:
         if key == 'q':
             break
         elif key == 's':
-            ocp.save()
+            ocp.saveAsInitalValues()
         elif key == 'c':
             h1.saveJointTrajectory(
                 q,
@@ -82,13 +85,30 @@ def main(args=None) -> int:
             debugger.run()           
         else:
             h1.visualizeJointTrajecotry(q, qdot, tau, t, 1.0)
-            subprocess.run(["ffmpeg",
-                            "-i", f"{headlessData.dir}/%05d.png",
-                            "-framerate", str(N/Tf),
-                            f"{headlessData.dir}/_video.gif"])
-
+            if headless:
+                subprocess.run(["ffmpeg",
+                                "-i", f"{headlessData.dir}/%05d.png",
+                                "-framerate", str(N/Tf),
+                                f"{headlessData.dir}/_video.gif"])
 
     return status
 
-if __name__ == "__main__":
-    sys.exit(main())
+def main():
+    parser = argparse.ArgumentParser()
+    interactiveGroup = parser.add_argument_group("interactive mode")
+    interactiveGroup.add_argument("--showCollision",
+                                  action="store_true",
+                                  required=False)
+    interactiveGroup.add_argument("--initalValues",
+                                  action="store_true",
+                                  required=False)
+    interactiveGroup.add_argument("--headless",
+                                  action="store_true",
+                                  required=False)
+    benchmarkGroup = parser.add_argument_group("benchmark mode")
+    benchmarkGroup.add_argument("--benchmark",
+                                action="store_true",
+                                required=False)
+    args = parser.parse_args()
+
+    sys.exit(mainInteractive(args.showCollision, args.initalValues, args.headless))

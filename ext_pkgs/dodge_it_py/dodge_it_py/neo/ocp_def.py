@@ -16,8 +16,8 @@ from acados_template import (
     AcadosOcpOptions,
 )
 
-xFILE = '/home/robot/ws/neo_x.txt'
-uFILE = '/home/robot/ws/neo_u.txt'
+xINITAL_VALUE_FILE = '/home/robot/ws/initalValues_x.txt'
+uINITAL_VALUES_FILE = '/home/robot/ws/initalValues_u.txt'
 
 class OCP:
     def __init__(self, h1 : H1Wrapper_v2, Tf : float, N : int, loadInitalValues=False):
@@ -34,7 +34,7 @@ class OCP:
         self.solver = self._solver()
 
         if loadInitalValues:
-            self.solver = self.loadInitalValues(xFILE, uFILE)
+            self.solver = self.loadInitalValues(xINITAL_VALUE_FILE, uINITAL_VALUES_FILE)
         else:
             self.solver = self.loadInitalValues("", "")
     
@@ -307,9 +307,9 @@ class OCP:
     def getSimT(self) -> npt.NDArray:
         return np.linspace(0, self.Tf, self.N + 1)
     
-    def save(self):
-        print('[INFO] Saved inital values to files.')
+    def saveAsInitalValues(self):
         x = self.solver.get_flat('x')
         u = self.solver.get_flat('u')
-        np.savetxt(xFILE, x)
-        np.savetxt(uFILE, u)
+        np.savetxt(xINITAL_VALUE_FILE, x)
+        np.savetxt(uINITAL_VALUES_FILE, u)
+        print('[INFO] Saved inital values to files.')

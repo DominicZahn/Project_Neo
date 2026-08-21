@@ -20,7 +20,7 @@ from playwright.sync_api import sync_playwright
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
   zmp_centroidal, zmp_full
 )
-from ext_pkgs.dodge_it_py.dodge_it_py.collisionSDF import CollisionSDF, CollisionSimplex
+from ext_pkgs.dodge_it_py.dodge_it_py.collisionSDF import CollisionSDF, CollisionPrimitiv
 
 # ----------------- MODEL LOCATION -----------------
 MODEL_PATH = Path('/home/robot/ws/src/ros2_heinz/h1_gazebo_sim/ros_gz_h1_description/models/')
@@ -134,7 +134,7 @@ class H1Wrapper_v2():
 
     def _setupCollision(self):
         cpin.framesForwardKinematics(self.cmodel, self.cdata, self.q)
-        simplexList = []
+        primitivList = []
         for frame, (radius, offset) in COLLISION.items():
             assert(self.model.existFrame(frame))
             frameId = self.model.getFrameId(frame)
@@ -144,11 +144,11 @@ class H1Wrapper_v2():
                 worldToLocal.rotation,
                 worldToLocal.translation + offset
             ).homogeneous
-            simplex = CollisionSimplex(worldToLocalOffset, radius)
-            simplexList.append(simplex)
+            primitiv = CollisionPrimitiv(worldToLocalOffset, radius)
+            primitivList.append(primitiv)
 
         self.collisionSDF = CollisionSDF(
-            simplexList,
+            primitivList,
             self.q0,
             1e-2,
             self.q)
