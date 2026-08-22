@@ -15,7 +15,7 @@ from rich import print
 from dataclasses import dataclass
 from pathlib import Path
 import cv2
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, Playwright, Page, Browser
 
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
   zmp_centroidal, zmp_full
@@ -76,7 +76,6 @@ COLLISION = dict({
     'right_shoulder_pitch_link':   (c.SX([0.06,  0.12,  0.06]), c.SX([0.00,  0.00,  0.00])),
     'right_shoulder_yaw_link':  (c.SX([0.06,  0.06,  0.24]), c.SX([0.00,  0.00,  0.02])),
     'right_wrist_roll_link':    (c.SX([0.20,  0.06,  0.06]), c.SX([0.00,  0.00,  0.00])),
-
 })
 # --------------------- HEADLESS ---------------------
 @dataclass
@@ -85,6 +84,10 @@ class HeadlessData:
     camPos : npt.NDArray
     camLookAt : npt.NDArray
     resolution : tuple[int,int]
+    # filled during execution
+    playwright : Playwright | None = None
+    browser : Browser | None = None
+    page : Page | None = None
 
 class H1Wrapper_v2():
     """
@@ -109,6 +112,36 @@ class H1Wrapper_v2():
         self._setupContacts(feetFrames)
         self._initCasadi()
         self._setupVis(showCollisionSDF, headlessData)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, excType, excVal, excTb):
+        self.closeHeadless()
+        return False
+
+    def __del__(self):
+        try:
+            self.closeHeadless()
+        except Exception:
+            pass
+
+    def closeHeadless(self) -> bool:
+        """returns True if playwright was destroyed"""
+        if self.headlessData is None:
+            return False
+        
+        if self.headlessData.browser is None or self.headlessData.playwright is None or self.headlessData.page is None:
+            return False
+        
+        self.headlessData.page.close()
+        self.headlessData.page = None       
+        self.headlessData.browser.close()
+        self.headlessData.browser = None
+        self.headlessData.playwright.stop()
+        self.headlessData.playwright = None
+
+        return True
 
     def setCollision(self,
              projectileFunc : c.Function):
@@ -310,19 +343,19 @@ class H1Wrapper_v2():
             p.mkdir()
 
             url = self._vis.viewer.url()
-            playwright = sync_playwright().start()
-            headlessBrowser = playwright.chromium.launch(
+            headlessData.playwright = sync_playwright().start()
+            headlessData.browser = headlessData.playwright.chromium.launch(
                 headless=True,
                 args = ["--use-gl=swiftshader",
                         "--enable-webgl",
                         "--ignore-gpu-blocklist"])
-            assert(headlessBrowser.is_connected())
+            assert(headlessData.browser.is_connected())
             print("[INFO] connected headless chromium")
-            page = headlessBrowser.new_page(viewport={
+            headlessData.page = headlessData.browser.new_page(viewport={
                 "width": headlessData.resolution[0],
                 "height": headlessData.resolution[1]})
-            page.goto(url)
-            assert(not page.is_closed())
+            headlessData.page.goto(url)
+            assert(not headlessData.page.is_closed())
             print("[INFO] meshcat viewer opened")
         self.headlessData = headlessData
 
@@ -340,7 +373,7 @@ class H1Wrapper_v2():
 #            g.MeshPhongMaterial(0xa2bb7d))
         self._vis.viewer["projectile"].set_object(
             g.Sphere(0.02),
-            g.MeshPhongMaterial(0x5e4f49))
+            g.MeshPhongMaterial(0x0000ff))
 
     def _visualizeZMP(self, pos : npt.NDArray):
         mat = pin.SE3(
@@ -366,6 +399,7 @@ class H1Wrapper_v2():
             T[:3,3] = pos
             pose = R @ T
             assert(pose is not None)
+            self._vis.viewer["/Grid"].set_property("visible", False)
             self._vis.setCameraPose(pose)
 
     def autoCapture(self,
@@ -433,8 +467,8 @@ class H1Wrapper_v2():
         assert(type(pos) is c.DM)
         d_func = c.Function("d1", [self.q], [self.cProjectileRobotDistance(c.SX(t))])
         d = d_func(q)
-        color = "white" if d > 0.0 else "#ff0000"
-        print(f"[{color}]d: {d}[/{color}]")
+        # color = "white" if d > 0.0 else "#ff0000"
+        # print(f"[{color}]d: {d}[/{color}]")
         pos = pos.toarray()
         self._visualizeProjectile(pos) # type: ignore
 
@@ -448,9 +482,9 @@ class H1Wrapper_v2():
                               [self.q, self.qdot, self.tau],
                               [self.contactForces[6:]])
         F_r = c.DM(func_F_r(q, qdot, tau))
-        print("F_l:", F_l)
-        print("F_r:", F_r)
-        print()
+        # print("F_l:", F_l)
+        # print("F_r:", F_r)
+        # print()
 
         # self._visualizeForce()
 
@@ -460,6 +494,9 @@ class H1Wrapper_v2():
                                  tau_arr : npt.NDArray,
                                  t_arr : npt.NDArray,
                                  timeMultiplier : float = 1.0):
+        if self.headlessData is not None:
+            Path(f"{self.headlessData.dir}/frames/").mkdir()
+
         t_last = 0.0
         for idx, q, qdot, tau, t in zip(range(len(q_arr)), q_arr, qdot_arr, tau_arr, t_arr):
             self.visualizeJointConfig(q, qdot, tau, t)
@@ -467,7 +504,7 @@ class H1Wrapper_v2():
                 sleep((t - t_last) * timeMultiplier)
                 t_last = t
             else:
-                fileName = f"{self.headlessData.dir}/{str(idx).zfill(5)}.png"
+                fileName = f"{self.headlessData.dir}/frames/{str(idx).zfill(5)}.png"
                 self.autoCapture(fileName,
                                  np.array([1.0, 1.0, 1.5]),
                                  np.array([0.0, 0.0, 0.7]))
