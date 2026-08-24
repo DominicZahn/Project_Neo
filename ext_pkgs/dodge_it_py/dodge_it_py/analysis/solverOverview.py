@@ -4,15 +4,12 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import json
 import sys
-import re
 from rich import print
 from rich.table import Table
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 import argparse
 
-from ext_pkgs.dodge_it_py.dodge_it_py.sample import SemiSphere
-from ext_pkgs.dodge_it_py.dodge_it_py.analysis.benchmarkParser import BenchmarkData, parseBenchmarkName
+from ext_pkgs.dodge_it_py.dodge_it_py.analysis.benchmarkParser import BenchmarkData, parseBenchmarkData
 
 STATUS_CODES = {
     0: "Success",
@@ -27,47 +24,6 @@ STATUS_CODES = {
 
 VERTS_FILE = "/home/robot/ws/ext_pkgs/dodge_it_py/dodge_it_py/analysis/verts.txt"
 FACES_FILE = "/home/robot/ws/ext_pkgs/dodge_it_py/dodge_it_py/analysis/faces.txt"
-
-PROJECT_DIR_RE = re.compile(r"^(\d+)$")
- 
-def parseSingle(projectDir: Path) -> tuple[int, dict | None]:
-    projectNumber = int(projectDir.name)
-    path = projectDir / "solver.json"
- 
-    if not path.is_file():
-        print(f"[bold orange3][WARN][/bold orange3] no solver.json in {projectDir} found")
-        return projectNumber, None
- 
-    try:
-        with path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        return projectNumber, data
-    except (json.JSONDecodeError, OSError) as e:
-        print(f"[bold red][ERROR][/bold red] Failed to read {path}: {e}")
-        return projectNumber, None
- 
- 
-def parseAll(parent_dir: str | Path, max_workers: int | None = None) -> dict[int, dict]:
-    parent = Path(parent_dir)
- 
-    project_dirs = [
-        p for p in parent.iterdir()
-        if p.is_dir() and PROJECT_DIR_RE.match(p.name)
-    ]
- 
-    results: dict[int, dict] = {}
-
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {
-            executor.submit(parseSingle, d): d
-            for d in project_dirs
-        }
-        for future in as_completed(futures):
-            project_number, data = future.result()
-            if data is not None:
-                results[project_number] = data
- 
-    return results
 
 def printSummary(projectDataDict : dict[int, dict], output : Path) -> None:
     # Solver Status Table    
@@ -128,40 +84,39 @@ def draw(center : list[float],
     plt.tight_layout()
 
     # iso view
-    isoFile = f"{out}/iso.png"
-    plt.savefig(isoFile, dpi=150)
+    isoFile = f"{out}/iso.pdf"
+    plt.savefig(isoFile)
     print(f"Plot saved to {isoFile}")
     # top view
-    topFile = f"{out}/top.png"
+    topFile = f"{out}/top.pdf"
     ax.view_init(elev=90, azim=0, roll=0)
-    plt.savefig(topFile, dpi=150)
+    plt.savefig(topFile)
     print(f"Plot saved to {topFile}")
     # front view
-    frontFile = f"{out}/front.png"
+    frontFile = f"{out}/front.pdf"
     ax.view_init(elev=0, azim=0, roll=0)
-    plt.savefig(frontFile, dpi=150)
+    plt.savefig(frontFile)
     print(f"Plot saved to {frontFile}")
     # side view
-    sideFile = f"{out}/side.png"
+    sideFile = f"{out}/side.pdf"
     ax.view_init(elev=0, azim=90, roll=0)
-    plt.savefig(sideFile, dpi=150)
+    plt.savefig(sideFile)
     print(f"Plot saved to {sideFile}")
 
     printSummary(projectDataDict, out)
 
 def main(path : Path) -> int:
-    benchmarkData = parseBenchmarkName(path.name)
-    d = parseAll(path)
-    if len(d) == 0:
+    benchmarkData = parseBenchmarkData(path)
+    if len(benchmarkData.runDataDict) == 0:
         print("[bold red][ERROR][/bold red] input directory is empty")
         return -1
+    
     draw(benchmarkData.center,
          benchmarkData.velocity,
          benchmarkData.radius,
-         d,
+         {i: rd.solverDict for i,rd in benchmarkData.runDataDict.items()},
          path)
     return 0
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
