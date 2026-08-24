@@ -60,9 +60,6 @@ class CollisionSDF:
         return d0 + x / (1.0 - 2**(x/k))
 
     def cDistanceFunc(self, p : c.SX, q : c.SX) -> c.SX:
-        # R = cRotMatFromEuler(q[3:6])
-        # worldRobotTrans = cHomogenousMat(R.T, -R.T @ q[:3])
-        # p_robot = worldRobotTrans @ c.vertcat(p, c.SX(1.0))
         d0 = None
         for primitv in  self.primitivList:
             pLocal = primitv.worldToLocal @ c.vertcat(p, c.SX(1.0))
@@ -75,14 +72,6 @@ class CollisionSDF:
                   vis : MeshcatVisualizer,
                   resolution : int = 48,
                   margin : float = 2.0):
-        """
-        resolution: grid points per axis for the marching-cubes sampling of
-                    cDistanceFunc. Total evaluations = resolution**3.
-        margin:     half-width of the sampled cube, as a multiple of
-                    max(radius). Must be large enough to fully contain the
-                    zero level set (the SDF surface), including margin for
-                    orientation, or the isosurface extraction finds nothing.
-        """
         self.vis = vis
         self._resolution = resolution
         self._margin = margin
