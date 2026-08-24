@@ -16,7 +16,7 @@ import ext_pkgs.dodge_it_py.dodge_it_py.projectile as projectile
 from ext_pkgs.dodge_it_py.dodge_it_py.sample import SemiSphere
 
 # --------------------------------- GLOBAL SETTINGS ---------------------------------
-dynamicJointNames = [
+DYNAMIC_JOINT_NAMES = [
     # 'left_hip_yaw_joint',
     # 'right_hip_yaw_joint',
     # 'left_hip_roll_joint',
@@ -81,21 +81,23 @@ def saveReport(solver : AcadosOcpSolver,
 
 def mainInteractive(showCollision : bool,
                     initalValues : bool,
-                    headless : bool) -> int:
+                    visualize : str) -> int:
 
     xINITAL_VALUES_FILE = '/home/robot/ws/initalValues_x.txt'
     uINITAL_VALUES_FILE = '/home/robot/ws/initalValues_u.txt'
 
-    headlessData = HeadlessData("/home/robot/ws/_tmp/",
-                            np.array([-0.05, -0.1, 0.7]),
-                            np.array([0.0, 0.0, -1.0]),
-                            (1080,1920))
+    if visualize == "interactive": vis = True
+    elif visualize == "headless" : vis = HeadlessData("/home/robot/ws/_tmp/",
+                                                      np.array([-0.05, -0.1, 0.7]),
+                                                      np.array([0.0, 0.0, -1.0]),
+                                                      (1080,1920))
+    else: vis = False
 
     h1 = H1Wrapper_v2(
         q0='knees_bend_0.4_straight',
-        dynamicJoints=dynamicJointNames,
+        dynamicJoints=DYNAMIC_JOINT_NAMES,
         showCollisionSDF=showCollision,
-        headlessData=headlessData if headless else None)
+        visualization=vis)
     h1.setCollision(
         projectile.linear(h1.t,
                           c.SX([0.9 ,0 , 1.6]),
@@ -137,15 +139,15 @@ def mainInteractive(showCollision : bool,
             debugger.run()
         else:
             h1.visualizeJointTrajecotry(q, qdot, tau, t, 1.0)
-            if headless:
-                generateVideoFromFrames(headlessData)
+            if visualize is type(HeadlessData):
+                generateVideoFromFrames(visualize)
     return status
 
 def mainBenchmark(sampleCount : int):
     # center on head
     shape = SemiSphere(
         # (0.1, 0.0, 1.6),
-        (0.2, 0.0, 1.7),
+        (0.0, 0.2, 1.6),
         0.7,
         -np.pi/6,   # 30°
         np.pi/6     # 30°
@@ -162,9 +164,9 @@ def mainBenchmark(sampleCount : int):
         
         h1 = H1Wrapper_v2(
             q0='knees_bend_0.4_straight',
-            dynamicJoints=dynamicJointNames,
+            dynamicJoints=DYNAMIC_JOINT_NAMES,
             showCollisionSDF=True,
-            headlessData=headlessData)
+            visualization=False)
 
         try:
             projectilePos = c.SX(projectilePosArr[i])
@@ -179,6 +181,8 @@ def mainBenchmark(sampleCount : int):
     
             ocp = OCP(h1, Tf, N)
             status = ocp.solve(plot=True)
+            if not Path(dirPath).exists():
+                Path(dirPath).mkdir()
             
             saveReport(ocp.solver, projectilePos, projectileVel, f"{dirPath}solver.json")
             
@@ -191,15 +195,15 @@ def mainBenchmark(sampleCount : int):
                 q = x[:,:nq]
                 qdot = x[:,nq:]
     
-                h1.visualizeJointTrajecotry(q, qdot, tau, t, 1.0)
-                generateVideoFromFrames(headlessData)
+                # h1.visualizeJointTrajecotry(q, qdot, tau, t, 1.0)
+                # generateVideoFromFrames(headlessData)
 
             del ocp
             
             color = "bold green" if status == 0 else "bold orange1"
             print(f"[{color}][INFO][/{color}] run {i} complete")
         finally:
-            h1.closeHeadless()
+            # h1.closeHeadless()
             del h1
 
             libgomp = ctypes.CDLL("libgomp.so.1")
@@ -215,8 +219,10 @@ def main():
     interactiveGroup.add_argument("--initalValues",
                                   action="store_true",
                                   required=False)
-    interactiveGroup.add_argument("--headless",
-                                  action="store_true",
+    interactiveGroup.add_argument("--visualization",
+                                  type=str,
+                                  choices=("interactive", "headless", "off"),
+                                  default="interactive",
                                   required=False)
     benchmarkGroup = parser.add_argument_group("benchmark mode")
     benchmarkGroup.add_argument("--benchmarkMode",
@@ -230,6 +236,6 @@ def main():
             mainInteractive(
                 args.showCollision,
                 args.initalValues,
-                args.headless))
+                args.visualization))
     else:
         sys.exit(mainBenchmark(args.samples))

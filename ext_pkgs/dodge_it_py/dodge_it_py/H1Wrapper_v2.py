@@ -105,13 +105,13 @@ class H1Wrapper_v2():
                  dynamicJoints : list[str] = [],
                  feetFrames : list[str] = DEFAULT_FEET_FRAMES,
                  showCollisionSDF : bool = False,
-                 headlessData : HeadlessData | None = None):
+                 visualization : HeadlessData | bool = True):
         self._setupModels()
         self._setInitalPose(q0)
         self._fixJoints(dynamicJoints)
         self._setupContacts(feetFrames)
         self._initCasadi()
-        self._setupVis(showCollisionSDF, headlessData)
+        self._setupVis(showCollisionSDF, visualization)
 
     def __enter__(self):
         return self
@@ -130,7 +130,8 @@ class H1Wrapper_v2():
         """returns True if playwright was destroyed"""
         if self.headlessData is None:
             return False
-        
+
+        assert(type(self.headlessData) == HeadlessData)
         if self.headlessData.browser is None or self.headlessData.playwright is None or self.headlessData.page is None:
             return False
         
@@ -185,7 +186,7 @@ class H1Wrapper_v2():
             self.q0,
             1e-2,
             self.q)
-        if self.showCollisionSDF:
+        if self._vis is not None and self.showCollisionSDF:
             self.collisionSDF.enableVis(self._vis, 96, 2.0)
     
     def _setInitalPose(self, q0 : npt.NDArray[np.float32] | str | None):
@@ -324,7 +325,12 @@ class H1Wrapper_v2():
 
     def _setupVis(self,
                   showCollisionSDF : bool,
-                  headlessData : HeadlessData | None):
+                  visualize : HeadlessData | bool):
+        if visualize == False:
+            self._vis = None
+            self.headlessData = None
+            return
+        
         self.showCollisionSDF = showCollisionSDF
         self._vis = MeshcatVisualizer(
             model=self.model,
@@ -335,29 +341,29 @@ class H1Wrapper_v2():
         self._vis.initViewer(loadModel=True, open=False)
 
         # launch headless playwright browser
-        if headlessData is not None:
-            p = Path(headlessData.dir)
+        if type(visualize) is HeadlessData:
+            p = Path(visualize.dir)
             if p.exists():
                 print("[bold red][ERROR] output headless directory already exists![/bold red]")
                 assert(False)
             p.mkdir()
 
             url = self._vis.viewer.url()
-            headlessData.playwright = sync_playwright().start()
-            headlessData.browser = headlessData.playwright.chromium.launch(
+            visualize.playwright = sync_playwright().start()
+            visualize.browser = visualize.playwright.chromium.launch(
                 headless=True,
                 args = ["--use-gl=swiftshader",
                         "--enable-webgl",
                         "--ignore-gpu-blocklist"])
-            assert(headlessData.browser.is_connected())
+            assert(visualize.browser.is_connected())
             print("[INFO] connected headless chromium")
-            headlessData.page = headlessData.browser.new_page(viewport={
-                "width": headlessData.resolution[0],
-                "height": headlessData.resolution[1]})
-            headlessData.page.goto(url)
-            assert(not headlessData.page.is_closed())
+            visualize.page = visualize.browser.new_page(viewport={
+                "width": visualize.resolution[0],
+                "height": visualize.resolution[1]})
+            visualize.page.goto(url)
+            assert(not visualize.page.is_closed())
             print("[INFO] meshcat viewer opened")
-        self.headlessData = headlessData
+        self.headlessData = visualize
 
         self._vis.loadViewerModel()
         self._vis.setBackgroundColor("gray")
@@ -381,6 +387,7 @@ class H1Wrapper_v2():
             translation=pos
         ).homogeneous
         assert(mat is not None)
+        assert(self._vis is not None)
         self._vis.viewer["zmp"].set_transform(mat)
 
     def _moveCamera(self,
@@ -399,6 +406,7 @@ class H1Wrapper_v2():
             T[:3,3] = pos
             pose = R @ T
             assert(pose is not None)
+            assert(self._vis is not None)
             self._vis.viewer["/Grid"].set_property("visible", False)
             self._vis.setCameraPose(pose)
 
@@ -406,6 +414,7 @@ class H1Wrapper_v2():
                     outFile : str,
                     camPos : npt.NDArray,
                     camLookAt : npt.NDArray):
+        assert(self._vis is not None)
         self._moveCamera(camPos, camLookAt)
         imgRGB = self._vis.captureImage()
         imgBGR = cv2.cvtColor(imgRGB, cv2.COLOR_RGB2BGR)
@@ -423,6 +432,7 @@ class H1Wrapper_v2():
         assert(poseMat is not None)
         scaleMat = np.diag([magnitude,magnitude,magnitude,1])
         breakpoint()
+        assert(self._vis is not None)
         self._vis.viewer[name].set_transform(poseMat)
 
     def _visualizeProjectile(self,
@@ -432,6 +442,7 @@ class H1Wrapper_v2():
             translation=pos
         ).homogeneous
         assert(poseMat is not None)
+        assert(self._vis is not None)
         self._vis.viewer["projectile"].set_transform(poseMat)
 
     def qId(self, jointName : str) -> int:
@@ -449,6 +460,10 @@ class H1Wrapper_v2():
                              qdot : npt.NDArray,
                              tau : npt.NDArray,
                              t : float):
+        if self._vis is None:
+            print("[bold orange1][INFO][/bold orange1] can not visualize joint config when visualization is turned of")
+            return
+        
         self._vis.display(q)
 
         # ZMP
@@ -494,20 +509,25 @@ class H1Wrapper_v2():
                                  tau_arr : npt.NDArray,
                                  t_arr : npt.NDArray,
                                  timeMultiplier : float = 1.0):
-        if self.headlessData is not None:
+        if self._vis is None:
+            print("[bold orange1][INFO][/bold orange1] can not visualize joint trajectory when visualization is turned of")
+            return
+        
+        if type(self.headlessData) is HeadlessData:
             Path(f"{self.headlessData.dir}/frames/").mkdir()
 
         t_last = 0.0
         for idx, q, qdot, tau, t in zip(range(len(q_arr)), q_arr, qdot_arr, tau_arr, t_arr):
             self.visualizeJointConfig(q, qdot, tau, t)
-            if self.headlessData is None:
-                sleep((t - t_last) * timeMultiplier)
-                t_last = t
-            else:
+            if type(self.headlessData) is HeadlessData:
                 fileName = f"{self.headlessData.dir}/frames/{str(idx).zfill(5)}.png"
                 self.autoCapture(fileName,
                                  np.array([1.0, 1.0, 1.5]),
                                  np.array([0.0, 0.0, 0.7]))
+            else:
+                sleep((t - t_last) * timeMultiplier)
+                t_last = t
+
 
     def getStandControls(self) -> npt.NDArray:
         names = self.model.names.tolist()[2:]
