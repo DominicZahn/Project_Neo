@@ -144,10 +144,11 @@ def mainInteractive(showCollision : bool,
 def mainBenchmark(sampleCount : int):
     # center on head
     shape = SemiSphere(
-        (0.2, 0.0, 1.6),
+        # (0.1, 0.0, 1.6),
+        (0.2, 0.0, 1.7),
         0.7,
-        -np.pi/7,
-        np.pi/7
+        -np.pi/6,   # 30°
+        np.pi/6     # 30°
     )
     projectilePosArr, normalArr = shape.sample(sampleCount)
     projectileVelArr = -normalArr * 0.6
