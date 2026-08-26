@@ -43,8 +43,8 @@ def printSummary(projectDataDict : dict[int, dict], output : Path) -> None:
     solverSummaryFile.close()
 
 def draw(center : list[float],
+         radius : list[float],
          velocity : float,
-         radius : float,
          projectDataDict : dict[int, dict],
          out : Path) -> None:
     fig = plt.figure(figsize=(7,7))
@@ -64,11 +64,9 @@ def draw(center : list[float],
 
     # draw projectile trajectories
     errorMask = [d["status"] != 0 for i,d in projectDataDict.items()]
-    for p0 in pts.transpose()[errorMask]:
-        v = p0 - center
-        v /= np.linalg.norm(v)
-        v *= -velocity * 2.5
-        p1 = p0 + v
+    v_arr = np.array([d["projectile_velocity"] for i,d in projectDataDict.items()])
+    for p0, v in zip(pts.transpose()[errorMask], v_arr[errorMask]):
+        p1 = p0 + v.flatten() * 2.5
         pStack = np.vstack((p0,p1)).transpose()
         ax.plot(*pStack, c="gray", alpha=0.2)
 
@@ -78,9 +76,10 @@ def draw(center : list[float],
     ax.set_zlabel("Z")
     ax.set_title("Semi-sphere Overview")
     ax.set_box_aspect([1, 1, 1])
-    ax.set_xlim((center[0]-radius)*scale, (center[0]+radius)*scale)
-    ax.set_ylim((center[1]-radius)*scale, (center[1]+radius)*scale)
-    ax.set_zlim(0, 2.5)
+    ax.set_xlim((center[0]-radius[0])*scale, (center[0]+radius[0])*scale)
+    ax.set_ylim((center[1]-radius[1])*scale, (center[1]+radius[1])*scale)
+    ax.set_zlim(0, (center[2]+radius[2])*scale)
+    # ax.set_zlim(0, 2.5)
     plt.tight_layout()
 
     # iso view
@@ -112,8 +111,8 @@ def main(path : Path) -> int:
         return -1
     
     draw(benchmarkData.center,
-         benchmarkData.velocity,
          benchmarkData.radius,
+         benchmarkData.velocity,
          {i: rd.solverDict for i,rd in benchmarkData.runDataDict.items()},
          path)
     return 0
