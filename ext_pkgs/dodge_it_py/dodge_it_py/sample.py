@@ -88,7 +88,7 @@ class SemiSphere:
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
         ax.set_zlabel("Z")
-        ax.set_title("Semi-sphere sample grid")
+        ax.set_title("Semi-sphere")
         ax.set_box_aspect([1, 1, 1])
         ax.set_xlim(-1,1)
         ax.set_ylim(-1,1)
@@ -119,10 +119,7 @@ class SemiEllipsoid:
         Using a Fibonacci-lattice grid which is scaled by the radius properties of the ellipsoid.
         """
         assert(samples > 0)
-
-        c = np.array(self.center)
         r = np.array(self.radius)
-
         i = np.arange(samples)
     
         # Spread z linearly across the zone's range. This is the equivalent,
@@ -143,20 +140,22 @@ class SemiEllipsoid:
         x = ringRadius * np.cos(theta)
         y = ringRadius * np.sin(theta)
     
-        points = np.column_stack((x, y, z)) * self.radius + c
+        points = np.column_stack((x, y, z)) * self.radius
         normals = points / r**2
+        points += np.array(self.center)
         normals /= np.linalg.norm(normals, axis=1)[:, None]
         return points, normals
 
 
-    def draw(self, samples: int) -> None:
+    def draw(self, samples: int, showNormales : bool = True) -> None:
         points, normals = self.sample(samples)
         fig = plt.figure(figsize=(7, 7))
         ax = fig.add_subplot(111, projection="3d")
         ax.scatter(points[:, 0], points[:, 1], points[:, 2], s=4, alpha=0.6)
-        ax.quiver(points[:, 0], points[:, 1], points[:, 2],
-                  normals[:, 0], normals[:, 1], normals[:, 2],
-                  length=0.2, normalize=True, color="tab:red", linewidth=0.6, alpha=0.7)
+        if showNormales:
+            ax.quiver(points[:, 0], points[:, 1], points[:, 2],
+                      normals[:, 0], normals[:, 1], normals[:, 2],
+                      length=0.2, normalize=True, color="tab:red", linewidth=0.6, alpha=0.7)
         cx, cy, cz = self.center
         a, b, c = self.radius
         extent = max(a, b, c)
