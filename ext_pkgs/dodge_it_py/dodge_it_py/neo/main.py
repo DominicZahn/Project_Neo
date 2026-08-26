@@ -13,7 +13,7 @@ from ext_pkgs.dodge_it_py.dodge_it_py.neo.ocp_def import OCP
 from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2, HeadlessData
 from ext_pkgs.dodge_it_py.dodge_it_py.ocpDebugger import OcpDebugger
 import ext_pkgs.dodge_it_py.dodge_it_py.projectile as projectile
-from ext_pkgs.dodge_it_py.dodge_it_py.sample import SemiSphere
+from ext_pkgs.dodge_it_py.dodge_it_py.sample import SemiSphere, SemiEllipsoid
 
 # --------------------------------- GLOBAL SETTINGS ---------------------------------
 DYNAMIC_JOINT_NAMES = [
@@ -145,15 +145,20 @@ def mainInteractive(showCollision : bool,
 
 def mainBenchmark(sampleCount : int):
     # center on head
-    shape = SemiSphere(
-        # (0.1, 0.0, 1.6),
-        (0.0, 0.2, 1.6),
-        0.7,
-        -np.pi/6,   # 30°
-        np.pi/6     # 30°
+#    shape = SemiSphere(
+#        (0.0, -0.2, 1.4),
+#        0.7,
+#        -np.pi/6,   # 30°
+#        np.pi/6     # 30°
+#    )
+    s = 2.0     # scale factor to move ellipsoid away
+    hule = SemiEllipsoid(
+        (0.05, 0.0, 1.25),
+        (0.2*s, 0.35*s, 0.5*s),
+        -0.1, 0.4 
     )
-    projectilePosArr, normalArr = shape.sample(sampleCount)
-    projectileVelArr = -normalArr * 0.6
+    projectilePosArr, normalArr = hule.sample(sampleCount)
+    projectileVelArr = -normalArr * 0.5
 
     for i in range(sampleCount):
         dirPath = f"/home/robot/ws/benchmarks/{str(i).zfill(5)}/"
