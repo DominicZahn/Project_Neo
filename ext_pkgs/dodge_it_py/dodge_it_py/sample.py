@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import sys
 
 from dataclasses import dataclass
 from typing import Tuple
@@ -6,7 +8,47 @@ from typing import Tuple
 import numpy as np
 import numpy.typing as npt
 
+from scipy.spatial import cKDTree
+
 GOLDEN_ANGLE = np.pi * (3.0 - np.sqrt(5.0))
+
+@staticmethod
+def calcMinDistances(pts : npt.NDArray) -> npt.NDArray:
+    tree = cKDTree(pts)
+    distances, idxs = tree.query(pts, k=2, workers=-1)
+    return distances[:,1] # remove own 0 distance and flatten
+
+@staticmethod
+def calcNeighbourStdDistances(pts : npt.NDArray, n : int = 4) -> npt.NDArray:
+    tree = cKDTree(pts)
+    distances, idxs = tree.query(pts, k=5, workers=-1)
+    return np.std(distances[:,1:], axis=1)
+
+
+@staticmethod
+def evaluate(pts : npt.NDArray) -> None:
+    # distances = calcMinDistances(pts)
+    uniformity = calcNeighbourStdDistances(pts, 4)
+
+    fig = plt.figure(figsize=(7, 7))
+    ax = fig.add_subplot(111, projection="3d")
+
+    sc = ax.scatter(*pts.transpose(), c=uniformity, cmap="plasma", s=4, alpha=0.6)
+    fig.colorbar(sc, ax=ax)
+
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    ax.set_box_aspect([1, 1, 1])
+    ax.set_xlim(-1,1)
+    ax.set_ylim(-1,1)
+    ax.set_zlim(0,2)
+    plt.tight_layout()
+    out_path = "ellipsoid_eval.pdf"
+    plt.savefig(out_path)
+    print(f"Plot saved to {out_path}")
+
+
 
 @dataclass
 class SemiSphere:
@@ -219,3 +261,15 @@ class SemiEllipsoid:
         print(f"Plot saved to {sideFile}")
 
 if __name__ == "__main__":
+    samples = int(sys.argv[1])
+    assert(samples > 0)
+    s = 2.0
+    shape = SemiEllipsoid(
+        (0.05, 0.0, 1.25),
+        (0.2*s, 0.35*s, 0.5*s),
+        -0.1, 0.4 
+    )
+    shape.draw(samples)
+    pts, normal = shape.sampleLatLong(samples)
+    # pts, normal = shape.sample(samples)
+    distances = evaluate(pts)
