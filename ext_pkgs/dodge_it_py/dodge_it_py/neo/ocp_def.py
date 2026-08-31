@@ -190,6 +190,10 @@ class OCP:
             np.full(nq-6, -qdot_stat)       # np-6
         ))
 
+        #       extend path constraints to terminal and inital
+        self.ocp.model.con_h_expr_0 = self.ocp.model.con_h_expr
+        cons.lh_0 = cons.lh
+        cons.uh_0 = cons.uh
         return cons
 
     def _solver(self) -> AcadosOcpSolver:

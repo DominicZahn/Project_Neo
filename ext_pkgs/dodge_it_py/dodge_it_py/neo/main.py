@@ -100,8 +100,8 @@ def mainInteractive(showCollision : bool,
         visualization=vis)
     h1.setCollision(
         projectile.linear(h1.t,
-                          c.SX([0.9 ,0 , 1.6]),
-                          c.SX([-0.6, 0., 0.])))
+                          c.SX([0.7 ,0 , 1.6]),
+                          c.SX([-0.5, 0., 0.])))
     assert(h1.model.nq)
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq), 0.0)
@@ -112,7 +112,8 @@ def mainInteractive(showCollision : bool,
     status = ocp.solve(plot=True)
 
     while True:
-        print(h1._vis.viewer.url())
+        if (h1._vis is not None):
+            print(h1._vis.viewer.url())
         print(h1.model)
 
         x, tau, t = extractVarsFromSolver(ocp)
