@@ -114,7 +114,37 @@ class SemiEllipsoid:
         assert -self.radius[2] <= self.relLowerZ <= self.radius[2]
         assert -self.radius[2] <= self.relUpperZ <= self.radius[2]
 
-    def sample(self, samples: int) -> tuple[npt.NDArray, npt.NDArray]:
+    def sampleLatLong(self, samples : int) -> tuple[npt.NDArray, npt.NDArray]:
+        """
+        This method only works for square sample counts!
+        """
+        nLatLong = np.sqrt(samples)
+        assert(np.mod(nLatLong,1)==0)
+        nLatLong = int(nLatLong)
+ 
+        cx, cy, cz = self.center
+        rx, ry, rz = self.radius
+
+        lowerAltitude = np.sin(self.relLowerZ / rz)
+        upperAltitude = np.sin(self.relUpperZ / rz)
+        lat = np.linspace(lowerAltitude, upperAltitude, nLatLong)
+        lon = np.linspace(0.0, 2.0 * np.pi, nLatLong, endpoint=False)
+        latGrid, lonGrid = np.meshgrid(lat, lon, indexing="ij")
+ 
+        rho = np.cos(latGrid)
+        xLocal = (rx * rho * np.cos(lonGrid)).ravel()
+        yLocal = (ry * rho * np.sin(lonGrid)).ravel()
+        zLocal = (rz * np.sin(latGrid)).ravel()
+ 
+        points = np.column_stack((xLocal + cx, yLocal + cy, zLocal + cz))
+ 
+        normalDir = np.column_stack((xLocal / rx**2, yLocal / ry**2, zLocal / rz**2))
+        normals = normalDir / np.linalg.norm(normalDir, axis=1, keepdims=True)
+ 
+        return points, normals
+
+
+    def sample(self, samples : int) -> tuple[npt.NDArray, npt.NDArray]:
         """
         Using a Fibonacci-lattice grid which is scaled by the radius properties of the ellipsoid.
         """
@@ -146,10 +176,9 @@ class SemiEllipsoid:
         normals /= np.linalg.norm(normals, axis=1)[:, None]
         return points, normals
 
-
     def draw(self, samples: int, showNormales : bool = True) -> None:
         points, normals = self.sample(samples)
-        fig = plt.figure(figsize=(7, 7))
+        fig = plt.figure(figsize=(5, 5))
         ax = fig.add_subplot(111, projection="3d")
         ax.scatter(points[:, 0], points[:, 1], points[:, 2], s=4, alpha=0.6)
         if showNormales:
@@ -162,7 +191,6 @@ class SemiEllipsoid:
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
         ax.set_zlabel("Z")
-        ax.set_title("Semi-ellipsoid")
         ax.set_box_aspect([a, b, c])
         ax.set_xlim(cx - extent, cx + extent)
         ax.set_ylim(cy - extent, cy + extent)
@@ -191,9 +219,3 @@ class SemiEllipsoid:
         print(f"Plot saved to {sideFile}")
 
 if __name__ == "__main__":
-    SemiEllipsoid(
-        center=(0.0, 0.0, 1.0),
-        radius=(1.0, 0.5, 1.8),
-        relLowerZ=-1.0,
-        relUpperZ=1.0,
-    ).draw(500)
