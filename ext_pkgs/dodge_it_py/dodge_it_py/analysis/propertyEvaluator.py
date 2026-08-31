@@ -93,8 +93,8 @@ def drawStability(stab_arr : npt.NDArray,
                   outPath : Path) -> None:
     fig = plt.figure(figsize=(7,7))
     ax = fig.add_subplot(111)
-    t = t[1:N-1]
-    stab_arr = stab_arr[:,1:N-1]
+    t = t[:N-1]
+    stab_arr = stab_arr[:,:N-1]
     for s in stab_arr:
         ax.plot(t, s, COLOR_VALUES_STABILITY, alpha=0.1)
 
@@ -301,7 +301,7 @@ def main(path : Path) -> int:
                  d_arr,
                  benchmarkData.dsafe,
                  path / "distance.pdf")
-    drawZMP(zmp_arr[:,1:N-1,:], PoS, path / "zmp.pdf")
+    drawZMP(zmp_arr[:,0:N-1,:], PoS, path / "zmp.pdf")
     drawStability(stab_arr[:,1:N-1], 0.8, t[1:N-1], path / "stability.pdf")
     assert(type(h1.model.upperPositionLimit) is np.ndarray)
     assert(type(h1.model.lowerPositionLimit) is np.ndarray)
