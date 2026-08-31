@@ -123,14 +123,133 @@ def drawStability(stab_arr : npt.NDArray,
     ax.set_ylim(0.0, 1.1)
     fig.savefig(str(outPath), format="pdf")
 
+COLOR_VALUES_q = "orange"
+COLOR_CUT_q = "blue"
+COLOR_MINMAX_q = "black"
+ANNOTE_MARGIN_Y_q = 0.02
+ANNOTE_MARGIN_X_q = 0.05
+def drawJointAngles(t : npt.NDArray,
+                    q_arr3 : npt.NDArray,
+                    q_lowerLimit_arr : npt.NDArray,
+                    q_upperLimit_arr : npt.NDArray,
+                    names : list[str],
+                    outPath : Path) -> None:
+    fig = plt.figure(figsize=(12,10))
+    nq = q_arr3.shape[2] - 6
+    ax_arr = fig.subplots(nq,1)
+    ax_arr[-1].set_xlabel("time [s]")
+    ax_arr[-1].set_xlim(0,Tf)
+
+    for i in range(nq):
+        ax = ax_arr[i]
+        q_arr = q_arr3[:,:,6+i]
+        q_lowerLimit = q_lowerLimit_arr[i]
+        q_upperLimit = q_upperLimit_arr[i]
+        q_name = names[i]
+        for q in q_arr:
+            ax.plot(t, q, color=COLOR_VALUES_q, alpha=0.1)
+    
+        q_arrMean = np.nanmean(q_arr, axis=0)
+        q_min = np.nanmin(q_arr, axis=0)
+        q_max = np.nanmax(q_arr, axis=0)
+        ax.plot(t, q_arrMean, color=COLOR_VALUES_q)
+        ax.fill_between(t, q_min, q_max, alpha=0.2, color=COLOR_VALUES_q)
+
+        # lower
+        xyLower = (t[np.argmin(q_min)], np.min(q_min))
+        ax.annotate(f"{round(np.min(q_min),2)} rad",
+                    xy=xyLower,
+                    xytext=(ANNOTE_MARGIN_X_q,xyLower[1]+ANNOTE_MARGIN_Y_q))
+        ax.scatter(*xyLower, marker=".", c=COLOR_MINMAX_q)
+        ax.plot([0,Tf], [np.min(q_min), np.min(q_min)], color=COLOR_MINMAX_q, alpha=0.5)
+
+        # upper
+        xyUpper = (t[np.argmax(q_max)], np.max(q_max))
+        ax.annotate(f"{round(np.max(q_max),2)} rad",
+                    xy=xyUpper,
+                    xytext=(ANNOTE_MARGIN_X_q,xyUpper[1]+ANNOTE_MARGIN_Y_q))
+        ax.scatter(*xyUpper, marker=".", c=COLOR_MINMAX_q)
+        ax.plot([0,Tf], [np.max(q_max), np.max(q_max)], color=COLOR_MINMAX_q, alpha=0.5)
+        
+        ax.set_ylabel(q_name[:-len("_joint")]+"\n$q_"+str(i)+"$ [rad]", rotation=0)
+        ax.set_ylim(q_lowerLimit, q_upperLimit)
+        ax.set_yticks([q_lowerLimit, q_upperLimit])
+        if i != nq-1:
+            ax.sharex(ax_arr[-1])
+            ax.set_xticks([])
+
+    fig.savefig(str(outPath), format="pdf", pad_inches=0.0)
+
+
+COLOR_VALUES_tau = "blue"
+COLOR_MINMAX_tau = "black"
+ANNOTE_MARGIN_Y_tau = 0.02
+ANNOTE_MARGIN_X_tau = 0.05
+def drawTorques(t : npt.NDArray,
+                tau_arr3 : npt.NDArray,
+                tau_max_arr : npt.NDArray,
+                names : list[str],
+                outPath : Path) -> None:
+    fig = plt.figure(figsize=(12,10))
+    nq = tau_arr3.shape[2] - 6
+    ax_arr = fig.subplots(nq,1)
+    ax_arr[-1].set_xlabel("time [s]")
+    ax_arr[-1].set_xlim(0,Tf)
+
+    for i in range(nq):
+        ax = ax_arr[i]
+        tau_arr = tau_arr3[:,:,6+i]
+        tau_limit = tau_max_arr[i]
+        name = names[i]
+        for tau in tau_arr:
+            ax.plot(t, tau, color=COLOR_VALUES_tau, alpha=0.1)
+    
+        tau_arrMean = np.nanmean(tau_arr, axis=0)
+        tau_min = np.nanmin(tau_arr, axis=0)
+        tau_max = np.nanmax(tau_arr, axis=0)
+        ax.plot(t, tau_arrMean, color=COLOR_VALUES_tau)
+        ax.fill_between(t, tau_min, tau_max, alpha=0.2, color=COLOR_VALUES_tau)
+
+        # min
+        xyMin = (t[np.argmin(tau_min)], np.min(tau_min))
+        ax.annotate(f"{round(np.min(tau_min),2)} Nm",
+                    xy=xyMin,
+                    xytext=(ANNOTE_MARGIN_X_tau,xyMin[1]+ANNOTE_MARGIN_Y_tau))
+        ax.scatter(*xyMin, marker=".", c=COLOR_MINMAX_tau)
+        ax.plot([0,Tf], [np.min(tau_min), np.min(tau_min)], color=COLOR_MINMAX_tau, alpha=0.5)
+
+        # max 
+        xyMax = (t[np.argmax(tau_max)], np.max(tau_max))
+        ax.annotate(f"{round(np.max(tau_max),2)} Nm",
+                    xy=xyMax,
+                    xytext=(ANNOTE_MARGIN_X_tau,xyMax[1]+ANNOTE_MARGIN_Y_tau))
+        ax.scatter(*xyMax, marker=".", c=COLOR_MINMAX_tau)
+        ax.plot([0,Tf], [np.max(tau_max), np.max(tau_max)], color=COLOR_MINMAX_tau, alpha=0.5)
+       
+        ax.set_ylabel(name[:-len("_joint")]+"\n$\tau_"+str(i)+"$ [Nm]", rotation=0)
+        ax.set_ylim(-tau_limit, tau_limit)
+        ax.set_yticks([-tau_limit, tau_limit])
+        if i != nq-1:
+            ax.sharex(ax_arr[-1])
+            ax.set_xticks([])
+
+    fig.savefig(str(outPath), format="pdf", pad_inches=0.0)
+
+
+
 def main(path : Path) -> int:
     benchmarkData = parseBenchmarkData(path)
     h1 = H1Wrapper_v2(q0='knees_bend_0.4_straight',
                       dynamicJoints=DYNAMIC_JOINT_NAMES,
                       visualization=False)
+    nq = h1.model.nq
+    assert(type(nq) is int)
+
     d_arr = np.full((len(benchmarkData.runDataDict),N), np.nan)
     zmp_arr = np.full((len(benchmarkData.runDataDict),N,3), np.nan)
     stab_arr = np.full((len(benchmarkData.runDataDict),N), np.nan)
+    q_arr = np.full((len(benchmarkData.runDataDict),N,nq), np.nan)
+    tau_arr = np.full((len(benchmarkData.runDataDict),N,nq), np.nan)
 
     PoS = PolygonOfSupport()
     t = np.linspace(0.0, Tf, N)
@@ -142,8 +261,6 @@ def main(path : Path) -> int:
         h1.setCollision(projObj)
 
         # load states and controls
-        nq = h1.model.nq
-        assert(type(nq) is int)
         if rd.u is None or rd.x is None:
             continue
         u = rd.u.reshape((-1,nq-6))
@@ -176,13 +293,32 @@ def main(path : Path) -> int:
         stab = f_stability_map(q[:-1].transpose(), qdot[:-1].transpose(), tau.transpose()).toarray()
         stab_arr[i] = stab.transpose().flatten()
 
+        #           joints and torques
+        tau_arr[i] = tau
+        q_arr[i] = q[:-1]
+
     drawDistance(t,
                  d_arr,
                  benchmarkData.dsafe,
                  path / "distance.pdf")
-
     drawZMP(zmp_arr[:,1:N-1,:], PoS, path / "zmp.pdf")
     drawStability(stab_arr[:,1:N-1], 0.8, t[1:N-1], path / "stability.pdf")
+    assert(type(h1.model.upperPositionLimit) is np.ndarray)
+    assert(type(h1.model.lowerPositionLimit) is np.ndarray)
+    assert(h1.model.names is not None)
+    names = h1.model.names.tolist()[2:]
+    drawJointAngles(t,
+                    q_arr,
+                    h1.model.upperPositionLimit[6:],
+                    h1.model.lowerPositionLimit[6:],
+                    names,
+                    path / "joint.pdf")
+    tau_max = np.loadtxt("/home/robot/ws/maxTorque.txt")
+    drawTorques(t,
+                tau_arr,
+                tau_max,
+                names,
+                path / "torque.pdf")
 
     return 0
 

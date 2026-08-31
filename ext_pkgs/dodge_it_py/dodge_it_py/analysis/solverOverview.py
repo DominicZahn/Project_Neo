@@ -51,10 +51,9 @@ def draw(center : list[float],
     ax = fig.add_subplot(111, projection="3d")
 
     # draw projectiles
-    ax.scatter(*center, color="black", marker="x")
     pts = np.hstack([np.array(d["projectile_position"]) for i,d in projectDataDict.items()])
     colorList = ["green" if d["status"] == 0 else "darkorange" for i,d in projectDataDict.items()]
-    ax.scatter(*pts, c=colorList)
+    ax.scatter(*pts, c=colorList, s=5)
 
     # draw collision SDF
     verts = np.loadtxt(VERTS_FILE)
@@ -74,11 +73,17 @@ def draw(center : list[float],
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
-    ax.set_title("Semi-sphere Overview")
     ax.set_box_aspect([1, 1, 1])
-    ax.set_xlim((center[0]-radius[0])*scale, (center[0]+radius[0])*scale)
-    ax.set_ylim((center[1]-radius[1])*scale, (center[1]+radius[1])*scale)
-    ax.set_zlim(0, (center[2]+radius[2])*scale)
+#    ax.set_xlim((center[0]-radius[0])*scale, (center[0]+radius[0])*scale)
+#    ax.set_ylim((center[1]-radius[1])*scale, (center[1]+radius[1])*scale)
+#    ax.set_zlim(0, (center[2]+radius[2])*scale)
+    ax.set_xlim(-1.0,1.0)
+    ax.set_ylim(-1.0,1.0)
+    ax.set_zlim(0.0,2.0)
+    ax.set_xticks([-1.0,-0.5,0.0,0.5,1.0])
+    ax.set_yticks([-1.0,-0.5,0.0,0.5,1.0])
+    ax.set_zticks([0.0,0.5,1.0,1.5,2.0])
+
     # ax.set_zlim(0, 2.5)
     plt.tight_layout()
 
@@ -89,17 +94,23 @@ def draw(center : list[float],
     # top view
     topFile = f"{out}/top.pdf"
     ax.view_init(elev=90, azim=0, roll=0)
+    ax.set_zticks([])
     plt.savefig(topFile)
+    ax.set_zticks([0.0,0.5,1.0,1.5,2.0])
     print(f"Plot saved to {topFile}")
     # front view
     frontFile = f"{out}/front.pdf"
     ax.view_init(elev=0, azim=0, roll=0)
+    ax.set_xticks([])
     plt.savefig(frontFile)
+    ax.set_xticks([-1.0,-0.5,0.0,0.5,1.0])
     print(f"Plot saved to {frontFile}")
     # side view
     sideFile = f"{out}/side.pdf"
     ax.view_init(elev=0, azim=90, roll=0)
+    ax.set_yticks([])
     plt.savefig(sideFile)
+    ax.set_yticks([-1.0,-0.5,0.0,0.5,1.0])
     print(f"Plot saved to {sideFile}")
 
     printSummary(projectDataDict, out)

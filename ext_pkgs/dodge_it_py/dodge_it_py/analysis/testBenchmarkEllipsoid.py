@@ -19,21 +19,14 @@ if __name__ == "__main__":
         (0.2*s, 0.35*s, 0.5*s),
         -0.1, 0.4 
     )
-#    shape = SemiSphere(
-#        (0.2, 0.0, 1.6),
-#        0.7,
-#        -np.pi/6,   # 30°
-#        np.pi/6     # 30°
-#    )
-    points, normals = shape.sample(100)
-    fig = plt.figure(figsize=(7, 7))
-    fig.tight_layout()
+    points, normals = shape.sample(500)
+    fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     ax.scatter(points[:, 0], points[:, 1], points[:, 2], s=4, alpha=0.6)
     normals *= -v*Tf
     ax.quiver(points[:, 0], points[:, 1], points[:, 2],
               normals[:, 0], normals[:, 1], normals[:, 2],
-              normalize=False, color="tab:red", linewidth=0.6, alpha=0.7)
+              normalize=False, color="gray", alpha=0.1)
 
     verts = np.loadtxt(VERTS_FILE)
     faces = np.loadtxt(FACES_FILE).astype(int)
@@ -44,27 +37,34 @@ if __name__ == "__main__":
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
     ax.set_box_aspect([1,1,1])
-    ax.set_title("Semi-ellipsoid")
-    plt.tight_layout()
+    ax.set_xlim(-1.0,1.0)
+    ax.set_ylim(-1.0,1.0)
+    ax.set_zlim(0.0,2.0)
+    ax.set_xticks([-1.0,-0.5,0.0,0.5,1.0])
+    ax.set_yticks([-1.0,-0.5,0.0,0.5,1.0])
+    ax.set_zticks([])
 
     out = "/home/robot/ws/test"
     # iso view
     isoFile = f"{out}_iso.pdf"
+    fig.tight_layout(pad=0)
     plt.savefig(isoFile)
     print(f"Plot saved to {isoFile}")
     # top view
     topFile = f"{out}_top.pdf"
     ax.view_init(elev=90, azim=0, roll=0)
+    fig.tight_layout(pad=0)
     plt.savefig(topFile)
     print(f"Plot saved to {topFile}")
     # front view
     frontFile = f"{out}_front.pdf"
     ax.view_init(elev=0, azim=0, roll=0)
+    fig.tight_layout(pad=0)
     plt.savefig(frontFile)
     print(f"Plot saved to {frontFile}")
     # side view
     sideFile = f"{out}_side.pdf"
     ax.view_init(elev=0, azim=90, roll=0)
+    fig.tight_layout(pad=0)
     plt.savefig(sideFile)
     print(f"Plot saved to {sideFile}")
-
