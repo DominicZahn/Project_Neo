@@ -134,7 +134,7 @@ def drawJointAngles(t : npt.NDArray,
                     q_upperLimit_arr : npt.NDArray,
                     names : list[str],
                     outPath : Path) -> None:
-    fig = plt.figure(figsize=(12,10))
+    fig = plt.figure(figsize=(5,10))
     nq = q_arr3.shape[2] - 6
     ax_arr = fig.subplots(nq,1)
     ax_arr[-1].set_xlabel("time [s]")
@@ -190,7 +190,7 @@ def drawTorques(t : npt.NDArray,
                 tau_max_arr : npt.NDArray,
                 names : list[str],
                 outPath : Path) -> None:
-    fig = plt.figure(figsize=(12,10))
+    fig = plt.figure(figsize=(5,10))
     nq = tau_arr3.shape[2] - 6
     ax_arr = fig.subplots(nq,1)
     ax_arr[-1].set_xlabel("time [s]")
