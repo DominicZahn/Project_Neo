@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 # print(plt.style.available)
 # plt.style.use("l3") https://github.com/niess/mplstyle-l3
-import sys, json, os
+import sys, json
+from pathlib import Path
 from rich import print
 
 from dataclasses import dataclass
@@ -18,7 +19,7 @@ from scipy.stats import chi2
 import nlopt
 
 GOLDEN_ANGLE = np.pi * (3.0 - np.sqrt(5.0))
-SAMPLES_FILE = "/home/robot/ws/samples.json"
+SAMPLES_DIR = "/home/robot/ws/samples/"
 
 @staticmethod
 def draw(out : str, # path + prefix
@@ -303,8 +304,9 @@ class SemiEllipsoid:
                       seed : int) -> tuple[npt.NDArray, npt.NDArray]:
 
         # load backed up if applicable
-        if os.path.exists(SAMPLES_FILE):
-            with open(SAMPLES_FILE, "r") as f:
+        sampleFile = Path(SAMPLES_DIR) / f"{seed}_{samples}.json"
+        if sampleFile.exists():
+            with open(SAMPLES_DIR, "r") as f:
                 data = json.load(f)
                 keysAvailable = "sampleCount" in data.keys() and "seed" in data.keys() and "points" in data.keys() and "normals" in data.keys()
                 if keysAvailable:
@@ -343,7 +345,8 @@ class SemiEllipsoid:
         normals /= np.linalg.norm(normals, axis=1)[:,None]
 
         # write to buffer file
-        with open(SAMPLES_FILE, "w") as f:
+        sampleFile = Path(SAMPLES_DIR) / f"{seed}_{samples}.json"
+        with open(sampleFile, "w") as f:
             data = dict({
                 "seed" : seed,
                 "sampleCount" : samples,
