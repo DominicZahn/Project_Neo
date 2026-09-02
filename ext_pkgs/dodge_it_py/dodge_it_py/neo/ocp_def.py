@@ -52,7 +52,14 @@ class OCP:
     
     def _stability(self) -> None:
         PoS = PolygonOfSupport()
-        self.stabilityConstraint = PoS.stability_centerDistParable(self.h1.ZMP)
+        p00, _, p11, _ = PoS.get_corners()
+        c = PoS.get_center()
+        front, left, back, right = p11[0], p11[1], p00[0], p00[1]
+
+        self.stabilityConstraintFront = 1.0 - (front - self.h1.ZMP[0]) / (front - c[0])
+        self.stabilityConstraintBack = 1.0 - (self.h1.ZMP[0] - back) / (c[0] - back)
+        self.stabilityConstraintLeft = 1.0 - (left - self.h1.ZMP[1]) / (left - c[1])
+        self.stabilityConstraintRight = 1.0 - (self.h1.ZMP[1] - right) / (c[1] - right)
        
     def _cost(self) -> AcadosOcpCost:
         nq = self.h1.model.nq
@@ -61,13 +68,15 @@ class OCP:
         cost = AcadosOcpCost()
 
         # Lagrange
+        wJoints = 1.0
+        wTau = 1e-4
         cost.cost_type = 'NONLINEAR_LS'
         x = self.ocp.model.x
         u = self.ocp.model.u
         costTau = c.dot(u,u) / (u.size1()*100.0**2)**2
         qOffset = x[:nq] - self.h1.q0
         costJoints = c.dot(qOffset,qOffset) / (x[:nq].size1()*(c.pi/2)**2)**2
-        self.ocp.model.cost_y_expr = costTau + costJoints
+        self.ocp.model.cost_y_expr = costTau*wTau + costJoints*wJoints
         cost.yref = 0.0
         cost.W = np.eye(1)
         return cost
@@ -134,11 +143,12 @@ class OCP:
         #       nonlinear constraints (h)
         #           stability constraint
         useablePoS = 0.8
-        cons.uh = np.append(cons.uh, useablePoS)
-        cons.lh = np.append(cons.lh, -0.1)
+        cons.uh = np.append(cons.uh, np.full(2, useablePoS))
+        cons.lh = np.append(cons.lh, np.full(2, -1e6))
         self.ocp.model.con_h_expr = c.vertcat(
             self.ocp.model.con_h_expr,
-            self.stabilityConstraint
+            self.stabilityConstraintFront,
+            self.stabilityConstraintBack,
         )
 
         #           dodge constraint
