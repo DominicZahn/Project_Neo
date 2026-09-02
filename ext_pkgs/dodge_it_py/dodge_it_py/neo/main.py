@@ -147,13 +147,18 @@ def mainInteractive(showCollision : bool,
 def mainBenchmark(sampleCount : int):
     # center on head
     s = 2.0     # scale factor to move ellipsoid away
+    center = (0.05, 0.0, 1.25)
+    radius = (0.2*s, 0.35*s, 0.5*s)
     hule = SemiEllipsoid(
-        (0.05, 0.0, 1.25),
-        (0.2*s, 0.35*s, 0.5*s),
+        center,
+        radius,
         -0.1, 0.4 
     )
     projectilePosArr, normalArr = hule.sample(sampleCount)
-    projectileVelArr = -normalArr * 0.5
+    ptsCentered = projectilePosArr - np.array(center)
+    v = 2*(np.sum(ptsCentered**2/np.array(radius)**4, axis=1))**(3/2) / (np.sum(ptsCentered**2/np.array(radius)**6, axis=1)) / Tf
+    projectileVelArr = -normalArr * v[:,None]
+    # projectileVelArr = -normalArr * 0.5
 
     for i in range(sampleCount):
         dirPath = f"/home/robot/ws/benchmarks/{str(i).zfill(5)}/"
@@ -166,7 +171,8 @@ def mainBenchmark(sampleCount : int):
             q0='knees_bend_0.4_straight',
             dynamicJoints=DYNAMIC_JOINT_NAMES,
             showCollisionSDF=True,
-            visualization=headlessData)
+            # visualization=headlessData)
+            visualization=False)
 
         try:
             projectilePos = c.SX(projectilePosArr[i])
@@ -195,15 +201,15 @@ def mainBenchmark(sampleCount : int):
                 q = x[:,:nq]
                 qdot = x[:,nq:]
     
-                h1.visualizeJointTrajecotry(q, qdot, tau, t, 1.0)
-                generateVideoFromFrames(headlessData)
+                # h1.visualizeJointTrajecotry(q, qdot, tau, t, 1.0)
+                # generateVideoFromFrames(headlessData)
 
             del ocp
             
             color = "bold green" if status == 0 else "bold orange1"
             print(f"[{color}][INFO][/{color}] run {i} complete")
         finally:
-            h1.closeHeadless()
+            # h1.closeHeadless()
             del h1
 
             libgomp = ctypes.CDLL("libgomp.so.1")
