@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -7,24 +8,23 @@ from ext_pkgs.dodge_it_py.dodge_it_py.sample import SemiEllipsoid, SemiSphere
 VERTS_FILE = "/home/robot/ws/ext_pkgs/dodge_it_py/dodge_it_py/analysis/verts.txt"
 FACES_FILE = "/home/robot/ws/ext_pkgs/dodge_it_py/dodge_it_py/analysis/faces.txt"
 
-def main(args) -> int:
-    return 0
-
 if __name__ == "__main__":
     v = 0.5     # simulated velocity
     Tf = 2.5    # simulation time frame
     s = 2.0     # scale factor to move ellipsoid away
     c = (0.05, 0.0, 1.25)
     r = (0.2*s, 0.35*s, 0.5*s)
+    N = int(sys.argv[1])
+    assert(0 < N)
     shape = SemiEllipsoid(
         c,
         r,
         -0.1, 0.4 
     )
-    points, normals = shape.sampleFibonacciThomson(500, 0)
+    points, normals = shape.sampleFibonacciThomson(N, 0)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
-    ax.scatter(*points.transpose(), s=4, alpha=0.6)
+    ax.scatter(*points.transpose(), s=4)
     ptsCentered = points - np.array(c)
     v = 2*(np.sum(ptsCentered**2/np.array(r)**4, axis=1))**(3/2) / (np.sum(ptsCentered**2/np.array(r)**6, axis=1)) / Tf
     normals *= -v[:,None] * Tf
