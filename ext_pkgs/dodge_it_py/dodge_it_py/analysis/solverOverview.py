@@ -42,10 +42,7 @@ def printSummary(projectDataDict : dict[int, dict], output : Path) -> None:
               solverSummaryFile)
     solverSummaryFile.close()
 
-def draw(center : list[float],
-         radius : list[float],
-         velocity : float,
-         projectDataDict : dict[int, dict],
+def draw(projectDataDict : dict[int, dict],
          out : Path) -> None:
     fig = plt.figure(figsize=(7,7))
     ax = fig.add_subplot(111, projection="3d")
@@ -121,10 +118,7 @@ def main(path : Path) -> int:
         print("[bold red][ERROR][/bold red] input directory is empty")
         return -1
     
-    draw(benchmarkData.center,
-         benchmarkData.radius,
-         benchmarkData.velocity,
-         {i: rd.solverDict for i,rd in benchmarkData.runDataDict.items()},
+    draw({i: rd.solverDict for i,rd in benchmarkData.runDataDict.items()},
          path)
     return 0
 

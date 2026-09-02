@@ -21,7 +21,6 @@ class BenchmarkData:
     radius: list[float]
     lower: float
     upper: float
-    velocity: float
     dsafe: float
     rawName: str
     runDataDict: dict[int,RunData]
@@ -36,7 +35,6 @@ def parseBenchmarkData(benchmarkDir: Path) -> BenchmarkData:
         radius=infoDict["radius"],
         lower=infoDict["lower"],
         upper=infoDict["upper"],
-        velocity=infoDict["velocity"],
         dsafe=infoDict["dsafe"],
         rawName=benchmarkDir.name,
         runDataDict=_parseRunDataAll(benchmarkDir),

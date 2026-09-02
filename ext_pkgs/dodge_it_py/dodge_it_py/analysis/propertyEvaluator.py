@@ -256,7 +256,8 @@ def main(path : Path) -> int:
     for i,rd in benchmarkData.runDataDict.items():
         # finish setup
         p = c.SX(rd.solverDict["projectile_position"])
-        v = c.SX([0.0, 0.0, benchmarkData.velocity])
+        v = c.SX(rd.solverDict["projectile_velocity"])
+
         projObj = projectile.linear(h1.t, p, v)
         h1.setCollision(projObj)
 
