@@ -143,12 +143,14 @@ class OCP:
         #       nonlinear constraints (h)
         #           stability constraint
         useablePoS = 0.8
-        cons.uh = np.append(cons.uh, np.full(2, useablePoS))
-        cons.lh = np.append(cons.lh, np.full(2, -1e6))
+        cons.uh = np.append(cons.uh, np.full(4, useablePoS))
+        cons.lh = np.append(cons.lh, np.full(4, -1e6))
         self.ocp.model.con_h_expr = c.vertcat(
             self.ocp.model.con_h_expr,
             self.stabilityConstraintFront,
             self.stabilityConstraintBack,
+            self.stabilityConstraintLeft,
+            self.stabilityConstraintRight
         )
 
         #           dodge constraint
