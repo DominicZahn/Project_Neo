@@ -154,11 +154,11 @@ def mainBenchmark(sampleCount : int):
         radius,
         -0.1, 0.4 
     )
-    projectilePosArr, normalArr = hule.sampleFibonacciThomson(sampleCount, 0)
+    # projectilePosArr, normalArr = hule.sampleFibonacciThomson(sampleCount, 0)
+    projectilePosArr, normalArr = hule.sampleFibonacci(sampleCount)
     ptsCentered = projectilePosArr - np.array(center)
     v = 2*(np.sum(ptsCentered**2/np.array(radius)**4, axis=1))**(3/2) / (np.sum(ptsCentered**2/np.array(radius)**6, axis=1)) / Tf
     projectileVelArr = -normalArr * v[:,None]
-    # projectileVelArr = -normalArr * 0.5
 
     for i in range(sampleCount):
         dirPath = f"/home/robot/ws/benchmarks/{str(i).zfill(5)}/"
