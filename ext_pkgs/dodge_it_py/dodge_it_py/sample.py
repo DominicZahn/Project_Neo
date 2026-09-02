@@ -18,6 +18,7 @@ from scipy.stats import chi2
 import nlopt
 
 GOLDEN_ANGLE = np.pi * (3.0 - np.sqrt(5.0))
+SAMPLES_FILE = "/home/robot/ws/samples.json"
 
 @staticmethod
 def draw(out : str, # path + prefix
@@ -272,6 +273,86 @@ class SemiEllipsoid:
         normals /= np.linalg.norm(normals, axis=1)[:, None]
         return points, normals
 
+    @staticmethod
+    def obj(pts : npt.NDArray, grad : npt.NDArray) -> float:
+        pts = pts.reshape(-1,3)
+        d = float(np.sum(pdist(pts)))
+        d /= pts.shape[0]
+        print("obj:", d)
+        return d
+    @staticmethod
+    def consZUpper(res : npt.NDArray, pts : npt.NDArray, grad : npt.NDArray, zUpper : float) -> None:
+        pts = pts.reshape(-1,3)
+        res[:] = (pts[:,2] - zUpper).flatten()
+    @staticmethod
+    def consZLower(res : npt.NDArray, pts : npt.NDArray, grad : npt.NDArray, zLower : float) -> None:
+        pts = pts.reshape(-1,3)
+        res[:] = (zLower - pts[:,2]).flatten()
+    @staticmethod
+    def consEllipsoid(res : npt.NDArray,
+                      pts : npt.NDArray,
+                      grad : npt.NDArray,
+                      center : npt.NDArray,
+                      radius : npt.NDArray) -> None:
+        pts = pts.reshape(-1,3)
+        ptsSphere = (pts-center)**2 / radius**2
+        res[:] = np.sum(ptsSphere, axis=1) - 1
+
+    def sampleThomson(self,
+                      samples : int,
+                      seed : int) -> tuple[npt.NDArray, npt.NDArray]:
+
+        # load backed up if applicable
+        if os.path.exists(SAMPLES_FILE):
+            with open(SAMPLES_FILE, "r") as f:
+                data = json.load(f)
+                keysAvailable = "sampleCount" in data.keys() and "seed" in data.keys() and "points" in data.keys() and "normals" in data.keys()
+                if keysAvailable:
+                    fittingConfig = data["sampleCount"] == samples and data["seed"] == seed
+                    if fittingConfig:
+                        pts = np.array(data["points"])
+                        assert(type(pts) is np.ndarray)
+                        normals = np.array(data["normals"])
+                        assert(type(normals) is np.ndarray)
+                        print("[INFO] loaded buffered samples")
+                        return (pts, normals)
+         
+        ptsInit, _ = self.sample(samples)
+        r = np.array(self.radius)
+        c = np.array(self.center)
+
+        # optimize distance
+        nlopt.srand(seed)
+        ptsInit = ptsInit.flatten()
+        opt = nlopt.opt(nlopt.LN_COBYLA, ptsInit.size)
+        opt.set_xtol_abs(1e-5)
+        opt.set_min_objective(SemiEllipsoid.obj)
+        opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZUpper(res, x, grad, self.relUpperZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
+        opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZLower(res, x, grad, self.relLowerZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
+        opt.add_equality_mconstraint(lambda res, x, grad: SemiEllipsoid.consEllipsoid(res, x, grad, c, r), np.full(int(ptsInit.size/3), 1e-10))
+        ptsOpt = opt.optimize(ptsInit)
+        assert(type(ptsOpt) is np.ndarray)
+        res = opt.last_optimize_result()
+        if res < 0:
+            print(f"[bold red][ERROR][\bold red] samples could not be generated on the ellipsoid with seed {seed}")
+            assert(False)
+        ptsOpt = ptsOpt.reshape(-1,3)
+
+        # calculate normals to new points
+        normals = ptsOpt / r**2 
+        normals /= np.linalg.norm(normals, axis=1)[:,None]
+
+        # write to buffer file
+        with open(SAMPLES_FILE, "w") as f:
+            data = dict({
+                "seed" : seed,
+                "sampleCount" : samples,
+                "points" : ptsOpt.tolist(),
+                "normals" : normals.tolist()
+            })
+            json.dump(data, f)
+        return (ptsOpt, normals)
+
     def sampleGradientRejection(self, samples : int,
                                 rng : np.random.Generator,
                                 batchOversample : float = 2.0) -> tuple[npt.NDArray, npt.NDArray]:
@@ -500,6 +581,10 @@ if __name__ == "__main__":
         (0.2*s, 0.35*s, 0.5*s),
         -0.1, 0.4 
     )
+
+    # DEBUG
+    pts, normals = shape.sampleThomson(samples, 0)
+    # 
 
     rng = np.random.Generator(np.random.PCG64())
     nTheta, nPhi = 3, 6
