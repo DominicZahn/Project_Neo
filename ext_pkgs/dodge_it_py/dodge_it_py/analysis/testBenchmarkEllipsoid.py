@@ -21,7 +21,7 @@ if __name__ == "__main__":
         r,
         -0.1, 0.4 
     )
-    points, normals = shape.sample(500)
+    points, normals = shape.sampleFibonacciThomson(500, 0)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     ax.scatter(*points.transpose(), s=4, alpha=0.6)

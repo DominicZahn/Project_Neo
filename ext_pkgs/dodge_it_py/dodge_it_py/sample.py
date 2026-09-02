@@ -242,7 +242,7 @@ class SemiEllipsoid:
         return points, normals
 
 
-    def sample(self, samples : int) -> tuple[npt.NDArray, npt.NDArray]:
+    def sampleFibonacci(self, samples : int) -> tuple[npt.NDArray, npt.NDArray]:
         """
         Using a Fibonacci-lattice grid which is scaled by the radius properties of the ellipsoid.
         """
@@ -277,7 +277,7 @@ class SemiEllipsoid:
     @staticmethod
     def obj(pts : npt.NDArray, grad : npt.NDArray) -> float:
         pts = pts.reshape(-1,3)
-        dArr = pdist(pts)
+        dArr = pdist(pts)**2
         d = float(np.sum(dArr))
         d /= dArr.size
         print("obj:", d)
@@ -300,7 +300,7 @@ class SemiEllipsoid:
         ptsSphere = (pts-center)**2 / radius**2
         res[:] = np.sum(ptsSphere, axis=1) - 1
 
-    def sampleThomson(self,
+    def sampleFibonacciThomson(self,
                       samples : int,
                       seed : int) -> tuple[npt.NDArray, npt.NDArray]:
 
@@ -320,7 +320,7 @@ class SemiEllipsoid:
                         print("[INFO] loaded buffered samples")
                         return (pts, normals)
          
-        ptsInit, _ = self.sample(samples)
+        ptsInit, _ = self.sampleFibonacci(samples)
         r = np.array(self.radius)
         c = np.array(self.center)
 
@@ -328,7 +328,7 @@ class SemiEllipsoid:
         nlopt.srand(seed)
         ptsInit = ptsInit.flatten()
         opt = nlopt.opt(nlopt.LN_COBYLA, ptsInit.size)
-        opt.set_xtol_abs(1e-4)
+        opt.set_ftol_abs(1e-2)
         opt.set_min_objective(SemiEllipsoid.obj)
         opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZUpper(res, x, grad, self.relUpperZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
         opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZLower(res, x, grad, self.relLowerZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
@@ -568,7 +568,7 @@ class SemiEllipsoid:
         return float(chiSquared)
 
     def draw(self, samples : int, showNormales : bool = True) -> None:
-        pts, normals = self.sample(samples)
+        pts, normals = self.sampleFibonacci(samples)
         draw("/home/robot/ws/ellipsoid",
              self.center,
              self.radius,
@@ -587,7 +587,7 @@ if __name__ == "__main__":
     )
 
     # DEBUG
-    pts, normals = shape.sampleThomson(samples, 0)
+    pts, normals = shape.sampleFibonacciThomson(samples, 0)
     # 
 
     rng = np.random.Generator(np.random.PCG64())
@@ -600,7 +600,7 @@ if __name__ == "__main__":
     uniformity = shape.calcUniformity(pts, nTheta, nPhi)
     print("gradient rejection:", uniformity)
 
-    pts, normal = shape.sample(samples)
+    pts, normal = shape.sampleFibonacci(samples)
     draw("/home/robot/ws/naiveApproach",
          shape.center,
          shape.radius,
