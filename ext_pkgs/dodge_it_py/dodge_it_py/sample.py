@@ -277,8 +277,9 @@ class SemiEllipsoid:
     @staticmethod
     def obj(pts : npt.NDArray, grad : npt.NDArray) -> float:
         pts = pts.reshape(-1,3)
-        d = float(np.sum(pdist(pts)))
-        d /= pts.shape[0]
+        dArr = pdist(pts)
+        d = float(np.sum(dArr))
+        d /= dArr.size
         print("obj:", d)
         return d
     @staticmethod
@@ -306,7 +307,7 @@ class SemiEllipsoid:
         # load backed up if applicable
         sampleFile = Path(SAMPLES_DIR) / f"{seed}_{samples}.json"
         if sampleFile.exists():
-            with open(SAMPLES_DIR, "r") as f:
+            with open(sampleFile, "r") as f:
                 data = json.load(f)
                 keysAvailable = "sampleCount" in data.keys() and "seed" in data.keys() and "points" in data.keys() and "normals" in data.keys()
                 if keysAvailable:
@@ -327,7 +328,7 @@ class SemiEllipsoid:
         nlopt.srand(seed)
         ptsInit = ptsInit.flatten()
         opt = nlopt.opt(nlopt.LN_COBYLA, ptsInit.size)
-        opt.set_xtol_abs(1e-5)
+        opt.set_xtol_abs(1e-4)
         opt.set_min_objective(SemiEllipsoid.obj)
         opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZUpper(res, x, grad, self.relUpperZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
         opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZLower(res, x, grad, self.relLowerZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
