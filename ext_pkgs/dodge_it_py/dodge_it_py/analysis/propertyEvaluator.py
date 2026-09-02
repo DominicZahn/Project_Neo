@@ -302,7 +302,7 @@ def main(path : Path) -> int:
                  benchmarkData.dsafe,
                  path / "distance.pdf")
     drawZMP(zmp_arr[:,0:N-1,:], PoS, path / "zmp.pdf")
-    drawStability(stab_arr[:,1:N-1], 0.8, t[1:N-1], path / "stability.pdf")
+    # drawStability(stab_arr[:,1:N-1], 0.8, t[1:N-1], path / "stability.pdf")
     assert(type(h1.model.upperPositionLimit) is np.ndarray)
     assert(type(h1.model.lowerPositionLimit) is np.ndarray)
     assert(h1.model.names is not None)
