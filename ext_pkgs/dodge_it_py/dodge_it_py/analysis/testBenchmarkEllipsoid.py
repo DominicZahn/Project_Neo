@@ -14,16 +14,20 @@ if __name__ == "__main__":
     v = 0.5     # simulated velocity
     Tf = 2.5    # simulation time frame
     s = 2.0     # scale factor to move ellipsoid away
+    c = (0.05, 0.0, 1.25)
+    r = (0.2*s, 0.35*s, 0.5*s)
     shape = SemiEllipsoid(
-        (0.05, 0.0, 1.25),
-        (0.2*s, 0.35*s, 0.5*s),
+        c,
+        r,
         -0.1, 0.4 
     )
     points, normals = shape.sample(500)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
-    ax.scatter(points[:, 0], points[:, 1], points[:, 2], s=4, alpha=0.6)
-    normals *= -v*Tf
+    ax.scatter(*points.transpose(), s=4, alpha=0.6)
+    ptsCentered = points - np.array(c)
+    v = 2*(np.sum(ptsCentered**2/np.array(r)**4, axis=1))**(3/2) / (np.sum(ptsCentered**2/np.array(r)**6, axis=1)) / Tf
+    normals *= -v[:,None] * Tf
     ax.quiver(points[:, 0], points[:, 1], points[:, 2],
               normals[:, 0], normals[:, 1], normals[:, 2],
               normalize=False, color="gray", alpha=0.1)
