@@ -206,11 +206,11 @@ class SemiEllipsoid:
     relUpperZ : float = np.nan
 
     def __post_init__(self):
-        assert len(self.radius) == 3
-        assert all(v > 0.0 for v in self.radius)
-        assert self.relLowerZ < self.relUpperZ
-        assert -self.radius[2] <= self.relLowerZ <= self.radius[2]
-        assert -self.radius[2] <= self.relUpperZ <= self.radius[2]
+        assert(len(self.radius) == 3)
+        assert(all(v > 0.0 for v in self.radius))
+        assert(self.relLowerZ < self.relUpperZ)
+        assert(-self.radius[2] <= self.relLowerZ and self.relLowerZ <= self.radius[2])
+        assert(-self.radius[2] <= self.relUpperZ and self.relUpperZ <= self.radius[2])
 
     def sampleLatLong(self, samples : int) -> tuple[npt.NDArray, npt.NDArray]:
         """
@@ -275,36 +275,52 @@ class SemiEllipsoid:
         return points, normals
 
     @staticmethod
-    def obj(pts : npt.NDArray, grad : npt.NDArray) -> float:
-        pts = pts.reshape(-1,3)
-        dArr = pdist(pts)**2
-        d = float(np.sum(dArr))
-        d /= dArr.size
-        print("obj:", d)
-        return d
+    def obj(pts, grad):
+        pts = pts.reshape(-1, 3)
+        n = pts.shape[0]
+        diff = pts[:, None, :] - pts[None, :, :]
+        dist = np.linalg.norm(diff, axis=2)
+        np.fill_diagonal(dist, np.inf)
+        energy = 0.5 * np.sum(1.0 / dist)
+        if grad.size > 0:
+            g = -np.sum(diff / dist[:, :, None]**3, axis=1)
+            grad[:] = g.flatten()
+        print("obj:", energy)
+        return energy
     @staticmethod
-    def consZUpper(res : npt.NDArray, pts : npt.NDArray, grad : npt.NDArray, zUpper : float) -> None:
-        pts = pts.reshape(-1,3)
-        res[:] = (pts[:,2] - zUpper).flatten()
+    def consZUpper(res, pts, grad, zUpper):
+        pts = pts.reshape(-1, 3)
+        n = pts.shape[0]
+        res[:] = pts[:, 2] - zUpper
+        if grad.size > 0:
+            grad[:] = 0.0
+            for k in range(n):
+                grad[k, 3*k+2] = 1.0
     @staticmethod
-    def consZLower(res : npt.NDArray, pts : npt.NDArray, grad : npt.NDArray, zLower : float) -> None:
-        pts = pts.reshape(-1,3)
-        res[:] = (zLower - pts[:,2]).flatten()
+    def consZLower(res, pts, grad, zLower):
+        pts = pts.reshape(-1, 3)
+        n = pts.shape[0]
+        res[:] = zLower - pts[:, 2]
+        if grad.size > 0:
+            grad[:] = 0.0
+            for k in range(n):
+                grad[k, 3*k+2] = -1.0
     @staticmethod
-    def consEllipsoid(res : npt.NDArray,
-                      pts : npt.NDArray,
-                      grad : npt.NDArray,
-                      center : npt.NDArray,
-                      radius : npt.NDArray) -> None:
-        pts = pts.reshape(-1,3)
-        ptsSphere = (pts-center)**2 / radius**2
-        res[:] = np.sum(ptsSphere, axis=1) - 1
+    def consEllipsoid(res, pts, grad, center, radius):
+        pts = pts.reshape(-1, 3)
+        n = pts.shape[0]
+        rel = (pts - center) / radius**2
+        res[:] = np.sum(rel * (pts - center), axis=1) - 1.0
+        if grad.size > 0:
+            grad[:] = 0.0
+            for k in range(n):
+                grad[k, 3*k:3*k+3] = 2.0 * rel[k]
 
     def sampleFibonacciThomson(self,
                       samples : int,
                       seed : int) -> tuple[npt.NDArray, npt.NDArray]:
 
-        # load backed up if applicable
+        # load buffer file if applicable
         sampleFile = Path(SAMPLES_DIR) / f"{seed}_{samples}.json"
         if sampleFile.exists():
             with open(sampleFile, "r") as f:
@@ -327,18 +343,23 @@ class SemiEllipsoid:
         # optimize distance
         nlopt.srand(seed)
         ptsInit = ptsInit.flatten()
-        opt = nlopt.opt(nlopt.LN_COBYLA, ptsInit.size)
-        opt.set_ftol_abs(1e-2)
+        opt = nlopt.opt(nlopt.LD_SLSQP, ptsInit.size)
+        opt.set_exceptions_enabled(False)
+        opt.set_xtol_abs(1e-3)
+        opt.set_ftol_abs(1e-3)
         opt.set_min_objective(SemiEllipsoid.obj)
         opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZUpper(res, x, grad, self.relUpperZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
         opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZLower(res, x, grad, self.relLowerZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
-        opt.add_equality_mconstraint(lambda res, x, grad: SemiEllipsoid.consEllipsoid(res, x, grad, c, r), np.full(int(ptsInit.size/3), 1e-10))
+        opt.add_equality_mconstraint(lambda res, x, grad: SemiEllipsoid.consEllipsoid(res, x, grad, c, r), np.full(int(ptsInit.size/3), 1e-6))
         ptsOpt = opt.optimize(ptsInit)
         assert(type(ptsOpt) is np.ndarray)
         res = opt.last_optimize_result()
-        if res < 0:
-            print(f"[bold red][ERROR][\bold red] samples could not be generated on the ellipsoid with seed {seed}")
-            assert(False)
+        if res < 0: 
+            if res != nlopt.ROUNDOFF_LIMITED:
+                print(f"[bold red][ERROR] samples could not be generated on the ellipsoid with seed {seed}")
+                assert(False)
+            else:
+                print("[bold orange3][WARNING] sample optimization was stopped due to limited round off")
         ptsOpt = ptsOpt.reshape(-1,3)
 
         # calculate normals to new points
