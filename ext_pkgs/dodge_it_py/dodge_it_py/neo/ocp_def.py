@@ -154,7 +154,7 @@ class OCP:
         )
 
         #           dodge constraint
-        d_safe = 0.1
+        d_safe = 0.05
         t = self.h1.t
         d = self.h1.cProjectileRobotDistance(t)
         self.ocp.model.con_h_expr = c.vertcat(
