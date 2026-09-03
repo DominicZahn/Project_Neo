@@ -345,8 +345,8 @@ class SemiEllipsoid:
         ptsInit = ptsInit.flatten()
         opt = nlopt.opt(nlopt.LD_SLSQP, ptsInit.size)
         opt.set_exceptions_enabled(False)
-        opt.set_xtol_abs(1e-3)
-        opt.set_ftol_abs(1e-3)
+        opt.set_xtol_abs(1e-2)
+        opt.set_ftol_abs(1e-2)
         opt.set_min_objective(SemiEllipsoid.obj)
         opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZUpper(res, x, grad, self.relUpperZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
         opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZLower(res, x, grad, self.relLowerZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
@@ -363,7 +363,7 @@ class SemiEllipsoid:
         ptsOpt = ptsOpt.reshape(-1,3)
 
         # calculate normals to new points
-        normals = ptsOpt / r**2 
+        normals = (ptsOpt-c) / r**2 
         normals /= np.linalg.norm(normals, axis=1)[:,None]
 
         # write to buffer file
