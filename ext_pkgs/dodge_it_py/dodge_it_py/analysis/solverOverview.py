@@ -42,7 +42,7 @@ def printSummary(projectDataDict : dict[int, dict], output : Path) -> None:
               solverSummaryFile)
     solverSummaryFile.close()
 
-def draw(projectDataDict : dict[int, dict],
+def drawOverview(projectDataDict : dict[int, dict],
          out : Path) -> None:
     fig = plt.figure(figsize=(7,7))
     ax = fig.add_subplot(111, projection="3d")
@@ -66,14 +66,10 @@ def draw(projectDataDict : dict[int, dict],
         pStack = np.vstack((p0,p1)).transpose()
         ax.plot(*pStack, c="gray", alpha=0.2)
 
-    scale = 1.1
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
     ax.set_box_aspect([1, 1, 1])
-#    ax.set_xlim((center[0]-radius[0])*scale, (center[0]+radius[0])*scale)
-#    ax.set_ylim((center[1]-radius[1])*scale, (center[1]+radius[1])*scale)
-#    ax.set_zlim(0, (center[2]+radius[2])*scale)
     ax.set_xlim(-1.0,1.0)
     ax.set_ylim(-1.0,1.0)
     ax.set_zlim(0.0,2.0)
@@ -85,31 +81,92 @@ def draw(projectDataDict : dict[int, dict],
     plt.tight_layout()
 
     # iso view
-    isoFile = f"{out}/iso.pdf"
+    isoFile = f"{out}/conv_iso.pdf"
     plt.savefig(isoFile)
     print(f"Plot saved to {isoFile}")
     # top view
-    topFile = f"{out}/top.pdf"
+    topFile = f"{out}/conv_top.pdf"
     ax.view_init(elev=90, azim=0, roll=0)
     ax.set_zticks([])
     plt.savefig(topFile)
     ax.set_zticks([0.0,0.5,1.0,1.5,2.0])
     print(f"Plot saved to {topFile}")
     # front view
-    frontFile = f"{out}/front.pdf"
+    frontFile = f"{out}/conv_front.pdf"
     ax.view_init(elev=0, azim=0, roll=0)
     ax.set_xticks([])
     plt.savefig(frontFile)
     ax.set_xticks([-1.0,-0.5,0.0,0.5,1.0])
     print(f"Plot saved to {frontFile}")
     # side view
-    sideFile = f"{out}/side.pdf"
+    sideFile = f"{out}/conv_side.pdf"
     ax.view_init(elev=0, azim=90, roll=0)
     ax.set_yticks([])
     plt.savefig(sideFile)
     ax.set_yticks([-1.0,-0.5,0.0,0.5,1.0])
     print(f"Plot saved to {sideFile}")
 
+def drawVelocities(projectDataDict : dict[int, dict],
+         out : Path) -> None:
+    fig = plt.figure(figsize=(7,7))
+    ax = fig.add_subplot(111, projection="3d")
+
+    # draw projectiles
+    pts = np.hstack([np.array(d["projectile_position"]) for i,d in projectDataDict.items()])
+    vs = np.hstack([np.linalg.norm(np.array(d["projectile_velocity"])) for i,d in projectDataDict.items()])
+    sc = ax.scatter(*pts, c=vs, cmap="plasma", s=5)
+    plt.colorbar(sc, ax=ax)
+
+    # draw collision SDF
+    verts = np.loadtxt(VERTS_FILE)
+    faces = np.loadtxt(FACES_FILE).astype(int)
+    mesh = Poly3DCollection(verts[faces], alpha=0.25)
+    ax.add_collection3d(mesh)
+
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    ax.set_box_aspect([1, 1, 1])
+    ax.set_xlim(-1.0,1.0)
+    ax.set_ylim(-1.0,1.0)
+    ax.set_zlim(0.0,2.0)
+    ax.set_xticks([-1.0,-0.5,0.0,0.5,1.0])
+    ax.set_yticks([-1.0,-0.5,0.0,0.5,1.0])
+    ax.set_zticks([0.0,0.5,1.0,1.5,2.0])
+
+    # ax.set_zlim(0, 2.5)
+    plt.tight_layout()
+
+    # iso view
+    isoFile = f"{out}/v_iso.pdf"
+    plt.savefig(isoFile)
+    print(f"Plot saved to {isoFile}")
+    # top view
+    topFile = f"{out}/v_top.pdf"
+    ax.view_init(elev=90, azim=0, roll=0)
+    ax.set_zticks([])
+    plt.savefig(topFile)
+    ax.set_zticks([0.0,0.5,1.0,1.5,2.0])
+    print(f"Plot saved to {topFile}")
+    # front view
+    frontFile = f"{out}/v_front.pdf"
+    ax.view_init(elev=0, azim=0, roll=0)
+    ax.set_xticks([])
+    plt.savefig(frontFile)
+    ax.set_xticks([-1.0,-0.5,0.0,0.5,1.0])
+    print(f"Plot saved to {frontFile}")
+    # side view
+    sideFile = f"{out}/v_side.pdf"
+    ax.view_init(elev=0, azim=90, roll=0)
+    ax.set_yticks([])
+    plt.savefig(sideFile)
+    ax.set_yticks([-1.0,-0.5,0.0,0.5,1.0])
+    print(f"Plot saved to {sideFile}")
+
+def draw(projectDataDict : dict[int, dict],
+         out : Path) -> None:
+    drawOverview(projectDataDict, out) 
+    drawVelocities(projectDataDict, out)
     printSummary(projectDataDict, out)
 
 def main(path : Path) -> int:
