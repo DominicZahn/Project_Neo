@@ -30,11 +30,11 @@ DYNAMIC_JOINT_NAMES = [
     # 'right_ankle_roll_joint',
     'torso_joint',
     # 'left_shoulder_roll_joint',
-    'left_shoulder_pitch_joint',
+    # 'left_shoulder_pitch_joint',
     # 'left_shoulder_yaw_joint',
     # 'left_elbow_joint',
     # 'right_shoulder_roll_joint',
-    'right_shoulder_pitch_joint',
+    # 'right_shoulder_pitch_joint',
     # 'right_shoulder_yaw_joint',
     # 'right_elbow_joint',
 ]

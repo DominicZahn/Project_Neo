@@ -107,11 +107,11 @@ class OCP:
         max_elbow = 120 # [Nm]
         max_wrist = 30 # [Nm]
         # lshoulder_roll_i = self.h1.qId('left_shoulder_roll_joint'),
-        lshoulder_pitch_i = self.h1.qId('left_shoulder_pitch_joint'),
+        # lshoulder_pitch_i = self.h1.qId('left_shoulder_pitch_joint'),
         # lshoulder_yaw_i = self.h1.qId('left_shoulder_yaw_joint'),
         # lelbow_i = self.h1.qId('left_elbow_joint'),
         # rshoulder_roll_i = self.h1.qId('right_shoulder_roll_joint'),
-        rshoulder_pitch_i = self.h1.qId('right_shoulder_pitch_joint'),
+        # rshoulder_pitch_i = self.h1.qId('right_shoulder_pitch_joint'),
         # rshoulder_yaw_i = self.h1.qId('right_shoulder_yaw_joint'),
         # relbow_i = self.h1.qId('right_elbow_joint'),
 
@@ -129,11 +129,11 @@ class OCP:
         # lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
         torso_i = self.h1.qId('torso_joint')
         max_tau = np.zeros(nq)
-        max_tau[lshoulder_pitch_i] = max_shoulder
+        # max_tau[lshoulder_pitch_i] = max_shoulder
         # max_tau[lshoulder_roll_i] = max_shoulder
         # max_tau[lshoulder_yaw_i] = max_shoulder
         # max_tau[lelbow_i] = max_elbow
-        max_tau[rshoulder_pitch_i] = max_shoulder
+        # max_tau[rshoulder_pitch_i] = max_shoulder
         # max_tau[rshoulder_roll_i] = max_shoulder
         # max_tau[rshoulder_yaw_i] = max_shoulder
         # max_tau[relbow_i] = max_elbow
@@ -142,14 +142,14 @@ class OCP:
         max_tau[lhip_pitch_i] = max_tau_hip
         # max_tau[rhip_yaw_i] = max_tau_hip
         # max_tau[lhip_yaw_i] = max_tau_hip
-        max_tau[rhip_roll_i] = max_tau_hip
-        max_tau[lhip_roll_i] = max_tau_hip
+        # max_tau[rhip_roll_i] = max_tau_hip
+        # max_tau[lhip_roll_i] = max_tau_hip
         max_tau[rknee_i] = max_tau_knee
         max_tau[lknee_i] = max_tau_knee
         max_tau[rankle_pitch_i] = max_tau_ankle_pitch
         max_tau[lankle_pitch_i] = max_tau_ankle_pitch
-        max_tau[rankle_roll_i] = max_tau_ankle_pitch
-        max_tau[lankle_roll_i] = max_tau_ankle_pitch
+        # max_tau[rankle_roll_i] = max_tau_ankle_pitch
+        # max_tau[lankle_roll_i] = max_tau_ankle_pitch
         max_tau[torso_i] = max_tau_waist
 
         max_tau = max_tau[6:]
@@ -196,28 +196,30 @@ class OCP:
             FL_cons,
             FR_cons
         )
+        F_safety = 10 # Nm
         cons.uh = np.append(
             cons.uh, np.full(4, 10**6) # emulate unconstrainted
         )
         cons.lh = np.append(
-            cons.lh, np.full(4, 10**1) # safety margin
+            cons.lh,
+            np.full(2, F_safety),       # Fz
+            np.full(2, F_safety**2)     # Fcons^2
         )
 
         # terminal
         #       limit end velocity
-        q0_eps = 0.1
-        v_stat = 0.1
-        qdot_stat = 0.1
+        q0_eps = 0.01
+        v_stat = 0.01
         cons.idxbx_e = np.arange(0, 2*nq)
         cons.ubx_e = np.hstack((
             self.h1.q0 + q0_eps,            # nq
-            np.full(6, qdot_stat),          # 6
+            np.full(6, v_stat),             # 6
             np.full(nq-6, v_stat)           # np-6
         ))
         cons.lbx_e = np.hstack((
             self.h1.q0 - q0_eps,            # nq
             np.full(6, -v_stat),            # 6
-            np.full(nq-6, -qdot_stat)       # np-6
+            np.full(nq-6, -v_stat)          # np-6
         ))
 
         #       extend path constraints to terminal and inital
