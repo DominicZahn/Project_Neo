@@ -196,15 +196,15 @@ class OCP:
             FL_cons,
             FR_cons
         )
-        F_safety = 10 # Nm
-        cons.uh = np.append(
+        F_safety = 10.0 # Nm
+        cons.uh = np.hstack((
             cons.uh, np.full(4, 10**6) # emulate unconstrainted
-        )
-        cons.lh = np.append(
+        ))
+        cons.lh = np.hstack((
             cons.lh,
             np.full(2, F_safety),       # Fz
             np.full(2, F_safety**2)     # Fcons^2
-        )
+        ))
 
         # terminal
         #       limit end velocity
