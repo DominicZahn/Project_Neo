@@ -3,14 +3,13 @@ import numpy as np
 import numpy.typing as npt
 from pathlib import Path
 import casadi as c
-import subprocess
 import argparse
 from rich import print
 
 from acados_template import AcadosOcpSolver
 
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.ocp_def import OCP
-from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2, HeadlessData
+from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2, HeadlessData, generateVideoFromFrames
 from ext_pkgs.dodge_it_py.dodge_it_py.ocpDebugger import OcpDebugger
 import ext_pkgs.dodge_it_py.dodge_it_py.projectile as projectile
 from ext_pkgs.dodge_it_py.dodge_it_py.sample import SemiSphere, SemiEllipsoid
@@ -30,6 +29,14 @@ DYNAMIC_JOINT_NAMES = [
     # 'left_ankle_roll_joint',
     # 'right_ankle_roll_joint',
     'torso_joint',
+    # 'left_shoulder_roll_joint',
+    'left_shoulder_pitch_joint',
+    # 'left_shoulder_yaw_joint',
+    # 'left_elbow_joint',
+    # 'right_shoulder_roll_joint',
+    'right_shoulder_pitch_joint',
+    # 'right_shoulder_yaw_joint',
+    # 'right_elbow_joint',
 ]
 
 Tf = 2.5
@@ -43,13 +50,6 @@ def extractVarsFromSolver(ocp : OCP) -> tuple[npt.NDArray, npt.NDArray, npt.NDAr
     t = ocp.solver.get_flat('p')
     t = t.reshape((N+1,7))[:,-1]
     return (x, u, t)
-
-def generateVideoFromFrames(headlessData : HeadlessData):
-        subprocess.run(["ffmpeg",
-                    "-i", f"{headlessData.dir}/frames/%05d.png",
-                    "-framerate", str(N/Tf),
-                    "-pix_fmt", "rgb8",
-                    f"{headlessData.dir}/video.gif"])
 
 def saveReport(solver : AcadosOcpSolver,
                projectilePos : c.SX,
@@ -141,12 +141,12 @@ def mainInteractive(showCollision : bool,
         else:
             h1.visualizeJointTrajecotry(q, qdot, tau, t, 1.0)
             if visualize is type(HeadlessData):
-                generateVideoFromFrames(visualize)
+                generateVideoFromFrames(visualize.dir, N, Tf)
     return status
 
 def mainBenchmark(sampleCount : int):
     # center on head
-    s = 2.0     # scale factor to move ellipsoid away
+    s = 3.0     # scale factor to move ellipsoid away
     center = (0.05, 0.0, 1.25)
     radius = (0.2*s, 0.35*s, 0.5*s)
     hule = SemiEllipsoid(

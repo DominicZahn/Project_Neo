@@ -106,6 +106,15 @@ class OCP:
         max_shoulder = 120 # [Nm]
         max_elbow = 120 # [Nm]
         max_wrist = 30 # [Nm]
+        # lshoulder_roll_i = self.h1.qId('left_shoulder_roll_joint'),
+        lshoulder_pitch_i = self.h1.qId('left_shoulder_pitch_joint'),
+        # lshoulder_yaw_i = self.h1.qId('left_shoulder_yaw_joint'),
+        # lelbow_i = self.h1.qId('left_elbow_joint'),
+        # rshoulder_roll_i = self.h1.qId('right_shoulder_roll_joint'),
+        rshoulder_pitch_i = self.h1.qId('right_shoulder_pitch_joint'),
+        # rshoulder_yaw_i = self.h1.qId('right_shoulder_yaw_joint'),
+        # relbow_i = self.h1.qId('right_elbow_joint'),
+
         rhip_pitch_i = self.h1.qId('right_hip_pitch_joint')
         lhip_pitch_i = self.h1.qId('left_hip_pitch_joint')
         # rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
@@ -120,18 +129,27 @@ class OCP:
         # lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
         torso_i = self.h1.qId('torso_joint')
         max_tau = np.zeros(nq)
+        max_tau[lshoulder_pitch_i] = max_shoulder
+        # max_tau[lshoulder_roll_i] = max_shoulder
+        # max_tau[lshoulder_yaw_i] = max_shoulder
+        # max_tau[lelbow_i] = max_elbow
+        max_tau[rshoulder_pitch_i] = max_shoulder
+        # max_tau[rshoulder_roll_i] = max_shoulder
+        # max_tau[rshoulder_yaw_i] = max_shoulder
+        # max_tau[relbow_i] = max_elbow
+
         max_tau[rhip_pitch_i] = max_tau_hip
         max_tau[lhip_pitch_i] = max_tau_hip
         # max_tau[rhip_yaw_i] = max_tau_hip
         # max_tau[lhip_yaw_i] = max_tau_hip
-        # max_tau[rhip_roll_i] = max_tau_hip
-        # max_tau[lhip_roll_i] = max_tau_hip
+        max_tau[rhip_roll_i] = max_tau_hip
+        max_tau[lhip_roll_i] = max_tau_hip
         max_tau[rknee_i] = max_tau_knee
         max_tau[lknee_i] = max_tau_knee
         max_tau[rankle_pitch_i] = max_tau_ankle_pitch
         max_tau[lankle_pitch_i] = max_tau_ankle_pitch
-        # max_tau[rankle_roll_i] = max_tau_ankle_pitch
-        # max_tau[lankle_roll_i] = max_tau_ankle_pitch
+        max_tau[rankle_roll_i] = max_tau_ankle_pitch
+        max_tau[lankle_roll_i] = max_tau_ankle_pitch
         max_tau[torso_i] = max_tau_waist
 
         max_tau = max_tau[6:]

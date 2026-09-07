@@ -1,8 +1,6 @@
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
-from matplotlib.axes import Axes
 import sys
 from pathlib import Path
 import argparse
@@ -11,7 +9,7 @@ from rich.table import Table
 import casadi as c
 
 from ext_pkgs.dodge_it_py.dodge_it_py.analysis.benchmarkParser import parseBenchmarkData, BenchmarkData
-from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2
+from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2, generateVideoFromFrames, HeadlessData
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import PolygonOfSupport
 import ext_pkgs.dodge_it_py.dodge_it_py.projectile as projectile
 from ext_pkgs.dodge_it_py.dodge_it_py.neo.main import DYNAMIC_JOINT_NAMES, Tf, N
@@ -236,7 +234,6 @@ def drawTorques(t : npt.NDArray,
     fig.savefig(str(outPath), format="pdf", pad_inches=0.0)
 
 
-
 def main(path : Path) -> int:
     benchmarkData = parseBenchmarkData(path)
     h1 = H1Wrapper_v2(q0='knees_bend_0.4_straight',
@@ -314,12 +311,12 @@ def main(path : Path) -> int:
                     h1.model.lowerPositionLimit[6:],
                     names,
                     path / "joint.pdf")
-    tau_max = np.loadtxt("/home/robot/ws/maxTorque.txt")
-    drawTorques(t,
-                tau_arr,
-                tau_max,
-                names,
-                path / "torque.pdf")
+#    tau_max = np.loadtxt("/home/robot/ws/maxTorque.txt")
+#    drawTorques(t,
+#                tau_arr,
+#                tau_max,
+#                names,
+#                path / "torque.pdf")
 
     return 0
 

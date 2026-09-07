@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import cv2
 from playwright.sync_api import sync_playwright, Playwright, Page, Browser
+import subprocess
 
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
   zmp_centroidal, zmp_full
@@ -88,6 +89,16 @@ class HeadlessData:
     playwright : Playwright | None = None
     browser : Browser | None = None
     page : Page | None = None
+
+@staticmethod
+def generateVideoFromFrames(outDir : str | Path, N : int, Tf : float):
+        subprocess.run(["ffmpeg",
+                    "-i", f"{outDir}/frames/%05d.png",
+                    "-framerate", str(N/Tf),
+                    "-pix_fmt", "rgb8",
+                    f"{outDir}/video.gif"])
+
+
 
 class H1Wrapper_v2():
     """
@@ -343,10 +354,8 @@ class H1Wrapper_v2():
         # launch headless playwright browser
         if type(visualize) is HeadlessData:
             p = Path(visualize.dir)
-            if p.exists():
-                print("[bold red][ERROR] output headless directory already exists![/bold red]")
-                assert(False)
-            p.mkdir()
+            if not p.exists():
+                p.mkdir()
 
             url = self._vis.viewer.url()
             visualize.playwright = sync_playwright().start()
