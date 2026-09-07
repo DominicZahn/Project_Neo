@@ -29,10 +29,10 @@ def drawDistance(t : npt.NDArray,
     for d in d_arr:
         ax.plot(t, d, color=COLOR_VALUES_d, alpha=0.1)
 
-    d_arrMean = np.nanmean(d_arr, axis=0)
+    # d_arrMean = np.nanmean(d_arr, axis=0)
     d_min = np.nanmin(d_arr, axis=0)
     d_max = np.nanmax(d_arr, axis=0)
-    ax.plot(t, d_arrMean, color=COLOR_VALUES_d)
+    # ax.plot(t, d_arrMean, color=COLOR_VALUES_d)
     ax.fill_between(t, d_min, d_max, alpha=0.2, color=COLOR_VALUES_d)
     xyMin = (t[np.argmin(d_min)], np.min(d_min))
     ax.annotate(f"minimal distance: {round(np.min(d_min),2)} m",
@@ -311,12 +311,12 @@ def main(path : Path) -> int:
                     h1.model.lowerPositionLimit[6:],
                     names,
                     path / "joint.pdf")
-#    tau_max = np.loadtxt("/home/robot/ws/maxTorque.txt")
-#    drawTorques(t,
-#                tau_arr,
-#                tau_max,
-#                names,
-#                path / "torque.pdf")
+    tau_max = np.loadtxt("/home/robot/ws/maxTorque.txt")
+    drawTorques(t,
+                tau_arr,
+                tau_max,
+                names,
+                path / "torque.pdf")
 
     return 0
 
