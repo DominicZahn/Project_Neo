@@ -363,8 +363,9 @@ class SemiEllipsoid:
         ptsOpt = ptsOpt.reshape(-1,3)
 
         # calculate normals to new points
-        normals = (ptsOpt-c) / r**2 
+        normals = 2*(ptsOpt-c) / r**2
         normals /= np.linalg.norm(normals, axis=1)[:,None]
+
 
         # write to buffer file
         sampleFile = Path(SAMPLES_DIR) / f"{seed}_{samples}.json"
