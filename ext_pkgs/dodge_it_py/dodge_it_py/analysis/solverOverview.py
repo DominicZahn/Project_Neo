@@ -25,6 +25,15 @@ STATUS_CODES = {
 VERTS_FILE = "/home/robot/ws/ext_pkgs/dodge_it_py/dodge_it_py/analysis/verts.txt"
 FACES_FILE = "/home/robot/ws/ext_pkgs/dodge_it_py/dodge_it_py/analysis/faces.txt"
 
+XLIM = [-1.2, 1.2]
+YLIM = [-1.2, 1.2]
+ZLIM = [0.8, 2.0]
+XTICKS = [-1.0, -0.5, 0.0, 0.5, 1.0]
+YTICKS = [-1.0, -0.5, 0.0, 0.5, 1.0]
+ZTICKS = [1.0,1.5,2.0]
+RATIO = [1, 1, 0.5]
+FIGSIZE = [7,7]
+
 def printSummary(projectDataDict : dict[int, dict], output : Path) -> None:
     # Solver Status Table    
     statusList = np.array([d["status"] for i,d in projectDataDict.items()])
@@ -61,21 +70,25 @@ def drawOverview(projectDataDict : dict[int, dict],
     # draw projectile trajectories
     errorMask = [d["status"] != 0 for i,d in projectDataDict.items()]
     v_arr = np.array([d["projectile_velocity"] for i,d in projectDataDict.items()])
+    dproj = 1.0
     for p0, v in zip(pts.transpose()[errorMask], v_arr[errorMask]):
-        p1 = p0 + v.flatten() * 2.5
-        pStack = np.vstack((p0,p1)).transpose()
-        ax.plot(*pStack, c="gray", alpha=0.2)
+        pEnd = p0 + v.flatten() * 2.5
+        pEndStack = np.vstack((p0,pEnd)).transpose()
+        ax.plot(*pEndStack, c="gray", alpha=0.2)
+        #   draw collison points
+        pColl = p0 + v.flatten() / np.linalg.norm(v) * dproj
+        ax.scatter(*pColl, c="red", s=4)
 
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
-    ax.set_box_aspect([1, 1, 1])
-    ax.set_xlim(-1.0,1.0)
-    ax.set_ylim(-1.0,1.0)
-    ax.set_zlim(0.0,2.0)
-    ax.set_xticks([-1.0,-0.5,0.0,0.5,1.0])
-    ax.set_yticks([-1.0,-0.5,0.0,0.5,1.0])
-    ax.set_zticks([0.0,0.5,1.0,1.5,2.0])
+    ax.set_box_aspect(RATIO)
+    ax.set_xlim(*XLIM)
+    ax.set_ylim(*YLIM)
+    ax.set_zlim(*ZLIM)
+    ax.set_xticks(XTICKS)
+    ax.set_yticks(YTICKS)
+    ax.set_zticks(ZTICKS)
 
     # ax.set_zlim(0, 2.5)
     plt.tight_layout()
@@ -89,26 +102,26 @@ def drawOverview(projectDataDict : dict[int, dict],
     ax.view_init(elev=90, azim=0, roll=0)
     ax.set_zticks([])
     plt.savefig(topFile)
-    ax.set_zticks([0.0,0.5,1.0,1.5,2.0])
+    ax.set_zticks(ZTICKS)
     print(f"Plot saved to {topFile}")
     # front view
     frontFile = f"{out}/conv_front.pdf"
     ax.view_init(elev=0, azim=0, roll=0)
     ax.set_xticks([])
     plt.savefig(frontFile)
-    ax.set_xticks([-1.0,-0.5,0.0,0.5,1.0])
+    ax.set_xticks(XTICKS)
     print(f"Plot saved to {frontFile}")
     # side view
     sideFile = f"{out}/conv_side.pdf"
     ax.view_init(elev=0, azim=90, roll=0)
     ax.set_yticks([])
     plt.savefig(sideFile)
-    ax.set_yticks([-1.0,-0.5,0.0,0.5,1.0])
+    ax.set_yticks(YTICKS)
     print(f"Plot saved to {sideFile}")
 
 def drawVelocities(projectDataDict : dict[int, dict],
          out : Path) -> None:
-    fig = plt.figure(figsize=(7,7))
+    fig = plt.figure(figsize=FIGSIZE)
     ax = fig.add_subplot(111, projection="3d")
 
     # draw projectiles
@@ -126,41 +139,41 @@ def drawVelocities(projectDataDict : dict[int, dict],
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
-    ax.set_box_aspect([1, 1, 1])
-    ax.set_xlim(-1.0,1.0)
-    ax.set_ylim(-1.0,1.0)
-    ax.set_zlim(0.0,2.0)
-    ax.set_xticks([-1.0,-0.5,0.0,0.5,1.0])
-    ax.set_yticks([-1.0,-0.5,0.0,0.5,1.0])
-    ax.set_zticks([0.0,0.5,1.0,1.5,2.0])
+    ax.set_box_aspect(RATIO)
+    ax.set_xlim(XLIM)
+    ax.set_ylim(YLIM)
+    ax.set_zlim(ZLIM)
+    ax.set_xticks(XTICKS)
+    ax.set_yticks(YTICKS)
+    ax.set_zticks(ZTICKS)
 
     # ax.set_zlim(0, 2.5)
     plt.tight_layout()
 
     # iso view
     isoFile = f"{out}/v_iso.pdf"
-    plt.savefig(isoFile)
+    plt.savefig(isoFile, pad_inches=0.0)
     print(f"Plot saved to {isoFile}")
     # top view
     topFile = f"{out}/v_top.pdf"
     ax.view_init(elev=90, azim=0, roll=0)
     ax.set_zticks([])
-    plt.savefig(topFile)
-    ax.set_zticks([0.0,0.5,1.0,1.5,2.0])
+    plt.savefig(topFile, pad_inches=0.0)
+    ax.set_zticks(ZTICKS)
     print(f"Plot saved to {topFile}")
     # front view
     frontFile = f"{out}/v_front.pdf"
     ax.view_init(elev=0, azim=0, roll=0)
     ax.set_xticks([])
-    plt.savefig(frontFile)
-    ax.set_xticks([-1.0,-0.5,0.0,0.5,1.0])
+    plt.savefig(frontFile, pad_inches=0.0)
+    ax.set_xticks(XTICKS)
     print(f"Plot saved to {frontFile}")
     # side view
     sideFile = f"{out}/v_side.pdf"
     ax.view_init(elev=0, azim=90, roll=0)
     ax.set_yticks([])
-    plt.savefig(sideFile)
-    ax.set_yticks([-1.0,-0.5,0.0,0.5,1.0])
+    plt.savefig(sideFile, pad_inches=0.0)
+    ax.set_yticks(YTICKS)
     print(f"Plot saved to {sideFile}")
 
 def draw(projectDataDict : dict[int, dict],

@@ -22,6 +22,7 @@ class BenchmarkData:
     lower: float
     upper: float
     dsafe: float
+    dproj: float
     rawName: str
     runDataDict: dict[int,RunData]
 
@@ -36,6 +37,7 @@ def parseBenchmarkData(benchmarkDir: Path) -> BenchmarkData:
         lower=infoDict["lower"],
         upper=infoDict["upper"],
         dsafe=infoDict["dsafe"],
+        dproj=infoDict["dproj"],
         rawName=benchmarkDir.name,
         runDataDict=_parseRunDataAll(benchmarkDir),
     )

@@ -4,22 +4,25 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 from ext_pkgs.dodge_it_py.dodge_it_py.sample import SemiEllipsoid, SemiSphere
+from ext_pkgs.dodge_it_py.dodge_it_py.analysis.solverOverview import XLIM, YLIM, ZLIM, XTICKS, YTICKS, ZTICKS, RATIO, FIGSIZE
 
 VERTS_FILE = "/home/robot/ws/ext_pkgs/dodge_it_py/dodge_it_py/analysis/verts.txt"
 FACES_FILE = "/home/robot/ws/ext_pkgs/dodge_it_py/dodge_it_py/analysis/faces.txt"
 
 if __name__ == "__main__":
     Tf = 2.5    # simulation time frame
+    # c = (0.00, 0.0, 1.25)
+    # r = (0.1, 0.25, 0.5)
     c = (0.00, 0.0, 1.25)
     r = (0.1, 0.25, 0.5)
-    d = 0.5     # start to robot distance
+    d = 1.0     # start to robot distance
     N = int(sys.argv[1])
     assert(0 < N)
     shape = SemiEllipsoid(
         c,
         r,
-        -0.1, 0.4 
-        # -0.01, 0.01 
+        # -0.1, 0.4 
+        0.05, 0.45
     )
     #       robot ellipsoid hull
     points, normals = shape.sampleFibonacciThomson(N, 0)
@@ -58,35 +61,41 @@ if __name__ == "__main__":
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.set_zlabel("Z")
-    ax.set_box_aspect([1,1,1])
-    ax.set_xlim(-1.0,1.0)
-    ax.set_ylim(-1.0,1.0)
-    ax.set_zlim(0.0,2.0)
-    ax.set_xticks([-1.0,-0.5,0.0,0.5,1.0])
-    ax.set_yticks([-1.0,-0.5,0.0,0.5,1.0])
-    ax.set_zticks([])
+    ax.set_box_aspect(RATIO)
+    ax.set_xlim(*XLIM)
+    ax.set_ylim(*YLIM)
+    ax.set_zlim(*ZLIM)
+    ax.set_xticks(XTICKS)
+    ax.set_yticks(YTICKS)
+    ax.set_zticks(ZTICKS)
 
     out = "/home/robot/ws/test"
     # iso view
     isoFile = f"{out}_iso.pdf"
     fig.tight_layout(pad=0)
-    plt.savefig(isoFile)
+    plt.savefig(isoFile, pad_inches=0.0)
     print(f"Plot saved to {isoFile}")
     # top view
     topFile = f"{out}_top.pdf"
     ax.view_init(elev=90, azim=0, roll=0)
     fig.tight_layout(pad=0)
-    plt.savefig(topFile)
+    ax.set_zticks([])
+    plt.savefig(topFile, pad_inches=0.0)
+    ax.set_zticks(ZTICKS)
     print(f"Plot saved to {topFile}")
     # front view
     frontFile = f"{out}_front.pdf"
     ax.view_init(elev=0, azim=0, roll=0)
     fig.tight_layout(pad=0)
-    plt.savefig(frontFile)
+    ax.set_xticks([])
+    plt.savefig(frontFile, pad_inches=0.0)
+    ax.set_xticks(XTICKS)
     print(f"Plot saved to {frontFile}")
     # side view
     sideFile = f"{out}_side.pdf"
     ax.view_init(elev=0, azim=90, roll=0)
+    ax.set_yticks([])
     fig.tight_layout(pad=0)
-    plt.savefig(sideFile)
+    plt.savefig(sideFile, pad_inches=0.0)
+    ax.set_yticks(YTICKS)
     print(f"Plot saved to {sideFile}")

@@ -37,7 +37,7 @@ def drawDistance(t : npt.NDArray,
     xyMin = (t[np.argmin(d_min)], np.min(d_min))
     ax.annotate(f"minimal distance: {round(np.min(d_min),2)} m",
                 xy=xyMin,
-                xytext=(ANNOTE_MARGIN_X_d,xyMin[1]+ANNOTE_MARGIN_Y_d))
+                xytext=(xyMin[0]-ANNOTE_MARGIN_X_d,xyMin[1]+ANNOTE_MARGIN_Y_d))
     ax.scatter(*xyMin, marker=".", c=COLOR_MIN_d)
     ax.plot([0,Tf], [np.min(d_min), np.min(d_min)], color=COLOR_MIN_d, alpha=0.5)
     ax.plot([0,Tf], [d_safe, d_safe], color=COLOR_CUT_d, alpha=1)
@@ -52,7 +52,7 @@ def drawDistance(t : npt.NDArray,
     ax.set_ylabel("robot-projectile distance [m]")
     ax.set_xlim(0,Tf)
     ax.set_ylim(0,np.max(d_max)*1.1)
-    fig.savefig(str(outPath), format="pdf")
+    fig.savefig(str(outPath), pad_inches=0.0, format="pdf")
 
 COLOR_ZMP = "red"
 def drawZMP(zmp_arr : npt.NDArray,
@@ -78,7 +78,7 @@ def drawZMP(zmp_arr : npt.NDArray,
     # ax.set_title("Zero Moment Point (ZMP) in XY-Plane")
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
-    fig.savefig(str(outPath), format="pdf")
+    fig.savefig(str(outPath), pad_inches=0.0, format="pdf")
 
 COLOR_VALUES_STABILITY = "red"
 COLOR_CUT_STABILITY = "blue"
@@ -119,7 +119,7 @@ def drawStability(stab_arr : npt.NDArray,
     ax.set_ylabel("stability")
     ax.set_xlim(0,Tf)
     ax.set_ylim(0.0, 1.1)
-    fig.savefig(str(outPath), format="pdf")
+    fig.savefig(str(outPath), pad_inches=0.0, format="pdf")
 
 COLOR_VALUES_q = "orange"
 COLOR_CUT_q = "blue"
@@ -147,10 +147,10 @@ def drawJointAngles(t : npt.NDArray,
         for q in q_arr:
             ax.plot(t, q, color=COLOR_VALUES_q, alpha=0.1)
     
-        q_arrMean = np.nanmean(q_arr, axis=0)
+        # q_arrMean = np.nanmean(q_arr, axis=0)
         q_min = np.nanmin(q_arr, axis=0)
         q_max = np.nanmax(q_arr, axis=0)
-        ax.plot(t, q_arrMean, color=COLOR_VALUES_q)
+        # ax.plot(t, q_arrMean, color=COLOR_VALUES_q)
         ax.fill_between(t, q_min, q_max, alpha=0.2, color=COLOR_VALUES_q)
 
         # lower
@@ -202,10 +202,10 @@ def drawTorques(t : npt.NDArray,
         for tau in tau_arr:
             ax.plot(t, tau, color=COLOR_VALUES_tau, alpha=0.1)
     
-        tau_arrMean = np.nanmean(tau_arr, axis=0)
+        # tau_arrMean = np.nanmean(tau_arr, axis=0)
         tau_min = np.nanmin(tau_arr, axis=0)
         tau_max = np.nanmax(tau_arr, axis=0)
-        ax.plot(t, tau_arrMean, color=COLOR_VALUES_tau)
+        # ax.plot(t, tau_arrMean, color=COLOR_VALUES_tau)
         ax.fill_between(t, tau_min, tau_max, alpha=0.2, color=COLOR_VALUES_tau)
 
         # min
