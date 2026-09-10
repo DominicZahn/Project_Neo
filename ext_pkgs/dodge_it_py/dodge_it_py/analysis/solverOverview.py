@@ -34,8 +34,9 @@ ZTICKS = [1.0,1.5,2.0]
 RATIO = [1, 1, 0.5]
 FIGSIZE = [7,7]
 
-def printSummary(projectDataDict : dict[int, dict], output : Path) -> None:
+def printSummary(benchmarkData : BenchmarkData, output : Path) -> None:
     # Solver Status Table    
+    projectDataDict = {i: rd.solverDict for i,rd in benchmarkData.runDataDict.items()}
     statusList = np.array([d["status"] for i,d in projectDataDict.items()])
     n = statusList.size
     table = Table(title="Solver Status Summary")
@@ -51,8 +52,9 @@ def printSummary(projectDataDict : dict[int, dict], output : Path) -> None:
               solverSummaryFile)
     solverSummaryFile.close()
 
-def drawOverview(projectDataDict : dict[int, dict],
+def drawOverview(benchmarkData : BenchmarkData,
          out : Path) -> None:
+    projectDataDict = {i: rd.solverDict for i,rd in benchmarkData.runDataDict.items()}
     fig = plt.figure(figsize=(7,7))
     ax = fig.add_subplot(111, projection="3d")
 
@@ -70,7 +72,7 @@ def drawOverview(projectDataDict : dict[int, dict],
     # draw projectile trajectories
     errorMask = [d["status"] != 0 for i,d in projectDataDict.items()]
     v_arr = np.array([d["projectile_velocity"] for i,d in projectDataDict.items()])
-    dproj = 1.0
+    dproj = benchmarkData.dproj
     for p0, v in zip(pts.transpose()[errorMask], v_arr[errorMask]):
         pEnd = p0 + v.flatten() * 2.5
         pEndStack = np.vstack((p0,pEnd)).transpose()
@@ -119,8 +121,9 @@ def drawOverview(projectDataDict : dict[int, dict],
     ax.set_yticks(YTICKS)
     print(f"Plot saved to {sideFile}")
 
-def drawVelocities(projectDataDict : dict[int, dict],
+def drawVelocities(benchmarkData : BenchmarkData,
          out : Path) -> None:
+    projectDataDict = {i: rd.solverDict for i,rd in benchmarkData.runDataDict.items()}
     fig = plt.figure(figsize=FIGSIZE)
     ax = fig.add_subplot(111, projection="3d")
 
@@ -176,11 +179,11 @@ def drawVelocities(projectDataDict : dict[int, dict],
     ax.set_yticks(YTICKS)
     print(f"Plot saved to {sideFile}")
 
-def draw(projectDataDict : dict[int, dict],
+def draw(benchmarkData : BenchmarkData,
          out : Path) -> None:
-    drawOverview(projectDataDict, out) 
-    drawVelocities(projectDataDict, out)
-    printSummary(projectDataDict, out)
+    drawOverview(benchmarkData, out) 
+    drawVelocities(benchmarkData, out)
+    printSummary(benchmarkData, out)
 
 def main(path : Path) -> int:
     benchmarkData = parseBenchmarkData(path)
@@ -188,7 +191,7 @@ def main(path : Path) -> int:
         print("[bold red][ERROR][/bold red] input directory is empty")
         return -1
     
-    draw({i: rd.solverDict for i,rd in benchmarkData.runDataDict.items()},
+    draw(benchmarkData,
          path)
     return 0
 
