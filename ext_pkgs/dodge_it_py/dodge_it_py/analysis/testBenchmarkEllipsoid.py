@@ -9,29 +9,46 @@ VERTS_FILE = "/home/robot/ws/ext_pkgs/dodge_it_py/dodge_it_py/analysis/verts.txt
 FACES_FILE = "/home/robot/ws/ext_pkgs/dodge_it_py/dodge_it_py/analysis/faces.txt"
 
 if __name__ == "__main__":
-    v = 0.5     # simulated velocity
     Tf = 2.5    # simulation time frame
-    s = 2.0     # scale factor to move ellipsoid away
-    c = (0.05, 0.0, 1.25)
-    r = (0.2*s, 0.35*s, 0.5*s)
+    c = (0.00, 0.0, 1.25)
+    r = (0.1, 0.25, 0.5)
+    d = 0.5     # start to robot distance
     N = int(sys.argv[1])
     assert(0 < N)
     shape = SemiEllipsoid(
         c,
         r,
         -0.1, 0.4 
+        # -0.01, 0.01 
     )
+    #       robot ellipsoid hull
     points, normals = shape.sampleFibonacciThomson(N, 0)
     # points, normals = shape.sampleFibonacci(N)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     ax.scatter(*points.transpose(), s=4)
-    ptsCentered = points - np.array(c)
-    v = 2*(np.sum(ptsCentered**2/np.array(r)**4, axis=1))**(3/2) / (np.sum(ptsCentered**2/np.array(r)**6, axis=1)) / Tf
+
+    #       object starting postions
+#    pC = points - np.array(c)
+#    a0 = np.linalg.norm(normals, axis=1)**2
+#    a1 = 2*(normals[:,0]*pC[:,0] + normals[:,1]*pC[:,1] + normals[:,2]*pC[:,2])
+#    a2 = np.linalg.norm(pC, axis=1)**2 - d**2
+#    disc = a1**2-4*a0*a2
+#    assert((disc > 0).all())
+#    scale0 = (-a1+np.sqrt(disc))/(2*a0)
+#    scale = scale0
+#    startPoints = points + normals * scale[:,None]
+    startPoints = points + normals * d
+
+    startPointsCent = startPoints - np.array(c)
+    rc = np.array(r) + d
+    v = 2*(np.sum(startPointsCent**2/rc**4, axis=1))**(3/2) / (np.sum(startPointsCent**2/rc**6, axis=1)) / Tf
     normals *= -v[:,None] * Tf
-    ax.quiver(points[:, 0], points[:, 1], points[:, 2],
+   
+    ax.scatter(*startPoints.transpose(), s=4, c="red")
+    ax.quiver(startPoints[:, 0], startPoints[:, 1], startPoints[:, 2],
               normals[:, 0], normals[:, 1], normals[:, 2],
-              normalize=False, color="gray", alpha=0.1)
+              arrow_length_ratio=0.0, normalize=False, color="gray", alpha=0.1)
 
     verts = np.loadtxt(VERTS_FILE)
     faces = np.loadtxt(FACES_FILE).astype(int)

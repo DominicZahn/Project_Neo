@@ -145,21 +145,22 @@ def mainInteractive(showCollision : bool,
     return status
 
 def mainBenchmark(sampleCount : int):
-    # center on head
-    s = 3.0     # scale factor to move ellipsoid away
-    center = (0.05, 0.0, 1.25)
-    radius = (0.2*s, 0.35*s, 0.5*s)
+    d = 1.0         # distance from hull to object start
+    center = (0.00, 0.0, 1.25)
+    radius = (0.1, 0.25, 0.5)
     hule = SemiEllipsoid(
         center,
         radius,
         -0.1, 0.4 
     )
-    projectilePosArr, normalArr = hule.sampleFibonacciThomson(sampleCount, 0)
-    # projectilePosArr, normalArr = hule.sampleFibonacci(sampleCount)
-    ptsCentered = projectilePosArr - np.array(center)
-    v = 2*(np.sum(ptsCentered**2/np.array(radius)**4, axis=1))**(3/2) / (np.sum(ptsCentered**2/np.array(radius)**6, axis=1)) / Tf
-    projectileVelArr = -normalArr * v[:,None]
 
+    projectilePosArr, normalArr = hule.sampleFibonacciThomson(sampleCount, 0)
+    startPoints = projectilePosArr + normalArr * d
+    startPointsCent = startPoints - np.array(center)
+    rc = np.array(radius) + d
+    v = 2*(np.sum(startPointsCent**2/rc**4, axis=1))**(3/2) / (np.sum(startPointsCent**2/rc**6, axis=1)) / Tf
+    projectileVelArr = -normalArr * v[:,None]
+    projectilePosArr = startPointsCent + np.array(center)
     for i in range(sampleCount):
         dirPath = f"/home/robot/ws/benchmarks/{str(i).zfill(5)}/"
         headlessData = HeadlessData(dirPath,
@@ -177,8 +178,6 @@ def mainBenchmark(sampleCount : int):
         try:
             projectilePos = c.SX(projectilePosArr[i])
             projectileVel = c.SX(projectileVelArr[i])
-            # projectilePos = c.SX([0.9 , 0, 1.6])
-            # projectileVel = c.SX([-0.6, 0, 0])
         
             h1.setCollision(
                 projectile.linear(h1.t,

@@ -23,7 +23,7 @@ def drawDistance(t : npt.NDArray,
                  d_arr : npt.NDArray,
                  d_safe : float,
                  outPath : Path) -> None:
-    fig = plt.figure(figsize=(7,7))
+    fig = plt.figure(figsize=(10,5))
     ax = fig.add_subplot(111)
 
     for d in d_arr:
@@ -47,7 +47,7 @@ def drawDistance(t : npt.NDArray,
                 color=COLOR_CUT_d)
 
     fig.set_tight_layout(True)
-    ax.set_title("Distance between Robot and Projetile")
+    # ax.set_title("Distance between Robot and Projetile")
     ax.set_xlabel("time [s]")
     ax.set_ylabel("robot-projectile distance [m]")
     ax.set_xlim(0,Tf)
@@ -75,7 +75,7 @@ def drawZMP(zmp_arr : npt.NDArray,
 
     fig.set_tight_layout(True)
     ax.set_aspect(1)
-    ax.set_title("Zero Moment Point (ZMP) in XY-Plane")
+    # ax.set_title("Zero Moment Point (ZMP) in XY-Plane")
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
     fig.savefig(str(outPath), format="pdf")
@@ -114,7 +114,7 @@ def drawStability(stab_arr : npt.NDArray,
                 color=COLOR_CUT_STABILITY)
 
     fig.set_tight_layout(True)
-    ax.set_title("Stability as normalized quadratic distance to center")
+    # ax.set_title("Stability as normalized quadratic distance to center")
     ax.set_xlabel("t [s]")
     ax.set_ylabel("stability")
     ax.set_xlim(0,Tf)
