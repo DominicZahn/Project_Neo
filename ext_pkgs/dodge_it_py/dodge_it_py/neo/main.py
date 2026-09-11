@@ -146,12 +146,12 @@ def mainInteractive(showCollision : bool,
 
 def mainBenchmark(sampleCount : int):
     d = 1.0         # distance from hull to object start
-    center = (0.00, 0.0, 1.25)
+    center = (0.00, 0.0, 1.3)
     radius = (0.1, 0.25, 0.5)
     hule = SemiEllipsoid(
         center,
         radius,
-        -0.1, 0.4 
+        0.05, 0.45
     )
 
     projectilePosArr, normalArr = hule.sampleFibonacciThomson(sampleCount, 0)
