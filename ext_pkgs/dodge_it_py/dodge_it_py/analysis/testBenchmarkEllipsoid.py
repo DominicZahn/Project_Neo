@@ -13,7 +13,7 @@ if __name__ == "__main__":
     Tf = 2.5    # simulation time frame
     # c = (0.00, 0.0, 1.25)
     # r = (0.1, 0.25, 0.5)
-    c = (0.00, 0.0, 1.25)
+    c = (0.00, 0.0, 1.3)
     r = (0.1, 0.25, 0.5)
     d = 1.0     # start to robot distance
     N = int(sys.argv[1])
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # points, normals = shape.sampleFibonacci(N)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
-    ax.scatter(*points.transpose(), s=4)
+    ax.scatter(*points.transpose(), s=4, c="red")
 
     #       object starting postions
 #    pC = points - np.array(c)
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     v = 2*(np.sum(startPointsCent**2/rc**4, axis=1))**(3/2) / (np.sum(startPointsCent**2/rc**6, axis=1)) / Tf
     normals *= -v[:,None] * Tf
    
-    ax.scatter(*startPoints.transpose(), s=4, c="red")
+    ax.scatter(*startPoints.transpose(), s=4, c="blue")
     ax.quiver(startPoints[:, 0], startPoints[:, 1], startPoints[:, 2],
               normals[:, 0], normals[:, 1], normals[:, 2],
               arrow_length_ratio=0.0, normalize=False, color="gray", alpha=0.1)
