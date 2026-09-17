@@ -399,6 +399,26 @@ class H1Wrapper_v2():
         assert(self._vis is not None)
         self._vis.viewer["zmp"].set_transform(mat)
 
+    def movePitchCamera(self,
+                        pos: np.ndarray,
+                        pitch : float) -> None:
+            assert(self._vis is not None)
+            pose = np.eye(4)
+            pose[:3,:3] = np.array([
+                [np.cos(pitch), 0, np.sin(pitch)],
+                [0, 1, 0],
+                [-np.sin(pitch), 0, np.cos(pitch)]
+            ])
+            pose[:3,3] = pos
+            self._vis.setCameraPose(pose)
+
+    def moveCenteredCamera(self,
+                   pos: np.ndarray) -> None:
+            assert(self._vis is not None)
+            pose = np.eye(4)
+            pose[:3,3] = pos
+            self._vis.setCameraPose(pose)
+
     def _moveCamera(self,
                    pos: np.ndarray,
                    lookAt: np.ndarray,

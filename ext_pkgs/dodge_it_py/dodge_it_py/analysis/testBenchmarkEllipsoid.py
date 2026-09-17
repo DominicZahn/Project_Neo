@@ -24,7 +24,6 @@ if __name__ == "__main__":
     shape = SemiEllipsoid(
         c,
         r,
-        # -0.1, 0.4 
         0.05, 0.45
     )
     #       robot ellipsoid hull
@@ -35,15 +34,6 @@ if __name__ == "__main__":
     ax.scatter(*points.transpose(), s=4, c="red")
 
     #       object starting postions
-#    pC = points - np.array(c)
-#    a0 = np.linalg.norm(normals, axis=1)**2
-#    a1 = 2*(normals[:,0]*pC[:,0] + normals[:,1]*pC[:,1] + normals[:,2]*pC[:,2])
-#    a2 = np.linalg.norm(pC, axis=1)**2 - d**2
-#    disc = a1**2-4*a0*a2
-#    assert((disc > 0).all())
-#    scale0 = (-a1+np.sqrt(disc))/(2*a0)
-#    scale = scale0
-#    startPoints = points + normals * scale[:,None]
     startPoints = points + normals * d
 
     startPointsCent = startPoints - np.array(c)
