@@ -414,6 +414,7 @@ class H1Wrapper_v2():
             T = np.eye(4)
             T[:3,3] = pos
             pose = R @ T
+            # pose = T @ R
             assert(pose is not None)
             assert(self._vis is not None)
             self._vis.viewer["/Grid"].set_property("visible", False)

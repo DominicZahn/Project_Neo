@@ -1,6 +1,9 @@
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 import sys
 from pathlib import Path
 import argparse
@@ -23,7 +26,7 @@ def drawDistance(t : npt.NDArray,
                  d_arr : npt.NDArray,
                  d_safe : float,
                  outPath : Path) -> None:
-    fig = plt.figure(figsize=(10,5))
+    fig = plt.figure(figsize=(6,3))
     ax = fig.add_subplot(111)
 
     for d in d_arr:
@@ -58,19 +61,27 @@ COLOR_ZMP = "red"
 def drawZMP(zmp_arr : npt.NDArray,
             PoS : PolygonOfSupport,
             outPath : Path) -> None:
-    fig = plt.figure(figsize=(7,7))
+    fig = plt.figure(figsize=(6,3))
     ax = fig.add_subplot(111)
 
-    xy = zmp_arr.transpose()[:2]
-    ax.scatter(xy[1], xy[0], marker=".", c=COLOR_ZMP, alpha=0.2)
     p00, p10, p11, p01 = PoS.get_corners()
     anker = (float(p00[1]), float(p00[0]))
     diag = c.DM(p11-p00)
     posVis = plt.Rectangle(anker,
                            float(diag[1]),
                            float(diag[0]),
+                           edgecolor="red",
                            facecolor="black", alpha=0.2)
     ax.add_patch(posVis)
+    posReducedVis = plt.Rectangle((anker[0]+float(diag[1])*0.2/2, anker[1]+float(diag[0])*0.2/2),
+                           float(diag[1])*0.8,
+                           float(diag[0])*0.8,
+                           fill=False,
+                           edgecolor="black", alpha=1.0)
+    ax.add_patch(posReducedVis)
+
+    xy = zmp_arr.transpose()[:2]
+    ax.scatter(xy[1], xy[0], marker=".", c=COLOR_ZMP, alpha=0.2)
     ax.scatter((0), (0), marker="+", c="black")
 
     fig.set_tight_layout(True)
@@ -121,116 +132,120 @@ def drawStability(stab_arr : npt.NDArray,
     ax.set_ylim(0.0, 1.1)
     fig.savefig(str(outPath), pad_inches=0.0, format="pdf")
 
-COLOR_VALUES_q = "orange"
-COLOR_CUT_q = "blue"
-COLOR_MINMAX_q = "black"
-ANNOTE_MARGIN_Y_q = 0.02
-ANNOTE_MARGIN_X_q = 0.05
-def drawJointAngles(t : npt.NDArray,
-                    q_arr3 : npt.NDArray,
-                    q_lowerLimit_arr : npt.NDArray,
-                    q_upperLimit_arr : npt.NDArray,
-                    names : list[str],
-                    outPath : Path) -> None:
-    fig = plt.figure(figsize=(9,9))
-    nq = q_arr3.shape[2] - 6
-    ax_arr = fig.subplots(nq,1)
-    ax_arr[-1].set_xlabel("time [s]")
-    ax_arr[-1].set_xlim(0,Tf)
-
-    for i in range(nq):
-        ax = ax_arr[i]
-        q_arr = q_arr3[:,:,6+i]
-        q_lowerLimit = q_lowerLimit_arr[i]
-        q_upperLimit = q_upperLimit_arr[i]
-        q_name = names[i]
-        for q in q_arr:
-            ax.plot(t, q, color=COLOR_VALUES_q, alpha=0.1)
-    
-        # q_arrMean = np.nanmean(q_arr, axis=0)
-        q_min = np.nanmin(q_arr, axis=0)
-        q_max = np.nanmax(q_arr, axis=0)
-        # ax.plot(t, q_arrMean, color=COLOR_VALUES_q)
-        ax.fill_between(t, q_min, q_max, alpha=0.2, color=COLOR_VALUES_q)
-
-        # lower
-        xyLower = (t[np.argmin(q_min)], np.min(q_min))
-        ax.annotate(f"{round(np.min(q_min),2)} rad",
-                    xy=xyLower,
-                    xytext=(ANNOTE_MARGIN_X_q,xyLower[1]+ANNOTE_MARGIN_Y_q))
-        ax.scatter(*xyLower, marker=".", c=COLOR_MINMAX_q)
-        ax.plot([0,Tf], [np.min(q_min), np.min(q_min)], color=COLOR_MINMAX_q, alpha=0.5)
-
-        # upper
-        xyUpper = (t[np.argmax(q_max)], np.max(q_max))
-        ax.annotate(f"{round(np.max(q_max),2)} rad",
-                    xy=xyUpper,
-                    xytext=(ANNOTE_MARGIN_X_q,xyUpper[1]+ANNOTE_MARGIN_Y_q))
-        ax.scatter(*xyUpper, marker=".", c=COLOR_MINMAX_q)
-        ax.plot([0,Tf], [np.max(q_max), np.max(q_max)], color=COLOR_MINMAX_q, alpha=0.5)
-        
-        ax.set_ylabel(q_name[:-len("_joint")]+"\n$q_"+str(i)+"$ [rad]", rotation=0)
-        ax.set_ylim(q_lowerLimit, q_upperLimit)
-        ax.set_yticks([q_lowerLimit, q_upperLimit])
-        if i != nq-1:
-            ax.sharex(ax_arr[-1])
-            ax.set_xticks([])
-
-    fig.savefig(str(outPath), format="pdf", pad_inches=0.0)
-
-
 COLOR_VALUES_tau = "blue"
-COLOR_MINMAX_tau = "black"
-ANNOTE_MARGIN_Y_tau = 0.02
-ANNOTE_MARGIN_X_tau = 0.05
-def drawTorques(t : npt.NDArray,
+COLOR_VALUES_q = "orange"
+COLOR_MINMAX_tau_q = "black"
+ANNOTE_MARGIN_Y_tau_q = 0.15
+ANNOTE_MARGIN_X_tau_q = 0.05
+def drawJointTorque(t : npt.NDArray,
                 tau_arr3 : npt.NDArray,
                 tau_max_arr : npt.NDArray,
+                q_arr3 : npt.NDArray,
+                q_lowerLimit_arr : npt.NDArray,
+                q_upperLimit_arr : npt.NDArray,
                 names : list[str],
                 outPath : Path) -> None:
-    fig = plt.figure(figsize=(9,9))
+    fig = plt.figure(figsize=(18,6))
     nq = tau_arr3.shape[2] - 6
-    ax_arr = fig.subplots(nq,1)
-    ax_arr[-1].set_xlabel("time [s]")
-    ax_arr[-1].set_xlim(0,Tf)
+    ax_arr = fig.subplots(nq,2)
+    ax_joints = ax_arr[:,0]
+    ax_torques = ax_arr[:,1]
+    ax_torques[-1].set_xlabel("time [s]")
+    ax_torques[-1].set_xlim(0,Tf)
+    ax_torques[-1].set_xticks([0,Tf])
+    ax_joints[-1].set_xlabel("time [s]")
+    ax_joints[-1].set_xlim(0,Tf)
+    ax_joints[-1].set_xticks([0,Tf])
 
+    # torques
     for i in range(nq):
-        ax = ax_arr[i]
+        ax = ax_torques[i]
         tau_arr = tau_arr3[:,:,6+i]
         tau_limit = tau_max_arr[i]
-        name = names[i]
         for tau in tau_arr:
             ax.plot(t, tau, color=COLOR_VALUES_tau, alpha=0.1)
     
-        # tau_arrMean = np.nanmean(tau_arr, axis=0)
         tau_min = np.nanmin(tau_arr, axis=0)
         tau_max = np.nanmax(tau_arr, axis=0)
-        # ax.plot(t, tau_arrMean, color=COLOR_VALUES_tau)
         ax.fill_between(t, tau_min, tau_max, alpha=0.2, color=COLOR_VALUES_tau)
 
+        yAnnotateOffset = 2*tau_limit*ANNOTE_MARGIN_Y_tau_q
         # min
         xyMin = (t[np.argmin(tau_min)], np.min(tau_min))
         ax.annotate(f"{round(np.min(tau_min),2)} Nm",
                     xy=xyMin,
-                    xytext=(ANNOTE_MARGIN_X_tau,xyMin[1]+ANNOTE_MARGIN_Y_tau))
-        ax.scatter(*xyMin, marker=".", c=COLOR_MINMAX_tau)
-        ax.plot([0,Tf], [np.min(tau_min), np.min(tau_min)], color=COLOR_MINMAX_tau, alpha=0.5)
+                    xytext=(Tf-ANNOTE_MARGIN_X_tau_q,xyMin[1]+yAnnotateOffset),
+                    va="center",
+                    ha="right")
+        ax.scatter(*xyMin, marker=".", c=COLOR_MINMAX_tau_q)
+        ax.plot([0,Tf], [np.min(tau_min), np.min(tau_min)], color=COLOR_MINMAX_tau_q, alpha=0.5)
 
         # max 
         xyMax = (t[np.argmax(tau_max)], np.max(tau_max))
         ax.annotate(f"{round(np.max(tau_max),2)} Nm",
                     xy=xyMax,
-                    xytext=(ANNOTE_MARGIN_X_tau,xyMax[1]+ANNOTE_MARGIN_Y_tau))
-        ax.scatter(*xyMax, marker=".", c=COLOR_MINMAX_tau)
-        ax.plot([0,Tf], [np.max(tau_max), np.max(tau_max)], color=COLOR_MINMAX_tau, alpha=0.5)
-       
-        ax.set_ylabel(name[:-len("_joint")]+"\n$\tau_"+str(i)+"$ [Nm]", rotation=0)
+                    xytext=(Tf-ANNOTE_MARGIN_X_tau_q,xyMax[1]-yAnnotateOffset),
+                    va="center",
+                    ha="right")
+        ax.scatter(*xyMax, marker=".", c=COLOR_MINMAX_tau_q)
+        ax.plot([0,Tf], [np.max(tau_max), np.max(tau_max)], color=COLOR_MINMAX_tau_q, alpha=0.5)
+
+        ax.yaxis.set_label_position('right')
+        ax.yaxis.set_ticks_position('right')
+        ax.set_ylabel(rf"$\tau_{i}$ [Nm]", rotation=0)
         ax.set_ylim(-tau_limit, tau_limit)
         ax.set_yticks([-tau_limit, tau_limit])
         if i != nq-1:
-            ax.sharex(ax_arr[-1])
+            ax.sharex(ax_torques[-1])
             ax.set_xticks([])
 
+    # joints
+    for i in range(nq):
+        ax = ax_joints[i]
+        q_arr = q_arr3[:,:,6+i]
+        q_lowerLimit = q_lowerLimit_arr[i]
+        q_upperLimit = q_upperLimit_arr[i]
+        for q in q_arr:
+            ax.plot(t, q, color=COLOR_VALUES_q, alpha=0.1)
+    
+        q_min = np.nanmin(q_arr, axis=0)
+        q_max = np.nanmax(q_arr, axis=0)
+        ax.fill_between(t, q_min, q_max, alpha=0.2, color=COLOR_VALUES_q)
+
+        yAnnotateOffset = (q_upperLimit-q_lowerLimit)/2 * ANNOTE_MARGIN_Y_tau_q
+        # lower
+        xyLower = (t[np.argmin(q_min)], np.min(q_min))
+        ax.annotate(f"{round(np.min(q_min),2)} rad",
+                    xy=xyLower,
+                    xytext=(ANNOTE_MARGIN_X_tau_q,xyLower[1]+yAnnotateOffset),
+                    va="center")
+        ax.scatter(*xyLower, marker=".", c=COLOR_MINMAX_tau_q)
+        ax.plot([0,Tf], [np.min(q_min), np.min(q_min)], color=COLOR_MINMAX_tau_q, alpha=0.5)
+
+        # upper
+        xyUpper = (t[np.argmax(q_max)], np.max(q_max))
+        ax.annotate(f"{round(np.max(q_max),2)} rad",
+                    xy=xyUpper,
+                    xytext=(ANNOTE_MARGIN_X_tau_q,xyUpper[1]-yAnnotateOffset),
+                    va="center")
+        ax.scatter(*xyUpper, marker=".", c=COLOR_MINMAX_tau_q)
+        ax.plot([0,Tf], [np.max(q_max), np.max(q_max)], color=COLOR_MINMAX_tau_q, alpha=0.5)
+
+        ax.set_ylabel("$q_"+str(i)+"$ [rad]", rotation=0)
+        ax.set_ylim(q_lowerLimit, q_upperLimit)
+        ax.set_yticks([q_lowerLimit, q_upperLimit])
+        if i != nq-1:
+            ax.sharex(ax_joints[-1])
+            ax.set_xticks([])
+
+        # names
+        xyName = (Tf+0.25,(q_upperLimit-q_lowerLimit)/2+q_lowerLimit)
+        ax.annotate(names[i][:-len("_joint")],
+                    (0,0),
+                    xytext=xyName,
+                    ha="center",
+                    va="center")
+        
     fig.savefig(str(outPath), format="pdf", pad_inches=0.0)
 
 
@@ -305,18 +320,26 @@ def main(path : Path) -> int:
     assert(type(h1.model.lowerPositionLimit) is np.ndarray)
     assert(h1.model.names is not None)
     names = h1.model.names.tolist()[2:]
-    drawJointAngles(t,
-                    q_arr,
-                    h1.model.upperPositionLimit[6:],
-                    h1.model.lowerPositionLimit[6:],
-                    names,
-                    path / "joint.pdf")
+#    drawJointAngles(t,
+#                    q_arr,
+#                    h1.model.upperPositionLimit[6:],
+#                    h1.model.lowerPositionLimit[6:],
+#                    names,
+#                    path / "joint.pdf")
     tau_max = np.loadtxt("/home/robot/ws/maxTorque.txt")
-    drawTorques(t,
-                tau_arr,
-                tau_max,
-                names,
-                path / "torque.pdf")
+#    drawTorques(t,
+#                tau_arr,
+#                tau_max,
+#                names,
+#                path / "torque.pdf")
+    drawJointTorque(t,
+                    tau_arr,
+                    tau_max,
+                    q_arr,
+                    h1.model.lowerPositionLimit[6:],
+                    h1.model.upperPositionLimit[6:],
+                    names,
+                    path / "torqueJoint.pdf")
 
     return 0
 

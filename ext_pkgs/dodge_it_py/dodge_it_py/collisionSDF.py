@@ -125,7 +125,11 @@ class CollisionSDF:
 
         self.vis.viewer["collision"].set_object(
             TriangularMeshGeometry(verts, faces),
-            MeshLambertMaterial(color=0x4287f5, opacity=0.55, transparent=True)
+            MeshLambertMaterial(
+                color=0x4287f5,
+                # color=0x082a54,
+                opacity=0.55,
+                transparent=True)
         )
     
     @staticmethod

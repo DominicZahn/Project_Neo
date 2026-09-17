@@ -1,6 +1,9 @@
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import json
 import sys
