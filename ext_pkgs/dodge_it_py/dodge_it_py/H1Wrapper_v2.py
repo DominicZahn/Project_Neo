@@ -82,8 +82,8 @@ COLLISION = dict({
 @dataclass
 class HeadlessData:
     dir : str
-    camPos : npt.NDArray
-    camLookAt : npt.NDArray
+    camPos : npt.NDArray | None
+    camLookAt : npt.NDArray | None
     resolution : tuple[int,int]
     # filled during execution
     playwright : Playwright | None = None
@@ -341,6 +341,7 @@ class H1Wrapper_v2():
             self._vis = None
             self.headlessData = None
             return
+        self.globalFrameId = 0
         
         self.showCollisionSDF = showCollisionSDF
         self._vis = MeshcatVisualizer(
@@ -442,10 +443,13 @@ class H1Wrapper_v2():
 
     def autoCapture(self,
                     outFile : str,
-                    camPos : npt.NDArray,
-                    camLookAt : npt.NDArray):
+                    camPos : npt.NDArray | None = None,
+                    camLookAt : npt.NDArray | None = None):
         assert(self._vis is not None)
-        self._moveCamera(camPos, camLookAt)
+        if camPos is not None or camLookAt is not None:
+            assert(type(camPos) is npt.NDArray)
+            assert(type(camLookAt) is npt.NDArray)
+            self._moveCamera(camPos, camLookAt)
         imgRGB = self._vis.captureImage()
         imgBGR = cv2.cvtColor(imgRGB, cv2.COLOR_RGB2BGR)
         cv2.imwrite(outFile, imgBGR)
@@ -533,6 +537,17 @@ class H1Wrapper_v2():
 
         # self._visualizeForce()
 
+        if type(self.headlessData) is HeadlessData and self.globalFrameId == 0:
+            Path(f"{self.headlessData.dir}/frames/").mkdir()
+
+        if type(self.headlessData) is HeadlessData:
+            fileName = f"{self.headlessData.dir}/frames/{str(self.globalFrameId).zfill(5)}.png"
+            self.autoCapture(fileName,
+                             self.headlessData.camPos,
+                             self.headlessData.camLookAt)
+            self.globalFrameId += 1
+
+
     def visualizeJointTrajecotry(self,
                                  q_arr : npt.NDArray,
                                  qdot_arr : npt.NDArray,
@@ -543,18 +558,17 @@ class H1Wrapper_v2():
             print("[bold orange1][INFO][/bold orange1] can not visualize joint trajectory when visualization is turned of")
             return
         
-        if type(self.headlessData) is HeadlessData:
-            Path(f"{self.headlessData.dir}/frames/").mkdir()
-
         t_last = 0.0
         for idx, q, qdot, tau, t in zip(range(len(q_arr)), q_arr, qdot_arr, tau_arr, t_arr):
             self.visualizeJointConfig(q, qdot, tau, t)
-            if type(self.headlessData) is HeadlessData:
-                fileName = f"{self.headlessData.dir}/frames/{str(idx).zfill(5)}.png"
-                self.autoCapture(fileName,
-                                 np.array([1.0, 1.0, 1.5]),
-                                 np.array([0.0, 0.0, 0.7]))
-            else:
+#           if type(self.headlessData) is HeadlessData:
+#                fileName = f"{self.headlessData.dir}/frames/{str(idx).zfill(5)}.png"
+#                self.autoCapture(fileName,
+#                                 self.headlessData.camPos,
+#                                 self.headlessData.camLookAt)
+                                #  np.array([1.0, 1.0, 1.5]),
+                                #  np.array([0.0, 0.0, 0.7]))
+            if type(self.headlessData) is not HeadlessData:
                 sleep((t - t_last) * timeMultiplier)
                 t_last = t
 
