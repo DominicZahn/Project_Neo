@@ -1,13 +1,11 @@
 import pinocchio as pin
-from pinocchio.visualize import MeshcatVisualizer
-import meshcat.geometry as g
+from pinocchio.visualize import ViserVisualizer
 
 import pinocchio.casadi as cpin
 import casadi as c
 
 import numpy as np
 import numpy.typing as npt
-from scipy.spatial.transform import Rotation
 from pathlib import Path
 from time import sleep
 from csv import writer as CsvWriter
@@ -97,8 +95,6 @@ def generateVideoFromFrames(outDir : str | Path, N : int, Tf : float):
                     "-framerate", str(N/Tf),
                     "-pix_fmt", "rgb8",
                     f"{outDir}/video.gif"])
-
-
 
 class H1Wrapper_v2():
     """
@@ -344,7 +340,7 @@ class H1Wrapper_v2():
         self.globalFrameId = 0
         
         self.showCollisionSDF = showCollisionSDF
-        self._vis = MeshcatVisualizer(
+        self._vis = ViserVisualizer(
             model=self.model,
             collision_model=self.collisionModel,
             visual_model=self.visualModel,
@@ -358,7 +354,7 @@ class H1Wrapper_v2():
             if not p.exists():
                 p.mkdir()
 
-            url = self._vis.viewer.url()
+            url = self._vis.viewer.get_host()
             visualize.playwright = sync_playwright().start()
             visualize.browser = visualize.playwright.chromium.launch(
                 headless=True,
@@ -372,24 +368,23 @@ class H1Wrapper_v2():
                 "height": visualize.resolution[1]})
             visualize.page.goto(url)
             assert(not visualize.page.is_closed())
-            print("[INFO] meshcat viewer opened")
+            print("[INFO] viewer opened")
         self.headlessData = visualize
 
         self._vis.loadViewerModel()
-        self._vis.setBackgroundColor("gray")
 
-        self._vis.viewer["zmp"].set_object(
-            g.Sphere(0.02),
-            g.MeshPhongMaterial(0xf81802))
-#        self._vis.viewer["F_l"].set_object(
-#            g.Cylinder(1, 0.01),
-#            g.MeshPhongMaterial(0xa2bb7d))
-#        self._vis.viewer["F_r"].set_object(
-#            g.Cylinder(1, 0.01),
-#            g.MeshPhongMaterial(0xa2bb7d))
-        self._vis.viewer["projectile"].set_object(
-            g.Sphere(0.02),
-            g.MeshPhongMaterial(0x0000ff))
+        self._vis.viewer.scene.add_icosphere(
+            name="/zmp",
+            radius=0.02,
+            color=(255, 0, 0),
+            position=(0, 0, 0)
+        )
+        self._vis.viewer.scene.add_icosphere(
+            name="/projectile",
+            radius=0.02,
+            color=(0, 0, 255),
+            position=(0, 0, 0)
+        )
 
     def _visualizeZMP(self, pos : npt.NDArray):
         mat = pin.SE3(
@@ -398,7 +393,9 @@ class H1Wrapper_v2():
         ).homogeneous
         assert(mat is not None)
         assert(self._vis is not None)
-        self._vis.viewer["zmp"].set_transform(mat)
+        visPoint = self._vis.viewer.scene.get_handle_by_name("/zmp")
+        assert(visPoint)
+        visPoint.position = pos.flatten()
 
     def movePitchCamera(self,
                         pos: np.ndarray,
@@ -438,7 +435,6 @@ class H1Wrapper_v2():
             # pose = T @ R
             assert(pose is not None)
             assert(self._vis is not None)
-            self._vis.viewer["/Grid"].set_property("visible", False)
             self._vis.setCameraPose(pose)
 
     def autoCapture(self,
@@ -454,30 +450,12 @@ class H1Wrapper_v2():
         imgBGR = cv2.cvtColor(imgRGB, cv2.COLOR_RGB2BGR)
         cv2.imwrite(outFile, imgBGR)
 
-    def _visualizeForce(self,
-                       pos : npt.NDArray,
-                       orientation : Rotation,
-                       magnitude : float,
-                       name : str):
-        poseMat = pin.SE3(
-                rotation=orientation.as_matrix(),
-                translation=pos
-                ).homogeneous
-        assert(poseMat is not None)
-        scaleMat = np.diag([magnitude,magnitude,magnitude,1])
-        breakpoint()
-        assert(self._vis is not None)
-        self._vis.viewer[name].set_transform(poseMat)
-
     def _visualizeProjectile(self,
                          pos : npt.NDArray):
-        poseMat = pin.SE3(
-            rotation=np.eye(3),
-            translation=pos
-        ).homogeneous
-        assert(poseMat is not None)
         assert(self._vis is not None)
-        self._vis.viewer["projectile"].set_transform(poseMat)
+        visPoint = self._vis.viewer.scene.get_handle_by_name("/projectile")
+        assert(visPoint is not None)
+        visPoint.position = pos.flatten()
 
     def qId(self, jointName : str) -> int:
         assert(self.model.existJointName(jointName))
@@ -559,19 +537,11 @@ class H1Wrapper_v2():
             return
         
         t_last = 0.0
-        for idx, q, qdot, tau, t in zip(range(len(q_arr)), q_arr, qdot_arr, tau_arr, t_arr):
+        for q, qdot, tau, t in zip(q_arr, qdot_arr, tau_arr, t_arr):
             self.visualizeJointConfig(q, qdot, tau, t)
-#           if type(self.headlessData) is HeadlessData:
-#                fileName = f"{self.headlessData.dir}/frames/{str(idx).zfill(5)}.png"
-#                self.autoCapture(fileName,
-#                                 self.headlessData.camPos,
-#                                 self.headlessData.camLookAt)
-                                #  np.array([1.0, 1.0, 1.5]),
-                                #  np.array([0.0, 0.0, 0.7]))
             if type(self.headlessData) is not HeadlessData:
                 sleep((t - t_last) * timeMultiplier)
                 t_last = t
-
 
     def getStandControls(self) -> npt.NDArray:
         names = self.model.names.tolist()[2:]
