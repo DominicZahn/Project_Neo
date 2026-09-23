@@ -40,6 +40,6 @@ Below we present the roadmap for Project Neo.
 timeline
   ✅ v0.0 - Static Pose : ✅ statically stable : ✅ duck under given height
   ✅ v0.1 - Squatting : ✅ dynamically stable (ZMP) : ✅ optimal control : ✅ lower body : ✅ bilateral contacts
-  ⏳️ v0.2 - Dodging : dodge formulation
-  v0.3 - Stepping : dynamic Polygon of Support adjustment
+  ✅ v0.2 - Dodging : ✅ dodge formulation : ✅ distance calculation (SDF) : ✅ benchmark
+  ⏳️v0.3 - Stepping : dynamic Polygon of Support adjustment : multi-phase formulation
 ```
