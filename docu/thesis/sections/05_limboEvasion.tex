@@ -1,0 +1,38 @@
+\section{Limbo Evasion (v1)} \label{sec:limbo}
+
+\subsection{Collision Hull}
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/05_limboEvasion/collisionHull/primitives.png}
+    \caption{individual primitives}
+    \label{fig:limbo:distance:primitives}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/05_limboEvasion/collisionHull/composition.png}
+    \caption{composed collision hull}
+    \label{fig:limbo:distance:composed}
+  \end{subfigure}
+  \caption{
+  (a) visualizes the individual ellipsoid collision primitives, which are combined by leveraging the smooth transition function (\cref{eq:limbo:distance:smin}) to a composition in (b).
+  }
+  \label{fig:limbo:distance}
+\end{figure}
+
+\subsubsection{Ellipsoid SDFs}
+
+\begin{subequations}
+  \label{eq:limbo:distance:ellipsoid}
+  \begin{align}
+    k_0 &= \left| \frac{\bm{p} - \bm{c}}{\bm r} \right|_2 \\
+    k_1 &= \left| \frac{\bm{p} - \bm{c}}{\bm r^2} \right|_2 \\
+    d(\bm{p}) &= \frac{k_0 \cdot (k_0-1)}{k_1}
+  \end{align}
+\end{subequations}
+
+\subsubsection{Smooth Transition Function}
+\begin{equation}
+\text{smin}(d_i,d_j) = d_i+\frac{d_j-d_i}{1-e^{\frac{d_j-d_i}{k\log 2}}} = d_\text{union} \label{eq:limbo:distance:smin}
+\end{equation}

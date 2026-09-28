@@ -6,11 +6,19 @@
 \usepackage{fancyhdr}
 \usepackage[parfill]{parskip}
 \usepackage[utf8]{inputenc}
+\usepackage[acronym]{glossaries}
+% \glsdisablehyper
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{tikz}
+\usetikzlibrary{positioning, fit, calc}
 \usepackage[T1]{fontenc}
-
+\usepackage[linktocpage=true]{hyperref}
+\usepackage{cleveref}
+\Crefname{figure}{Fig.}{Figs.}
+\Crefname{equation}{Eq.}{Eqs.}
+\Crefname{section}{Sec.}{Secs.}
 \usepackage{graphicx}
 \usepackage{float}
-\usepackage[linktocpage=true]{hyperref}
 \usepackage{caption}
 \captionsetup[listing]{position=top}
 \usepackage{subcaption}
@@ -30,13 +38,16 @@
 \usepackage{booktabs}
 \usepackage[super]{nth}
 
+\usepackage{tabularx}
+\usepackage{lipsum}
+\usepackage{bm}
+\usepackage{siunitx-v2}
 
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amsthm}
 \usepackage{dsfont}
 \usepackage{csquotes}
-\usepackage{siunitx}
 
 % Titelseite
 % This is not used as /maketitel is never called
@@ -108,10 +119,6 @@
 
 \setcounter{secnumdepth}{4}
 
-
-\usepackage{tabularx}
-\usepackage{lipsum}
-
 \bibliography{mybibfile}
 
 \begin{document}
@@ -134,12 +141,10 @@
 \newpage
 \input{sections/00a_zusammenfassung.tex}
 
-
 \newpage
 \input{sections/00b_abstract.tex}
 
 \newpage
-
 %
 %
 %
@@ -150,8 +155,9 @@
 %
 %
 \renewcommand \thesection{\Roman{section}}
-%\printglossary[type=\acronymtype, title=Akronyme und Abkürzungen, toctitle=Akronyme und Abkürzungen]
-% \printglossary
+\input{glossary.tex}
+% \printglossary[type=\acronymtype, title=Akronyme und Abkürzungen, toctitle=Akronyme und Abkürzungen]
+\printglossary
 \newpage
 %
 %
@@ -165,25 +171,17 @@
 %
 %
 \newpage
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{sections/01_introduction.tex}
-
-\input{sections/00d_int_introduction.tex}
-
-\input{sections/00e_relatedWork.tex}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{sections/01_fundamentals.tex}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{sections/02_methodResult.tex}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{sections/03_discussion.tex}
-
+\input{sections/02_relatedWork.tex}
+\input{sections/03_fundamentals.tex}
+\input{sections/04_benchmark.tex}
+\input{sections/05_limboEvasion.tex}
+\input{sections/06_bipedalEvasion.tex}
+\input{sections/07_steppingEvasion.tex}
+\input{sections/08_futureWork.tex}
+\input{sections/99_conclusion.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\input{sections/04_conclusion.tex}
-
 \newpage
 
 \printbibliography

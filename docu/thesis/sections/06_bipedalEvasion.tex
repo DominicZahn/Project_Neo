@@ -1,0 +1,171 @@
+\section{Bipedal Stance Evasion (v2)} \label{sec:bipedal}
+
+\subsection{Formulation}
+\begin{table}
+  \caption{Variables and Parameters}
+  \centering
+  \begin{tabularx}{0.7\textwidth}{rcl}
+  \toprule
+    Symbol & Value & \multicolumn{1}{X}{Description} \\
+  \midrule
+    $d(\bm q)$ & \textit{\cref{eq:limbo:distance:ellipsoid,eq:limbo:distance:smin}} & object robot distance \\
+    $d_\text{safe}$ & $\SI{0.05}{\newton\metre}$ & object robot safety distance \\
+  \midrule
+  PoS & \textit{\cref{eq:bipedal:constraints:stability}} & \acrlong{pos} \\
+    $\gamma$ & $0.8$ & \acrshort{pos} safety Limit \\
+    ZMP & \textit{\cref{eq:bipedal:constraints:stability}} & \acrlong{zmp} \\
+  \midrule
+    $\bm q$ & \textit{\cref{eq:bipedal:dyn:x}} & Joint Positions \\
+  $\bm{\tau}$ & \textit{\cref{eq:bipedal:dyn:u}} & Joint Torques \\
+    \midrule
+  $\bm{\underline q},\ \bm{\overline q}$ & \textit{\cref{fig:bipedal:results:limits}} & Joint Limits \\
+    $\bm{\tau}_{\text{max}}$ & \textit{\cref{fig:bipedal:results:limits}} & Max. Joint Torques \\
+  \midrule
+  $\bm F_L$, $\bm F_R$ & \textit{\cref{eq:bipedal:constraints:F,eq:bipedal:constraints:Fz}} & Ground Reaction Forces \\
+    % $F_\text{safe}$ & $\SI{1}{\newton}$ & Friction Force Safety Margin \\
+    $\mu$ & $0.5$ & Friction Coefficient \\
+  \midrule
+    $v_{\text{stat.}}$ & \SI{0.1}{\frac{\metre}{\second}} & Allowed Stationary Velocity \\
+    $q_\epsilon$ & \SI{0.1}{\radian} & Terminal Pose Offset \\
+  \midrule
+    $T_f$ & $\SI{2.5}{\second}$ & Terminal Time \\
+    $N$ & $120$ & Shooting Nodes \\
+    $l_q$ & \textit{\cref{eq:bipedal:obj:joint}} & Lagrange Obj. Pose Term \\
+    $\omega_q$ & $1$ & Lagrange Obj. Weight Pose Term \\
+    $l_\tau$ & \textit{\cref{eq:bipedal:obj:joint}} & Lagrange Obj. Regularization Term \\
+    $\omega_\tau$ & $10^{-4}$ & Lagrange Obj. Weight Pose Term \\
+  \bottomrule
+  \end{tabularx} \label{tab:bipedal:variables}
+\end{table}
+
+\begin{subequations}
+  \label{eq:bipedal:dyn}
+  \begin{align}
+    \bm x(t) &=
+    \begin{bmatrix}
+      \bm{q} \\ \bm{\dot q}
+    \end{bmatrix} \label{eq:bipedal:dyn:x} \\
+    \bm u(t) &=
+    \bm{\tau} \label{eq:bipedal:dyn:u}\\
+    \bm{f}_\text{expl}(t) &=
+    \begin{bmatrix}
+      \bm{\dot q} \\
+      \text{cons. FD}(\bm q,\bm{\dot q},\bm{\tau})
+    \end{bmatrix} \label{eq:bipedal:dyn:f}
+  \end{align}
+\end{subequations}
+
+\begin{subequations}
+  \label{eq:bipedal:constraints}
+  \begin{align}
+    \min_{\bm x(\cdot),\bm u(\cdot)} \quad & \int_0^{T_f} \left(\omega_q l_\text{q}(\bm x) + \omega_\tau l_\tau(\bm{u}) \right) dt \label{bipedal:constraints:obj} \\
+    \textrm{s.t.} \quad & \qquad \textbf{Dodge Constraint} \nonumber \\
+    & d_\text{safe} \leq d(\bm p) & & \forall t \in [0,T_f) \label{eq:bipedal:constraints:dodge} \\
+    & \qquad \textbf{Stability Constraint} \nonumber \\
+    & \text{ZMP} \in \gamma \text{PoS} & & \forall t \in [0,T_f) \label{eq:bipedal:constraints:stability} \\
+    & \qquad \textbf{Joint Constraints} \nonumber \\
+    & \bm{\underline q} \leq \bm{q} \leq \bm{\overline q} & & \forall t \in [0,T_f) \label{eq:bipedal:constraints:joint}\\
+    & -\bm{\tau}_\text{max} \leq \bm u \leq \bm{\tau}_\text{max} & & \forall t \in [0,T_f)\label{eq:bipedal:constraints:torque}\\
+    & \qquad \textbf{Friction Constraints} \nonumber \\
+    & 0 \leq (\mu F_j^z)^2-\|\bm{F}_j\|^2_2 & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:bipedal:constraints:F} \\
+    & 0 \leq F_L^z & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:bipedal:constraints:Fz} \\
+    & \qquad \textbf{Terminal Pose Constraint} \nonumber \\
+    & \begin{bmatrix} \bm q_0-q_\epsilon \\ -\bm v_\text{stat.} \end{bmatrix}
+    \leq \bm x(T_f) \leq
+    \begin{bmatrix} \bm q_0+q_\epsilon \\ \bm v_\text{stat.} \end{bmatrix} \label{eq:bipedal:constraints:terminal}
+  \end{align}
+\end{subequations}
+
+\begin{subequations}
+  \label{eq:bipedal:obj}
+  \begin{align}
+    l_q(\bm x) &= \frac{\| \bm q-\bm q_0 \|^2_2}{(n_q \cdot \bm{q}_\text{exp}^2)^2}  \label{eq:bipedal:obj:joint} \\
+    l_\tau(\bm u) &= \frac{\|\bm{\tau}\|^2_2}{(n_u \cdot \bm{u}_\text{exp}^2)^2} \label{eq:bipedal:obj:torque}
+  \end{align}
+\end{subequations}
+
+\subsection{Results \& Discussion}
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/06_bipedalEvasion/conv/top.pdf}
+    \caption{Top View (XY)}
+    \label{fig:bipedal:results:convTop}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/06_bipedalEvasion/conv/iso.pdf}
+    \caption{Isometric View}
+    \label{fig:bipedal:results:convIso}
+  \end{subfigure}
+  \vfill
+  % \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/06_bipedalEvasion/conv/front.pdf}
+    \caption{Front View (YZ)}
+    \label{fig:bipedal:results:convFront}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/06_bipedalEvasion/conv/side.pdf}
+    \caption{Side View (XZ)}
+    \label{fig:bipedal:results:convSide}
+  \end{subfigure}
+  \caption{orange: no convergence, gray lines are not converged runs}
+  \label{fig:bipedal:results:conv}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{figures/06_bipedalEvasion/plots/torqueJoint_original.pdf}
+  \caption{
+    Joint angles $\bm{q}$ and torques $\bm{\tau}$ for all successful dodging motions.
+    We can clearly see that some of those trajectories require the robot to operate at its limits.
+    Torques in general show a high usage of the available strength, indicating that the success rate is indeed limited by torque limits.
+  }
+  \label{fig:bipedal:results:limits}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/06_bipedalEvasion/plots/distance.pdf}
+  \caption{Distance of traveling object throughout the evasion motions over all successfully evaded object trajectories, with the minimal distance being clearly above the safety distance to the collision hull}
+  \label{fig:bipedal:results:distance}
+\end{figure}
+
+\subsubsection{Motion Classes}
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.23\textwidth}
+    \includegraphics[width=\textwidth]{figures/06_bipedalEvasion/motions/crouch.png}
+    \caption{crouching evasion}
+    \label{fig:bipedal:results:motion:crouch}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.23\textwidth}
+    \includegraphics[width=\textwidth]{figures/06_bipedalEvasion/motions/lean.png}
+    \caption{leaning evasion}
+    \label{fig:bipedal:results:motion:lean}
+  \end{subfigure}
+  % \vfill
+  \hfill
+  \begin{subfigure}[b]{0.23\textwidth}
+    \includegraphics[width=\textwidth]{figures/06_bipedalEvasion/motions/inverseNeo.png}
+    \caption{reverse neo evasion}
+    \label{fig:bipedal:results:motion:inverseNeo}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.23\textwidth}
+    \includegraphics[width=\textwidth]{figures/06_bipedalEvasion/motions/neo.png}
+    \caption{classic neo evastion}
+    \label{fig:bipedal:results:motion:neo}
+  \end{subfigure}
+  \caption{
+    We found, that our optimal object avoidance generator explored mainly four motion classes, for different kinds of approaching objects.
+    The leaning evasion in (b) was found to be the most common one, while the reverse neo motion was leveraged in a small amount of object avoidance motions.
+  }
+  \label{fig:bipedal:results:motion}
+\end{figure}
+
+
