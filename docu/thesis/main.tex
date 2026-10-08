@@ -30,8 +30,7 @@
 \SetKwInput{KwData}{Input}
 \SetKwInput{KwResult}{Output}
 \usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
-\usepackage[style=numeric,sorting=none]{biblatex}
-\addbibresource{mybibfile.bib}
+\addbibresource{bibfile.bib}
 \setlength{\bibitemsep}{0.5em}
 \DeclareDelimFormat{multicitedelim}{\addsemicolon\space}
 \usepackage{multirow}
@@ -119,8 +118,6 @@
 
 \setcounter{secnumdepth}{4}
 
-\bibliography{mybibfile}
-
 \begin{document}
 \pagestyle{empty}
 \pagenumbering{gobble}
@@ -173,24 +170,29 @@
 \newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{sections/01_introduction.tex}
+\newpage
 \input{sections/02_relatedWork.tex}
+\newpage
 \input{sections/03_fundamentals.tex}
+\newpage
 \input{sections/04_benchmark.tex}
+\newpage
 \input{sections/05_limboEvasion.tex}
+\newpage
 \input{sections/06_bipedalEvasion.tex}
+\newpage
 \input{sections/07_.tex}
+\newpage
 \input{sections/97_discussion.tex}
+\newpage
 \input{sections/98_conclusion.tex}
+\newpage
 \input{sections/99_futureWork.tex}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
-
 \printbibliography
-% \bibliographystyle{acm}
 
 \newpage
 \input{sections/ZZ_appendix.tex}
-
-\input{sections/zz_example.tex}
 
 \end{document}
