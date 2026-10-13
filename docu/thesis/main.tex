@@ -48,6 +48,20 @@
 \usepackage{dsfont}
 \usepackage{csquotes}
 
+\usepackage{titlesec}
+
+% Number paragraphs as A., B., C. (independent of section numbering)
+\renewcommand{\theparagraph}{\Alph{paragraph}}
+
+% Make \paragraph numbered (default secnumdepth is too low)
+\setcounter{secnumdepth}{4}
+
+% Format: "A. Title" as a run-in heading
+\titleformat{\paragraph}
+  {\normalfont\normalsize\itshape}
+  {\theparagraph.}{1em}{}
+\titlespacing*{\paragraph}{0pt}{3.25ex plus 1ex minus .2ex}{0.5em}
+
 % Titelseite
 % This is not used as /maketitel is never called
 % -----------------------------------------------
@@ -150,8 +164,8 @@
 \tableofcontents
 %
 %
+
 %
-\renewcommand \thesection{\Roman{section}}
 \input{glossary.tex}
 % \printglossary[type=\acronymtype, title=Akronyme und Abkürzungen, toctitle=Akronyme und Abkürzungen]
 \printglossary

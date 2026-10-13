@@ -1,5 +1,54 @@
 \section{Introduction} \label{sec:introduction}
 
-\begin{itemize}
-  \item black-boxed high-level problem formulation
-\end{itemize}
+Robots like those from Unitree or Boston Dynamics can overcome challenges that their predecessors could only dream of.
+Unitrees H1 and G2 execute impressive tasks, dancing \cite{sun_2026} and catching footballs like goalkeepers \cite{ren_2026}.
+% Sun et al. 2026 \cite{sun_2026} and Ren et al. 2026 \cite{ren_2026} display the capabilities of the currently available humanoid robotic hardware by usage of reinforcement learning.
+Having such powerful platforms at hand enables research towards extended evasion maneuvers.
+These motions were previously not feasible due to the lack of power, stability, and joint range.
+Yang et al. 2026 \cite{yang_2026} display such evasion by implementing a full dodgeball controller onto the G2.
+\\
+Previous robots, like the HRP-2 \cite{kaneko_2004} were mostly limited to push recovery maneuvers \todo{too much?},  which is traditionally either dominated by "ankle" or "hip" strategies, as well as stepping. \cite{hofmann_2006}
+Hofmann \cite{hofmann_2006} mentions Allum and Honegger \cite{allum_1992}, as well as Nashner and McCollum \cite{nashner_1985}, as the foundational works in human push recovery studies.
+Those strategies, however, are only feasible for small impact forces.
+For higher forces capture steps are required \cite{pratt_2006}.
+\\
+In scenarios with low impact force compliance control can be used.
+Compliance control describes methods to control a robot, which has to smooth out motions under the influence of external disturbances.
+Such disturbances can for example be produced by error tolerances or impacts.
+Per definition push resistance and locomotion tasks are different in there models, as the former requires an additional contact.
+Hung et al. model those as a spring-damper system. \cite{huang_2022}
+\\
+The superior solution would be to evade the approaching object if possible and return to the initial pose without any contact.
+This way the humanoid can calculate beforehand the resulting motion as well as counteract the possible stability problems.
+Full collision avoidance also removes the risk of damage to both the humanoid and the object to evade.
+As a result of there human-like statue, humanoids are for example set for applications in industry, health care or social service \cite{tong_2024,mccartney_2020}.
+Such settings require the humanoid to be aware of other actors in its environment.
+For industry applications robot arms could enter the workspace of the humanoid.
+Health or social care even higher risk hazards. 
+
+\paragraph{Collision Avoidance}
+\paragraph{Comparability}
+\paragraph{Problem Formulation}
+\paragraph{Overview}
+
+% As a result, humanoids no longer need to focus solely on resisting pushes, but are able to avoid collisions.
+% At the same time, the impact of the behavioral alteration due to collision avoidance should usually be kept minimal to not impede the now-disturbed primary task or become a threat of its own to its surroundings.
+% \\
+% We present an optimal collision-avoidance trajectory generator based on a differentiable collision model using \acrfull{sdf} functions.
+% In our scenario, the H1-2 from Unitree is placed in a bipedal stance.
+% As a result, the humanoid performs object avoidance motions that resemble the ones from the protagonist of the "The Matrix" movie.
+% Project Neo can be leveraged in control approaches like \acrfull{mpc}, as well as to precompute feasible object avoidance motions.
+% Additionally, we provide a workflow to test and quantify such an avoidance controller.
+% It defines a reproducible setup for generating large numbers of dodge scenarios.
+% \\
+% A general overview of Project Neo is visualized in \cref{fig:intro:graphicalAbstract}.
+% \begin{figure}[t]
+%   \centering
+%   \includegraphics[width=0.9\textwidth]{figures/01_introduction/graphicalAbstract.png}
+%   \caption{
+%   Project Neo consists of two major contributions: a motion generator for optimal object avoidance and a benchmark to thoroughly test it across a wide range of object trajectories.
+% }
+%   \label{fig:intro:graphicalAbstract}
+% \end{figure}
+%
+
