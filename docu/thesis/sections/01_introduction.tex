@@ -27,9 +27,54 @@ Such settings require the humanoid to be aware of other actors in its environmen
 Especially when working around humans it is essential to keep a reasonable safety distance.
 This topic leads us to the well known research area of collision avoidance.
 
-\paragraph{Collision Avoidance}
+\paragraph{Collision Avoidance and Path Planning}
+To solve the NP-hard problem of avoiding collisions for robotics \cite{canny_1988} different approaches have been developed.
+A main distinction is the time frame in which the evasion motion has to be computed.
+Works like \cite{yang_2026,kohlbrenner_2026} focus on real-time planning, with a closed loop and black-boxed system, spanning object detection, motion synthesis and control.
+Recent systems of that kind are mostly driven by reinforcement or imitation learning providing little to no inside into there internals. \todo{bold statement?}
+\\
+The most important element remains generating the evasion motion.
+By usage of a unified system for detection, path planning and motion execution, well understood components are reimplemented.
+For the use case of evading approaching objects with humanoid robots already existing methods can be utilized.
+An example is \cite{casas_2025}, which estimates object trajectories by fusing multiple sensors to a clean forecast.
+Gab et al. 2022 \cite{gad_2022} also shows a variety of different \acrfull{mto} approaches.
+\\
+To finally execute the planned evasion motion a \acrlong{wbc} is required.
+It stabilizes the robot and not only stabilizes the robot, but also counteracts environmental uncertainties and planning inaccuracies introduced by simplified models \cite{gu_2026}.
+We showed that both the object tracking and motion execution fields offer a large variety of different methods.
+Moving forward, we therefore focus on the generation of feasible evasion trajectories.
+\\ % end of why we need only path planning
+While path planning is a huge field in robotics only a small portion of the works are focusing on humanoids, which are evading approaching objects.
+A lot of work is run on quadrupeds or an \acrfull{uav}. \cite{zhao_2026,zhang_2026,jacquet_2025}
+In general, these pose a lower \acrfull{dof} problem and provide better stability.
+However, as described before, some situations require robots to work in spaces specifically designed for humans.
+Some even on robotic arms, which eliminates all stability concerns and further reduces the problem size \cite{mercy_2016,haviland_2021}.
+These low \acrshort{dof} robots are utilize mostly model-based controllers, as there computation is fast enough for \acrfull{mpc}.
+\\
+When it comes to humanoids, recent work in the field of approaching object avoidance, is solved with learning-based methods \cite{yang_2026,kohlbrenner_2026}.
+Solutions like Yang et al. \cite{yang_2026} display impressive results on open spaces, taking steps and moving out of the way when necessary.
+These capture step resembling motions are less taxing on the dynamic stability limits of the humanoid.
+Environments in industrial or health care settings can require tightly packed spaces, in which evasive maneuvers should be concealed to anchored balancing motions.
+Rapid and large stepping motions in contrast, possibly threaten a collision with the robots surroundings, or in worst case other actors in the scene.
+Therefore stepping is not always an option humanoids, when recovering from pushes or avoiding those impacts directly \cite{huang_2022}.
+Most of the current works on rapidly approaching objects however is linked to spacious jumps or steps \cite{yang_2026,zhao_2026}.
+Kohlbrenner et al. \cite{kohlbrenner_2026} presents a learning-based solution, that shows the usage of proximity sensors for a full tracking to motion execution approach.
+Their controller manages to keep the H1 at the initial position for some of the evasion motions.
 
 \paragraph{Comparability}
+Another topic is the lack comparability between the above mentioned humanoid approaching object avoidance controllers.
+As most of those are build evaluating a full controller package it is difficult to evaluate the capabilities of the motion planning algorithm.
+Yang et al. \cite{yang_2026} test their PAC-MAN method by launching balls from $\SI{2.5 \pm 0.5}{\metre}$ distant frontal $\SI{\pm 25}{\deg}$ cone.
+They also report that some were falling towards the legs, while most hit torso or head to trigger duck as well as lean reactions.
+This results in untested scenarios for shots from the back of the humanoid.
+It is also unknown to the reader at which initial velocity projectiles where launched.
+\\
+For Kohlbrenner et al. \cite{kohlbrenner_2026} balls are spawned with a velocity of $\SI{5 \pm 1}{\frac{\metre}{\second}}$.
+Approaching objects are sampled uniformly distances between $\SI{4}{\metre}$ and $\SI{6}{\metre}$ at a height of $\SI{2.5 \pm 0.5}{\metre}$ of the ground.
+The ball has a diameter of $\SI{15}{\cm}$.
+\\
+These differences in general test setups make it difficult to compare the resulting success rates.
+
 \paragraph{Problem Formulation}
 \begin{itemize}
   \item bipedal stance
