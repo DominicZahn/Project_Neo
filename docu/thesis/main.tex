@@ -17,6 +17,7 @@
 \Crefname{figure}{Fig.}{Figs.}
 \Crefname{equation}{Eq.}{Eqs.}
 \Crefname{section}{Sec.}{Secs.}
+\Crefname{paragraph}{Par.}{Pars.}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{caption}
@@ -136,17 +137,22 @@
 \pagestyle{empty}
 \pagenumbering{gobble}
 
-\input{sections/templates/titlepage.tex}
+\input{sections/prefix/titlepage.tex}
 %
 %
 %
 \newpage
 \ \\
 \newpage
-\input{sections/templates/eidesstaatliche_erklaerung.tex}
+\input{sections/prefix/eidesstaatliche_erklaerung.tex}
+
+\newpage
+\ \\
+\newpage
+\input{sections/prefix/ai_acknowledgment.tex}
 
 % \newpage
-% \input{sections/templates/personal_acknowledgements.tex}
+% \input{sections/prefix/personal_acknowledgements.tex}
 
 \ \\
 \newpage
