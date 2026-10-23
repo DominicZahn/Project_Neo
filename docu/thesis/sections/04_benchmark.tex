@@ -1,5 +1,48 @@
 \section{Benchmark Setup} \label{sec:benchmark}
 
+Before we can start developing an optimal approaching object avoidance motion generator, a test setup is required to evaluate the performance of our solution.
+In \cref{sec:introduction:comparability} we showed the inconsistency of test setups for a selection of controllers.
+These controllers were all learning-based and encapsulate a full pipeline, spawning object detection, tracking, motion generation and execution.
+An isolated evaluation of the most important component, the motion generation, is therefore difficult to execute.
+Systems like {PAC-MAN} \cite{yang_2026} are tested in real world or simulated environments.
+Gazebo \cite{koenig_2004} or Issac-Sim \cite{NVIDIA_Isaac_Sim} are two examples for such environments.
+For a focused analysis of collision avoidance motion generation such physic simulations introduce an additional layer of uncertainty by approximating the world with a model.
+As our work focuses on the collision avoidance motion we cut out all other components.
+The result should be a benchmark that solely relies on the motion generation and a model of the world.
+Resulting motions can later be reviewed in real-world or previously mentioned physics simulations.
+This would than also include an evaluation of the executing and whole-body controller, something that goes out of the scope of our work.
+\par
+In the following we will start of by identifying properties necessary for a solid testing method.
+\\
+\Cref{sec:benchmark:setup} shows how the whole benchmark is constructed from multiple test runs.
+The section additionally derives a set of properties a useful test method should have.
+Based on these properties we implement during \cref{sec:benchmark:fibonacci,sec:benchmark:thomson} the fundamental steps of the benchmark.
+\\
+The resulting benchmark method is summarized in \cref{sec:benchmark:algo}.
+We also highlight the decisions a user of this testing method must take, as well as parameters, which need to be provided in order to achieve a comparable benchmark.
+
+\subsection{General Setup} \label{sec:benchmark:setup}
+
+
+% outline of benchmark properties
+\par
+The benchmark setup should implement the following properties:
+\begin{itemize}
+  \item quantifiable
+  \item reproducible
+  \item uniformly sampled
+  \item feasible for small sample sizes
+  \item no universal focal point
+  \item variable target hull
+\end{itemize}
+
+\subsection{Fibonacci Lattices} \label{sec:benchmark:fibonacci}
+
+\subsection{Thomson Problem} \label{sec:benchmark:thomson}
+
+\subsection{Algorithm Overview} \label{sec:benchmark:algo}
+\todo[inline]{results like}
+
 \begin{figure}
   \centering
   \begin{subfigure}[b]{0.45\textwidth}
@@ -21,6 +64,3 @@
   \label{fig:benchmark:impactArea}
 \end{figure}
 
-\subsection{Fibonacci Lattices}
-
-\subsection{Thomson Problem}

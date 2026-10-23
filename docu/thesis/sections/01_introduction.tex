@@ -27,7 +27,7 @@ Such settings require the humanoid to be aware of other actors in its environmen
 Especially when working around humans it is essential to keep a reasonable safety distance.
 This topic leads us to the well known research area of collision avoidance.
 
-\paragraph{Collision Avoidance and Path Planning}
+\paragraph{Collision Avoidance and Path Planning} \label{sec:introduction:avoidance}
 To solve the NP-hard problem of avoiding collisions for robotics \cite{canny_1988} different approaches have been developed.
 A main distinction is the time frame in which the evasion motion has to be computed.
 Works like \cite{yang_2026,kohlbrenner_2026} focus on real-time planning, with a closed loop and black-boxed system, spanning object detection, motion synthesis and control.
@@ -61,11 +61,11 @@ Most of the current works on rapidly approaching objects however is linked to sp
 Kohlbrenner et al. \cite{kohlbrenner_2026} presents a learning-based solution, that shows the usage of proximity sensors for a full tracking to motion execution approach.
 Their controller manages to keep the H1 at the initial position for some of the evasion motions.
 
-\paragraph{Comparability}
+\paragraph{Comparability} \label{sec:introduction:comparability}
 For the growing field of humanoid object avoidance it is important to create comparable and reproducible tests.
 Most of the above mentioned controllers are build to provide a full pipeline, it is therefore difficult to evaluate the capabilities of solely the motion planning algorithm.
 \\
-Yang et al. \cite{yang_2026} test their PAC-MAN method by launching dodge balls from a $\SI{2.5 \pm 0.5}{\metre}$ distant frontal $\SI{\pm 25}{\deg}$ cone.
+Yang et al. \cite{yang_2026} test their {PAC-MAN} method by launching dodge balls from a $\SI{2.5 \pm 0.5}{\metre}$ distant frontal $\SI{\pm 25}{\deg}$ cone.
 They also report that some were falling towards the legs, while most hit torso or head to trigger duck as well as lean reactions.
 This method results in unclear circumstances for objects approaching from the front and untested scenarios balls targeted towards the back.
 It is also unknown to the reader at which initial velocity projectiles where launched.
