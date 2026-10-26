@@ -1,32 +1,46 @@
 \section{Benchmark Setup} \label{sec:benchmark}
 
-Before we can start developing an optimal approaching object avoidance motion generator, a test setup is required to evaluate the performance of our solution.
-In \cref{sec:introduction:comparability} we showed the inconsistency of test setups for a selection of controllers.
-These controllers were all learning-based and encapsulate a full pipeline, spawning object detection, tracking, motion generation and execution.
-An isolated evaluation of the most important component, the motion generation, is therefore difficult to execute.
+Before we can start developing an optimal object avoidance motion generator, a test setup is required to evaluate the performance of our solution.
+In \cref{sec:introduction:comparability} we showed the inconsistency of test setups for a selection of state of the art controllers.
+These encapsulate a full pipeline, spanning object detection, tracking, motion generation and execution.
+An isolated evaluation of the most important component, the motion generation, is therefore difficult to achieve.
+\\
 Systems like {PAC-MAN} \cite{yang_2026} are tested in real world or simulated environments.
-Gazebo \cite{koenig_2004} or Issac-Sim \cite{NVIDIA_Isaac_Sim} are two examples for such environments.
-For a focused analysis of collision avoidance motion generation such physic simulations introduce an additional layer of uncertainty by approximating the world with a model.
-As our work focuses on the collision avoidance motion we cut out all other components.
-The result should be a benchmark that solely relies on the motion generation and a model of the world.
-Resulting motions can later be reviewed in real-world or previously mentioned physics simulations.
-This would than also include an evaluation of the executing and whole-body controller, something that goes out of the scope of our work.
+Gazebo \cite{koenig_2004} or \acrfull{mujoco} \cite{todorov_2012} are two examples for such physical simulations.
+A motion generation focused analysis of complete black-box controllers therefore always includes simulation errors.
+As these physics simulations are approximations of the real-world they model it differently and introduce errors for different use cases.
+A great showcase of this differences are the contact formulations.
+Gazebo allows for multiple physics engines, but comes by default with \acrfull{dart} \cite{lee_2018}.
+\acrshort{dart} models contacts and collisions using an implicit time-stepping, velocity-based \acrfull{lcp} formulation.
+In contrast \acrshort{mujoco} employs a non-complementary method, which turns it into a convex optimization problem.
+So Gazebo has a rigid contact model, while \acrshort{mujoco} uses spring-damper systems as contact models \cite{lee_2018} \cite{todorov_2012}.
+These fundamental differences remind us again that there is no such thing as a ground-truth in physics simulation and we should avoid evaluating only in a single simulation.
+As our work focuses on the collision avoidance motion we cut out all other components and evaluate only if the motion generator was able to find a joint trajectory.
+% We therefore ignore the motion execution by a whole-body controller in a specific physics simulation.
+\\
+The result will be a benchmark that solely relies on the motion generation component.
+Resulting motions can be later executed with a suitable whole-body controller in real-world or previously mentioned physics simulations.
+However, this would than also include the errors of the chosen whole-body controller.
 \par
 In the following we will start of by identifying properties necessary for a solid testing method.
 \\
 \Cref{sec:benchmark:setup} shows how the whole benchmark is constructed from multiple test runs.
-The section additionally derives a set of properties a useful test method should have.
+The section additionally derives a set of properties a suitable test method should have.
 Based on these properties we implement during \cref{sec:benchmark:fibonacci,sec:benchmark:thomson} the fundamental steps of the benchmark.
 \\
 The resulting benchmark method is summarized in \cref{sec:benchmark:algo}.
 We also highlight the decisions a user of this testing method must take, as well as parameters, which need to be provided in order to achieve a comparable benchmark.
 
 \subsection{General Setup} \label{sec:benchmark:setup}
+A general benchmark setup consists of multiple single runs, in which a single object approaches the robot.
+The object is targeted towards an impact location on the robot, with a given trajectory.
+For our work we stick to linear object trajectories with constant velocity.
+\todo[inline]{add something about most things are on easy trajectories}
+As the testing setup is abstracted away from these parameters, more complex trajectories like spline defined once with variable velocity are also possible.
 
-
-% outline of benchmark properties
 \par
-The benchmark setup should implement the following properties:
+% outline of benchmark properties
+In summary the benchmark setup should implement the following properties:
 \begin{itemize}
   \item quantifiable
   \item reproducible
