@@ -30,25 +30,36 @@ Based on these properties we implement during \cref{sec:benchmark:fibonacci,sec:
 \\
 The resulting benchmark method is summarized in \cref{sec:benchmark:algo}.
 We also highlight the decisions a user of this testing method must take, as well as parameters, which need to be provided in order to achieve a comparable benchmark.
+\\
+This section is concluded with an extension towards spline-based trajectories.
+It will serve as an example for a generalization of the presented method.
 
 \subsection{General Setup} \label{sec:benchmark:setup}
-A general benchmark setup consists of multiple single runs, in which a single object approaches the robot.
-The object is targeted towards an impact location on the robot, with a given trajectory.
+In general the benchmark consists of multiple single runs, in which a single object approaches the robot.
+The object is on a defined trajectory, targeted towards an impact location on the robot.
 For our work we stick to linear object trajectories with constant velocity.
-\todo[inline]{add something about most things are on easy trajectories}
-As the testing setup is abstracted away from these parameters, more complex trajectories like spline defined once with variable velocity are also possible.
-
+\\
+A more complex definition of trajectories is also possible, however this would require small adjustments to the start position calculations.
+An extension towards spline-based trajectories is described in \cref{sec:benchmark:extension}.
 \par
-% outline of benchmark properties
-In summary the benchmark setup should implement the following properties:
-\begin{itemize}
-  \item quantifiable
-  \item reproducible
-  \item uniformly sampled
-  \item feasible for small sample sizes
-  \item no universal focal point
-  \item variable target hull
-\end{itemize}
+This paragraph we are deriving the necessary properties of a suitable benchmark setup.
+In "The Art of Building a Good Benchmark" \cite{huppler_2009} from Karl Huppler mentions the five characteristics: \textit{relevant}, \textit{repeatable}, \textit{fair}, \textit{verifiable}, \textit{economical}, which need to be balanced in order to build a good benchmark.
+While Hupplers characteristics are formulated for computer systems, we can use them to identify properties for our benchmarking system.
+\\
+A \textit{relevant} benchmark for motion generation of collision avoidance should represent an amount of successfully avoided objects, as this lets it "reflect something important" to the user \cite{huppler_2009}.
+One of the common metrics in this field is success rate \cite{yang_2026,zhang_2026}.
+\\
+To produce a success rate that truthfully reflects the strength and weaknesses of the motion generator for a specific robot a \textit{fair} benchmark is required.
+In our context, \textit{fair} and \textit{verifiable} boils down to a testing method, which tests a range of collision avoidance scenarios, where the object approaches the robot.
+Imagine a humanoid in its default upright standing pose.
+The method has to test impacts on the whole upper body surface with vastly differing impact angles.
+\\
+\textit{Repeatable} and \textit{economical} are straight forward to define.
+Each iteration of the benchmark should be able to conclude in a reasonable time frame as well as "be run a second time with the same result" \cite{huppler_2009}.
+\par
+In summary the benchmark should treat each motion generator \textit{fair} with an equal test setup.
+This setup has to be \textit{repeatable} and \textit{economical}, so also work with high and low amounts of test runs well.
+However, the most important properties are \textit{variability} and \textit{relevance}, which result in a benchmark that has to create differing equally important scenarios.
 
 \subsection{Fibonacci Lattices} \label{sec:benchmark:fibonacci}
 
@@ -77,4 +88,6 @@ In summary the benchmark setup should implement the following properties:
   }
   \label{fig:benchmark:impactArea}
 \end{figure}
+
+\subsection{Extension to Spline-defined Trajectories} \label{sec:benchmark:extension}
 
