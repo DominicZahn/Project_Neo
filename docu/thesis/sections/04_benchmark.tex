@@ -61,8 +61,7 @@ In general this is the weakest requirement, as long as it scales reasonably with
 The last property is derived from \textit{fairness}.
 Each evasion motion generator has to be able to perform on an even playing field.
 This is another argument, why we are evaluating the existence of a found motion instead of executing it in a physics simulation.
-Additionally, as we can not objectively define which motion is the most "optimal", as this would require a cost definition, the comparison is based on success rates and not the "quality" of the found trajectories.
-\todo[inline]{than some stupid not feasible controller is at advantage?}
+Our evaluation consequently relies on the motion generators to implement a feasibility constraint and report the nonexistence one.
 \par
 In summary our benchmark has to use runs, which are equally important, so that the success rate is \textit{verifiable}, while providing \textit{fairness}.
 It should also be able to handle high and low amounts of test runs to accommodate for \textit{economicalness}.
@@ -83,20 +82,79 @@ Ellipsoids normal vectors meet in a focal cone instead of a single focal point \
 Our use case is bipedal standing evasion, which results in an impact surface that is fitted around the torso.
 It is however, also possible, to place the impact surface on the leg of the robot to evaluate collision avoidance abilities for near ground level threats.
 \\
-The consequence is the need for a uniform sampling algorithm on an ellipsoid.
+In consequence a uniform ellipsoid sampling algorithm for any sample count is required.
 
 \subsection{Ellipsoid Sampling} \label{sec:benchmark:sampling}
+Gonz{'a}lez shows in his 2010 research \cite{gonzalez_2010} that Fibonacci lattices are a great option for uniform sampling on spheres; however, they lose their property when transformed to ellipsoids, as Marples et al. \cite{marples_2024} illustrated.
+In general, rejection sampling methods, like gradient vector rejection sampling or area element rejection sampling, are advised for ellipsoids as they offer great solutions for high sample counts \cite{marples_2024,williamson_1987,melfi_2004}.
+As rejection sampling is driven by random point selection and rejection of none suitable samples, research like Marples et al. \cite{marples_2024} mostly compares these sampling-based methods on high sample counts (e.g., $10^{8}$).
+For low sample sizes, those methods show overpowering noise and therefore are not sufficient for our sampling requirements.
+An alternative method is proposed in the following combining the Fibonacci Lattices \cite{gonzalez_2010} with the well-known Thomson Problem \cite{thomson_1904}.
+\par
+We start our sampling by placing points on a sphere with the Fibonacci lattice strategy, which is described in \cref{sec:benchmark:sampling:fibonacci}.
+The sphere is than stretched to an ellipsoid.
+After transformation the points on the ellipsoid are not uniformly spaced anymore.
+However, as they are still roughly placed in the correct spot, we use them as starting points for our optimization (\cref{sec:benchmark:sampling:thomson}).
 
-\subsubsection{Fibonacci Lattices} \label{sec:benchmark:fibonacci}
-% \subsubsection{Sphere Sampling} \label{sec:benchmark:sampling:sphere}
+\subsubsection{Fibonacci Lattices} \label{sec:benchmark:sampling:fibonacci}
+% \subsubsection{Sphere Sampling} \label{sec:benchmark:sampling:fibonacci}
+Fibonacci Lattices are constructed by leveraging the well-known golden angle to pick points on a spiral.
+Gonz{'a}lez picked the Fermat spiral \cite{vogel_1979} to have an equal angle to area turn and offset to the poles.
+This spiral, combined with the golden angle, produces a sampling that spreads the points across the whole sphere, while resulting in isotropic spacing \cite{gonzalez_2010}.
+For a much deeper analysis, we strongly recommend Gonzalez 2010 work; it presents in great detail the construction and uniformity of Fibonacci Lattices. \\
+Another advantage of these lattices, compared with rejection sampling methods, is their deterministic nature.
+The construction includes no randomness and produces the same point positions for every run; therefore, no pseudo-random seeding is required at this step.
+% We strive for a uniform point placement on an ellipsoid ring with great reproducibility and accuracy for low sample sizes.
+To move from a unit sphere to an ellipsoid, we stretch the Fibonacci Lattice generated samples.
 
-\subsubsection{Thomson Problem} \label{sec:benchmark:thomson}
-% \subsubsection{Ellipsoid Optimization} \label{sec:benchmark:sampling:ellipsoidOpt}
+\subsubsection{Thomson Problem} \label{sec:benchmark:sampling:thomson}
+% \subsubsection{Ellipsoid Optimization} \label{sec:benchmark:sampling:thomson}
+During the process of reparameterizing the sphere, we obviously changed the spacing between our samples.
+They are no longer uniformly placed on the ellipsoid.
+For a typical humanoid upper body, the hull ellipsoid is stretched upwards and compressed around the frontal plane.
+Because of the ring selection, we ignore the high error regions at the top and bottom.
+The horizontal compression, however, introduces clumping of points at the sides of the robot, while fewer points are found at the front and back. \\
+We trim down both errors by applying the classical Thomson Problem \cite{thomson_1904}, which maximizes the accumulated inter-point distances for points $\bm p$ between the upper $\overline z$ and lower ring cut-off $\underline z$.
+\Cref{eq:benchmark:sampling:thomson} is the adapted formulation for the point count $n_p$.
+The original Thomson problem, as formulated in \cite{thomson_1904}, describes electrons which are located on a sphere.
+As an objective function, the electrostatic potential energy is minimized, which results in an even spread of electrons across the unit sphere.
+\begin{subequations}
+\label{eq:benchmark:sampling:thomson}
+  \begin{align}
+  % \min_{x,y,z} & \sum^{N-1}{i=1} \sum^{N}{j=i+1} \left( (x_i-x_j)^2 + (y_i-y_j)^2 + (z_i-z_j)^2 \right)^{-\frac 1 2} \\
+  \min_{\bm p} \sum^{n_p-1}_{i=1} \sum^{n_p}_{j=i+1} & \frac{1}{|\bm p_i- \bm p_j|_2} & \\
+  \text{s.t.} \qquad \left|\left|\frac{\bm p_i}{\bm r}\right|\right|_2^2 & = 1 & \forall i \in \left[ 1, n_p \right] \label{eq:benchmark:thomson:ellipsoid} \\
+  \overline z \leq p_i^z & \leq \underline z &  \forall i \in \left[ 1, n_p \right] \label{eq:benchmark:thomson:cut}
+  \end{align}
+\end{subequations}
+We adjusted this formulation to \cref{eq:benchmark:sampling:thomson} with an additional cut-off constraint (\cref{eq:benchmark:thomson:cut}) and reparametrization in \cref{eq:benchmark:thomson:ellipsoid}. \\
+For our sampling method, we set the stretched Fibonacci lattice points as initial guesses for the problem, as they are already sufficiently close to the solution, resulting in a refined positioning of the original points.
+In order to produce a reproducible sampling, the optimization algorithm has a fixed seed of zero.
+NLopt \cite{NLopt}, with its implementation of the \acrshort{slsqp} \cite{kraft_1994} solver, was chosen for solving \cref{eq:benchmark:sampling:thomson}.
 
 \subsubsection{Sampling Algorithm} \label{sec:benchmark:sampling:algo}
-\todo[inline]{results like}
+We proposed a three-step method to sample uniform object starting positions on an ellipsoid ring.
+\begin{enumerate}
+\item sample ring surface with Fibonacci lattices (\cref{sec:benchmark:sampling:fibonacci})
+\item stretch sphere to ellipsoid
+\item maximize aggregated point distance with \cref{eq:benchmark:sampling:thomson} (\cref{sec:benchmark:sampling:thomson})
+\end{enumerate}
+% The ellipsoid sampling algorithm produces a reproducible uniform sampling, which can be utilized to determine object trajectories for benchmarking any collision avoidance controller. \\
+The ellipsoid sampling algorithm produces a uniform spread of positions across the chosen impact ellipsoid surface.
+Together with the previously described benchmarking method, any humanoid collision avoidance motion generator can be tested and investigated for its limitations. \\
+
+
 
 \subsection{Algorithm Structure}
+\begin{enumerate}
+  \item sample impact surface uniformly
+  \begin{enumerate}
+    \item Fibonacci Lattices \
+    \item Thomson Problem optimization
+  \end{enumerate}
+  \item project impact locations outwards
+  \item try generating a motion for each trajectory
+\end{enumerate}
 
 \begin{figure}
   \centering
@@ -121,3 +179,8 @@ The consequence is the need for a uniform sampling algorithm on an ellipsoid.
 
 \subsection{Extension to Spline-defined Trajectories} \label{sec:benchmark:extension}
 
+\begin{itemize}
+  \item Splines are defined in local coordinate system
+  \item cs: origin at start point, with up in normal direction, right along equator
+  \item Middle of spline at impact location
+\end{itemize}
