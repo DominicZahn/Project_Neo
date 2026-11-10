@@ -1,0 +1,186 @@
+\documentclass[tikz, border=5pt]{standalone}
+\usetikzlibrary{arrows.meta}
+
+% \arcpart{style}{lo}{hi}{tmin}{tmax}{x(t)}{y(t)}{z(t)}
+% draws the part of the curve with t in [tmin,tmax] and t in [lo,hi] (mod 360)
+\newcommand{\arcpart}[8]{%
+  \foreach \sh in {-720,-360,0,360,720}{%
+    \pgfmathsetmacro{\tlo}{max(#4,(#2)+(\sh))}%
+    \pgfmathsetmacro{\thi}{min(#5,(#3)+(\sh))}%
+    \ifdim\tlo pt<\thi pt
+      \draw[#1] plot[domain=\tlo:\thi, samples=50, variable=\tp] ({#6},{#7},{#8});%
+    \fi}}
+
+% \curve{tmin}{tmax}{A}{B}{C}{x(t)}{y(t)}{z(t)}
+% A cos t + B sin t + C = (surface normal) . (direction to viewer);
+% > 0 means the point faces the viewer (solid), otherwise hidden (dashed)
+\newcommand{\curve}[8]{%
+  \pgfmathsetmacro{\cA}{#3}\pgfmathsetmacro{\cB}{#4}\pgfmathsetmacro{\cC}{#5}%
+  \pgfmathsetmacro{\cR}{sqrt(\cA*\cA+\cB*\cB)}%
+  \pgfmathsetmacro{\cd}{atan2(\cB,\cA)}%
+  \pgfmathsetmacro{\cg}{acos(max(-1,min(1,(0-\cC)/\cR)))}%
+  \pgfmathsetmacro{\vlo}{\cd-\cg}%
+  \pgfmathsetmacro{\vhi}{\cd+\cg}%
+  \pgfmathsetmacro{\hhi}{\cd-\cg+360}%
+  \arcpart{hidden}{\vhi}{\hhi}{#1}{#2}{#6}{#7}{#8}%
+  \arcpart{visible}{\vlo}{\vhi}{#1}{#2}{#6}{#7}{#8}}
+
+\begin{document}
+
+% ---- parameters -------------------------------------------------
+\def\ra{1.4}    % semi-axis along x
+\def\rb{0.9}    % semi-axis along y (toward the viewer)
+\def\rc{3}      % semi-axis along z (vertical)
+\def\zc{2}      % cut-off planes at z = +-\zc  (must be < \rc)
+\def\elev{20}   % camera elevation in degrees (keep > 0: viewed from above)
+\def\azim{-45}  % camera azimuth in degrees
+
+% ---- colors ------------------------------------------------------
+\def\axisColor{black}
+% \def\semiAxisColor{red}
+\def\bodyColor{blue!30}
+\def\bodyCapColor{blue!12}
+\def\semiAxisColor{red}
+% \def\bodyColor{orange!70}
+% \def\bodyCapColor{orange!55}
+\def\visibleColor{black}
+\def\hiddenColor{black!70}
+
+% ---- trigonometry ------------------------------------------------
+\pgfmathsetmacro{\sth}{sin(\elev)}
+\pgfmathsetmacro{\cth}{cos(\elev)}
+\pgfmathsetmacro{\sph}{sin(\azim)}
+\pgfmathsetmacro{\cph}{cos(\azim)}
+
+% ---- projection of the unit vectors -----------------------------
+\pgfmathsetmacro{\exx}{\cph}
+\pgfmathsetmacro{\exy}{\sph*\sth}
+\pgfmathsetmacro{\eyx}{\sph}
+\pgfmathsetmacro{\eyy}{-\cph*\sth}
+\pgfmathsetmacro{\ezz}{\cth}
+
+% ---- silhouette: ellipse q(s) = L (cos s, sin s) with M = L L^T --
+\pgfmathsetmacro{\mA}{\ra*\ra*\cph*\cph+\rb*\rb*\sph*\sph}
+\pgfmathsetmacro{\mB}{(\ra*\ra-\rb*\rb)*\sph*\cph*\sth}
+\pgfmathsetmacro{\mC}{(\ra*\ra*\sph*\sph+\rb*\rb*\cph*\cph)*\sth*\sth+\rc*\rc*\cth*\cth}
+\pgfmathsetmacro{\lA}{sqrt(\mA)}
+\pgfmathsetmacro{\lB}{\mB/\lA}
+\pgfmathsetmacro{\lC}{sqrt(\mC-\lB*\lB)}
+% the silhouette is cut off where |z| = zc, i.e. |sin s| = sg
+\pgfmathsetmacro{\sg}{\zc*\lC/(\rc*\rc*\cth)}
+\pgfmathsetmacro{\szero}{asin(min(\sg,1))}
+
+% ---- extent of the shading rectangle -----------------------------
+\pgfmathsetmacro{\yy}{sqrt(\mC)+0.1}
+\pgfmathsetmacro{\xx}{\lA+0.1}
+
+% ---- cut rims (ellipses) and meridian range ---------------------
+\pgfmathsetmacro{\kk}{sqrt(1-(\zc/\rc)*(\zc/\rc))}
+\pgfmathsetmacro{\rrA}{\ra*\kk}
+\pgfmathsetmacro{\rrB}{\rb*\kk}
+\pgfmathsetmacro{\tone}{asin(\zc/\rc)}
+
+% ---- visibility coefficients -------------------------------------
+\pgfmathsetmacro{\vA}{-\sph*\cth/\ra}      % equator and meridian
+\pgfmathsetmacro{\vB}{\cph*\cth/\rb}       % equator
+\pgfmathsetmacro{\vM}{\sth/\rc}            % meridian
+\pgfmathsetmacro{\vRA}{\vA*\kk}            % rims
+\pgfmathsetmacro{\vRB}{\vB*\kk}
+\pgfmathsetmacro{\vRC}{\sth*\zc/(\rc*\rc)}
+
+\pgfmathsetmacro{\pl}{1.7*max(\ra,\rb)}    % half-size of the plane squares
+
+\begin{tikzpicture}[
+    x={(\exx cm,\exy cm)},
+    y={(\eyx cm,\eyy cm)},
+    z={(0cm,\ezz cm)},
+    >=Stealth,
+    hidden/.style={dashed, \hiddenColor, thin},
+    visible/.style={\visibleColor},
+    axis/.style={->, thick, \axisColor},
+    semiAxis/.style={thick, \semiAxisColor},
+    semiAxisCut/.style={thick, dotted, \semiAxisColor}
+]
+
+% ---- shaded body --------------------------------------------------
+% side band: gradient clipped to the band between the silhouette arcs
+\begin{scope}[x={(1cm,0cm)}, y={(0cm,1cm)}]
+  \begin{scope}
+    \clip
+      plot[domain=-\szero:\szero, samples=40, variable=\sv]
+        ({\lA*cos(\sv)}, {\lB*cos(\sv)+\lC*sin(\sv)})
+      -- plot[domain={180-\szero}:{180+\szero}, samples=40, variable=\sv]
+        ({\lA*cos(\sv)}, {\lB*cos(\sv)+\lC*sin(\sv)})
+      -- cycle;
+    \shade[ball color=\bodyColor] (-\xx,-\yy) rectangle (\xx,\yy);
+  \end{scope}
+\end{scope}
+
+% bottom cap: same gradient, clipped to the bottom rim ellipse (3D coords)
+\begin{scope}
+  \clip plot[domain=0:360, samples=80, variable=\tp]
+    ({\rrA*cos(\tp)}, {\rrB*sin(\tp)}, -\zc) -- cycle;
+  \begin{scope}[x={(1cm,0cm)}, y={(0cm,1cm)}]
+    \shade[ball color=\bodyColor] (-\xx,-\yy) rectangle (\xx,\yy);
+  \end{scope}
+\end{scope}
+
+% silhouette outlines
+\begin{scope}[x={(1cm,0cm)}, y={(0cm,1cm)}]
+  \draw[]
+    plot[domain=-\szero:\szero, samples=40, variable=\sv]
+      ({\lA*cos(\sv)}, {\lB*cos(\sv)+\lC*sin(\sv)});
+  \draw[]
+    plot[domain={180-\szero}:{180+\szero}, samples=40, variable=\sv]
+      ({\lA*cos(\sv)}, {\lB*cos(\sv)+\lC*sin(\sv)});
+\end{scope}
+
+% top face
+\fill[\bodyCapColor] plot[domain=0:360, samples=80, variable=\tp]
+  ({\rrA*cos(\tp)}, {\rrB*sin(\tp)}, \zc) -- cycle;
+
+% ---- cut-off planes ------------------------------------------------
+\foreach \sgn/\lab in {1/{$\underline z$}, -1/{$\overline z$}}{
+  \fill[gray, opacity=0.15] (-\pl,-\pl,\sgn*\zc) -- (\pl,-\pl,\sgn*\zc)
+                            -- (\pl,\pl,\sgn*\zc) -- (-\pl,\pl,\sgn*\zc) -- cycle;
+  \draw[gray, thin]      (-\pl,-\pl,\sgn*\zc) -- (\pl,-\pl,\sgn*\zc)
+                            -- (\pl,\pl,\sgn*\zc) -- (-\pl,\pl,\sgn*\zc) -- cycle;
+  \node[right, gray!50!black, font=\small] at (\pl,-\pl,\sgn*\zc) {\lab};
+}
+
+% ---- equator (z = 0) -----------------------------------------------
+\curve{0}{360}{\vA}{\vB}{0}{\ra*cos(\tp)}{\rb*sin(\tp)}{0}
+
+% ---- meridian (plane y = 0), only between the planes ---------------
+\curve{-\tone}{\tone}{\vA}{\vM}{0}{\ra*cos(\tp)}{0}{\rc*sin(\tp)}
+\curve{180-\tone}{180+\tone}{\vA}{\vM}{0}{\ra*cos(\tp)}{0}{\rc*sin(\tp)}
+
+% ---- meridian (plane x = 0), only between the planes ---------------
+\curve{-\tone}{\tone}{\vB}{\vM}{0}{0}{\rb*cos(\tp)}{\rc*sin(\tp)}
+\curve{180-\tone}{180+\tone}{\vB}{\vM}{0}{0}{\rb*cos(\tp)}{\rc*sin(\tp)}
+
+% ---- rims of the cuts -----------------------------------------------
+\draw[visible] plot[domain=0:360, samples=80, variable=\tp]
+  ({\rrA*cos(\tp)}, {\rrB*sin(\tp)}, \zc);                     % top: fully visible
+\curve{0}{360}{\vRA}{\vRB}{-\vRC}{\rrA*cos(\tp)}{\rrB*sin(\tp)}{-\zc}  % bottom
+
+% ---- semi-axes ------------------------------------------------------
+\draw[semiAxis] (0,0,0) -- (\ra,0,0);
+\draw[semiAxis] (0,0,0) -- (0,\rb,0);
+\draw[semiAxis] (0,0,0) -- (0,0,\zc);
+\draw[semiAxisCut] (0,0,\zc) -- (0,0,\rc);             % removed by the cut
+
+% ---- coordinate axes beyond the surface --------------------------------
+\draw[axis] (\ra,0,0) -- ({\ra+1.0},0,0) node[right] {$x$};
+\draw[axis] (0,\rb,0) -- (0,{\rb+1.0},0) node[left] {$y$};
+\draw[axis] (0,0,\rc) -- (0,0,{\rc+1.0}) node[above] {$z$};
+
+% ---- semi-axis labels ----------------------------------------------------
+\node[\semiAxisColor, above]      at ({\ra/2},0,0)        {$r^x_\mathcal{I}$};
+\node[\semiAxisColor, above]      at (0,{\rb/2},0)        {$r^y_\mathcal{I}$};
+\node[\semiAxisColor, left]       at (0,0,{(\zc+\rc)/2})  {$r^z_\mathcal{I}$};
+
+\fill[\axisColor] (0,0,0) circle (1.5pt);
+
+\end{tikzpicture}
+\end{document}
