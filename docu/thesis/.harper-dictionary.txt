@@ -1,4 +1,7 @@
 Acados
+H1
 Huppler
 Hupplers
 Marples
+NLopt
+Unitree

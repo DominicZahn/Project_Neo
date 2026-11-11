@@ -4,10 +4,10 @@ Modern Humanoids are able to achieve highly dynamic motions that their staticall
 Unitrees H1 and G2 execute impressive tasks, dancing \cite{sun_2026} and catching footballs like goalkeepers \cite{ren_2026}.
 Having such powerful platforms at hand enables research towards extended evasion maneuvers.
 These motions were previously not feasible due to the lack of power, stability, and joint range.
-Yang et al. 2026 \cite{yang_2026} display such evasion by implementing a full dodgeball controller onto the G2.
+Yang et al. 2026 \cite{yang_2026} display such evasion by implementing a full dodge ball controller onto the G2.
 \\
-When it comes to handling collisions with approaching objects, previous robots, like the HRP-2 \cite{kaneko_2004} were mostly limited to impact resistance or slow evasion maneuvers
-The field standing of push recovery is traditionally either dominated by "ankle" or "hip" strategies. \cite{hofmann_2006}
+When it comes to handling collisions with approaching objects, previous robots, like the HRP-2 \cite{kaneko_2004}, were mostly limited to impact resistance or slow evasion maneuvers.
+The field of push recovery is traditionally either dominated by "ankle" or "hip" strategies.
 \todo{necessary?}
 Hofmann \cite{hofmann_2006} mentions Allum and Honegger \cite{allum_1992}, as well as Nashner and McCollum \cite{nashner_1985}, as the foundational works in human push recovery studies.
 Those strategies, however, are only feasible for small impact forces.
@@ -23,43 +23,46 @@ However, the superior solution would be to evade the approaching object and retu
 This way the humanoid can calculate beforehand the resulting motion as well as counteract the possible stability difficulties.
 Full collision avoidance also removes the risk of damage to both the humanoid and the object to evade.
 As a result of there human-like statue, humanoids are for example set for applications in industry, health care or social service \cite{tong_2024,mccartney_2020}.
-Such settings require the humanoid to be aware of other actors in its environment, like robotic arms or human coworkers.
+Such settings require humanoids to be aware of other actors in their environment, like robotic arms or human coworkers.
 Especially when working around humans it is essential to keep a reasonable safety distance.
 This topic leads us to the well known research area of collision avoidance.
 
 \paragraph{Collision Avoidance and Path Planning} \label{sec:introduction:avoidance}
-To solve the NP-hard problem of avoiding collisions for robotics \cite{canny_1988} different approaches have been developed.
-A main distinction is the time frame in which the evasion motion has to be computed.
+To solve the NP-hard problem of avoiding collisions in robotics, different approaches have been developed \cite{canny_1988}.
+A main distinction is the time frame in which the evasion motion has to be known.
 Works like \cite{yang_2026,kohlbrenner_2026} focus on real-time planning, with a closed loop and black-boxed system, spanning object detection, motion synthesis and control.
-Recent systems of that kind are mostly driven by reinforcement or imitation learning providing little to no inside into there internals. \todo{bold statement?}
+Recent systems of that kind are mostly driven by reinforcement or imitation learning providing little to no inside into their internals. \todo{bold statement?}
 \\
-The most important element remains generating the evasion motion.
+The most important element of the system is the motion generator.
 By usage of a unified system for detection, path planning and motion execution, well understood components are reimplemented.
-For the use case of evading approaching objects with humanoid robots already existing methods can be utilized.
+For the use case of evading approaching objects, already existing methods can be utilized, to provide sensing and execution of the evasive motion.
 An example is \cite{casas_2025}, which estimates object trajectories by fusing multiple sensors to a clean forecast.
 Gab et al. 2022 \cite{gad_2022} also shows a variety of different \acrfull{mto} approaches.
 \\
-To finally execute the planned evasion motion a \acrlong{wbc} is required.
-It stabilizes the robot and not only stabilizes the robot, but also counteracts environmental uncertainties and planning inaccuracies introduced by simplified models \cite{gu_2026}.
+To execute the planned evasion motion a \acrlong{wbc} is required.
+It stabilizes the robot and counteracts environmental uncertainties, as well as planning inaccuracies introduced by simplified models \cite{gu_2026}.
+\\
 We showed that both the object tracking and motion execution fields offer a large variety of different methods.
 Moving forward, we therefore focus on the generation of feasible evasion trajectories.
-\\ % end of why we need only path planning
+\par % end of why we need only path planning
 While path planning is a huge field in robotics only a small portion of the works are focusing on humanoids, which are evading approaching objects.
-A lot of work is run on quadrupeds or an \acrfull{uav}. \cite{zhao_2026,zhang_2026,jacquet_2025}
+A lot of work is run on quadrupeds or an \acrfull{uav} \cite{zhao_2026,zhang_2026,jacquet_2025}.
 In general, these pose a lower \acrfull{dof} problem and provide better stability.
 However, as described before, some situations require robots to work in spaces specifically designed for humans.
-Some even on robotic arms, which eliminates all stability concerns and further reduces the problem size \cite{mercy_2016,haviland_2021}.
-These low \acrshort{dof} robots are utilize mostly model-based controllers, as their computation is fast enough for \acrfull{mpc}.
+Mercy et al. 2016 \cite{mercy_2016} and Haviland et al. 2021 \cite {haviland_2021} even present their work on robotic arms, which eliminates all stability concerns and further reduces the problem size.
+These low \acrshort{dof} robots utilize mostly model-based controllers, as their computation is fast enough for \acrfull{mpc}.
 \\
 When it comes to humanoids, recent work in the field of approaching object avoidance, is solved with learning-based methods \cite{yang_2026,kohlbrenner_2026}.
 Solutions like Yang et al. \cite{yang_2026} display impressive results on open spaces, taking steps and moving out of the way when necessary.
 These capture step resembling motions are less taxing on the dynamic stability limits of the humanoid.
 Environments in industrial or health care settings can require tightly packed spaces, in which evasive maneuvers should be concealed to anchored balancing motions.
 Rapid and large stepping motions in contrast, possibly threaten a collision with the robots surroundings, or in worst case other actors in the scene.
-Therefore, stepping is not always an option humanoids, when recovering from pushes or avoiding those impacts directly \cite{huang_2022}.
+Stepping is therefore not always an option for evading or recovering humanoids \cite{huang_2022}.
 Most of the current works on rapidly approaching objects however is linked to spacious jumps or steps \cite{yang_2026,zhao_2026}.
 Kohlbrenner et al. \cite{kohlbrenner_2026} presents a learning-based solution, that shows the usage of proximity sensors for a full tracking to motion execution approach.
 Their controller manages to keep the H1 at the initial position for some of the evasion motions.
+\\
+As we found multiple works and methods surrounding humanoid object avoidance, we should take a look at their testing framework.
 
 \paragraph{Comparability} \label{sec:introduction:comparability}
 For the growing field of humanoid object avoidance it is important to create comparable and reproducible tests.
@@ -78,46 +81,49 @@ As we saw both are using vastly different test setups, which makes it difficult 
 Another problem is the vague description of their testing procedure.
 In order to fully reproduce the results both provide not enough information about their launch positions, initial velocity and target positions.
 Picking object launch positions, which are close together can skew the success rate in both directions.
-Randomness works well for verifying the general functionality of the controller, but does not suit well for thoroughly evaluating it.
 \\
-We conclude in summarizing the identified gaps in current humanoid approaching object avoidance and formulate a frame that could fill in the missing links.
+Additionally both setups provide some form of randomness with their high uncertainties.
+While randomly picked launch positions work well for verifying the general functionality of the controller, they prevent thoroughly analyzing it.
+\\
+We conclude in summary of the identified gaps in current humanoid approaching object avoidance research and formulate a solution to improve the state-of-the-art.
 
 \paragraph{Problem Formulation} \label{sec:introduction:problem}
 We strive to advance humanoids object evasion strategies, as the current generation of robots showcases promising capabilities \cite{sun_2026,ren_2026}.
-To elevate the currently existing evasion approaches we focus on the path planning aspect, as object detection and motion execution are well-covered topics \cite{gad_2022,gu_2026}.
+To elevate the currently existing evasion approaches, we focus on the path planning aspect, as object detection and motion execution are well-covered topics \cite{gad_2022,gu_2026}.
 This enables us to look deeply into evasion motion generation for complex high \acrshort{dof} humanoids like the H1-2 from Unitree.
 In contrast to previous works we will restrict the robot to a narrow space and keep the robot in a bipedal stance.
 The generation of such motions includes investigations towards the capabilities of the humanoid.
 Our goal is it to push the robot to its limits and identify motions, that are outside the robots capabilities.
-We restrain from spacious evasion strategies like those in \cite{yang_2026,zhao_2026,kohlbrenner_2026}.
-Large and explosive movements are not always applicable and could additionally pose threats to cooperation partners. \cite{huang_2022}
+We restrain from spacious evasion strategies like those in \cite{yang_2026,kohlbrenner_2026,zhao_2026}.
+Large and explosive movements are not always applicable and could additionally pose threats to cooperation partners \cite{huang_2022}.
 As another note, accurate models of impacts with impulse transfer are difficult to model and introduce another abstraction layer \cite{wang_2023}.
-The target is an optimal collision-avoidance motion generator for the humanoid H1-2 in bipedal stance.
 \\
+The target is an optimal collision-avoidance motion generator for the humanoid H1-2 in bipedal stance.
 Our system will be evaluated in a reproducible test, to propose an even playing field for comparison with future methods.
 The priority lies in introducing the motion generator formulation and its testing framework.
-As an addition we would like to take a look at the collision-avoidance capabilities of the H1-2 from Unitree.
+As an addition we investigate the general collision-avoidance capabilities of the H1-2 from Unitree, when it comes to upper body targeted approaching objects.
 
 \paragraph{Overview}
 The master thesis revolves around the optimal collision-avoidance motion generator and its testing framework.
 We start of by introducing fundamental concepts in rigid body dynamics (\cref{sec:fundamentals:rigid}), general contact formulations (\cref{sec:fundamentals:contacts}), optimal control, with a focus on direct multiple shooting (\cref{sec:fundamentals:optimalControl:multipleShooting}) and dynamic stability (\cref{sec:fundamentals:dynamicStability}).
 \\
-\Cref{sec:benchmark} defines our test setup, which goes over the sampling of start object start positions, as well as their initial velocity and target.
-This full run-down enables to reader to reproduce the test setup and compare own methods against the proposed motion generator.
+\Cref{sec:eval} defines our test setup, which goes over the sampling of object start positions, as well as their initial velocity and target.
+This full run-down enables the reader to reproduce the test setup and compare own methods against our proposed motion generator.
 \\
-Next up we will provide walk through the two stage development process of our motion generator.
+Afterwords we will provide the two stages of development our motion generator was undergoing.
 \Cref{sec:limbo} describes our first iteration, where fundamental concepts are implemented.
 Our core optimal control formulation can be found here as well as the usage of the in \cref{sec:fundamentals:contacts} described contact formulation.
-Additionally, we will outline implementation details for the Pinocchio \cite{pinocchioweb} Acados \cite{verschueren_2021} set up we are running.
+Additionally, we will outline implementation details for the Pinocchio \cite{pinocchioweb} Acados \cite{verschueren_2021} setup.
 The second iteration prioritizes a refinement of the optimal control formulation, especially when it comes to modeling the collision hull and robot to object distance.
+We also revise here the formulation and adjust it to the changed collision constraint.
 \\
 After each iteration we will present the results and discuss their shortcomings.
 The full setup of tests and final motion generator is than discussed in \cref{sec:discussion}.
-We round out the thesis with a conclusion in \cref{sec:conclusion} and outlook in \cref{sec:futureWork}.
-A general overview of the thesis is visualized in \cref{fig:intro:graphicalAbstract}.
+We round up the thesis with an overarching conclusion in \cref{sec:conclusion} and outlook in \cref{sec:futureWork}.
+A general overview of the motion generator and benchmark is visualized in \cref{fig:intro:graphicalAbstract}.
 \begin{figure}[hb]
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/01_introduction/graphicalAbstract.png}
+  \includegraphics[width=0.75\textwidth]{figures/01_introduction/graphicalAbstract.png}
   \caption{
 The project consists of two major contributions: a motion generator for optimal object avoidance and a benchmark to thoroughly test it across a wide range of object trajectories.
   }

@@ -1,0 +1,399 @@
+\section{Systematic Evaluation} \label{sec:eval}
+
+Before we start evaluating the optimal object avoidance motion generator, a test setup is required to evaluate the performance of our solution.
+In \cref{sec:introduction:comparability} we showed the inconsistency of test setups for a selection of state of the art controllers.
+
+\subsection{Benchmark Definition} \label{sec:eval:setup}
+These encapsulate a full pipeline, spanning object detection, tracking, motion generation and execution.
+An isolated evaluation of the most important component, the motion generation, is therefore difficult to achieve.
+\\
+Systems like {PAC-MAN} \cite{yang_2026} are tested in real world or physics simulations.
+Gazebo \cite{koenig_2004} or \acrfull{mujoco} \cite{todorov_2012} are two examples for such physical simulations.
+A motion generation focused analysis of complete black-box controllers therefore always includes simulation errors.
+As these physics simulations are approximations of the real-world, they model it in different ways and introduce errors for different use cases.
+A great showcase of these differences are the contact formulations.
+Gazebo allows for multiple physics engines, but comes by default with \acrfull{dart} \cite{lee_2018}.
+\acrshort{dart} models contacts and collisions using an implicit time-stepping, velocity-based \acrfull{lcp} formulation.
+In contrast \acrshort{mujoco} employs a non-complementary method, which turns it into a convex optimization problem.
+So Gazebo has a rigid contact model, while \acrshort{mujoco} uses spring-damper systems as contact models \cite{lee_2018} \cite{todorov_2012}.
+These fundamental differences remind us again that there is no such thing as a ground-truth in physics simulation and we should avoid evaluating with a single simulation.
+As our work focuses on the collision avoidance motion generation we cut out all other components and evaluate solely if the motion generator finds a suitable joint trajectory.
+\\
+The resulting motions can later be executed with a suitable whole-body controller in a physics simulation or the real-world.
+However, this would also include the errors of the chosen whole-body controller and possibly simulation.
+\par
+Our evaluation uses Karl Hupplers five characteristics of a good benchmark to derive properties our collision avoidance test setup has to implement.
+From those we formulate requirements towards the start velocity, position and impact surface.
+\\
+These lead to the problem of uniformly sampling an ellipsoid, which is our selected impact surface.
+The next section describes the impact location sampling process. (\cref{sec:eval:sampling})
+With the impact locations in place, we present the full algorithm, including the calculation of object velocities and start locations in \cref{sec:eval:algo}.
+\\
+We conclude with an extension towards spline-based trajectories in \cref{sec:eval:extension}.
+
+Our benchmark consists of multiple independent runs, where a single object approaches the robot.
+The object is on a defined trajectory, targeted towards an impact location on the robot.
+For our work we stick to linear object trajectories with constant velocity.
+\\
+A more complex definition of trajectories is also possible, however this would require small adjustments to the start position calculations.
+An extension towards spline-based trajectories is described in \cref{sec:eval:extension}.
+% \par
+\paragraph{Required Benchmark Properties} \label{par:eval:setup:properties}
+First we are deriving the necessary properties of a suitable benchmark setup.
+"The Art of Building a Good Benchmark" \cite{huppler_2009} from Karl Huppler, mentions five characteristics: \textit{relevance}, \textit{repeatability}, \textit{fairness}, \textit{verifiability}, \textit{economicalness}, which need to be balanced in order to build a good benchmark.
+While Hupplers characteristics are formulated for computer systems, we can use them to identify properties for our benchmark.
+\\
+A \textit{relevant} benchmark for motion generation of collision avoidance should represent an amount of successfully avoided objects, as this is "something important" to the user \cite{huppler_2009}.
+One of the common metrics in this field is success rate \cite{yang_2026,zhang_2026}.
+\\
+To produce a success rate that truthfully reflects the strength and weaknesses of the motion generator for a specific robot a \textit{verifiable} setup is required.
+In our context, \textit{verifiable} boils down to a testing method, which tests a range of collision avoidance scenarios, where the object approaches the robot from vastly different angles and covers various impact locations.
+% Imagine a humanoid in its default upright standing pose.
+% The method has to test impacts on the whole upper body surface with vastly differing impact angles.
+\\
+\textit{Repeatable} is in our case straightforward.
+The benchmark should always result in the same success rate, when the generator itself is deterministic.
+For \textit{economicalness} the benchmark has to be correct for any number of runs.
+During ongoing development a small amount of individual runs is likely to be used, while for thorough in-depth evaluations a larger scale is required.
+In general this is the weakest requirement, as long as it scales reasonably with the motion generator and does not introduce bias to the success rate.
+\\
+The last property is derived from \textit{fairness}.
+Each evasion motion generator has to be able to perform on an even playing field.
+This is another argument, why we are evaluating the existence of a found motion instead of executing it in a physics simulation.
+Our evaluation consequently relies on the motion generators to implement a feasibility constraint and report the nonexistence avoidance motions.
+\par
+In summary our benchmark has to use runs, which are equally important, so that the success rate is \textit{verifiable}, while providing \textit{fairness}.
+It should also be able to handle high and low amounts of test runs to accommodate for \textit{economicalness}.
+
+\paragraph{Start Velocity, Position and Impact Surface} \label{par:eval:setup:velPosImpact}
+The user of the benchmark has to select the impact surface $\mathcal I$, amount of objects $n_p$, time of flight $T_f$ and distance $d$ from start point to impact surface.
+Start velocities $\bm v_i$ and impact locations are than calculated for each run $i$.
+\par
+To construct a \textit{verifiable} and \textit{relevant} benchmark from multiple single collision avoidance checks, all of them have to be equally important.
+As a result every run needs to test a separate ability of the robot motion generator combination.
+If runs are hitting similar impact locations or meet in a single focal point, the benchmark is weighting these areas stronger, as every run is equally weighted into the success rate.
+\\
+The solution is to sample uniformly spaced locations $\bm p_i^\mathcal I$ on the impact surface $\mathcal I$.
+Normals $\bm n_i$ at the impact locations than define the impact direction.
+In order to avoid creating focal points for the object trajectories an ellipsoid can be used.
+Ellipsoids normal vectors meet in a focal cone instead of a single focal point \cite{staude_1886}, which concludes in an even penetration of the volume.
+\par
+Our use case is bipedal standing evasion, which results in an impact surface that is fitted around the torso.
+It is however, also possible, to place the impact surface on other parts of the robot to evaluate collision avoidance abilities.
+An example would be an impact surface at the lower leg for near ground level threat scenarios.
+\\
+\begin{figure}
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/05_benchmark/impactArea/cut-off.pdf}
+  \caption{Cut-offs $\underline z$ and $\overline z$ in the xy-plane remove steep angles and enable the benchmark to focus on primarily horizontally approaching objects.}
+  \label{fig:eval:setup:velPosImpact:cuf-off}
+\end{figure}
+As \cref{fig:eval:setup:velPosImpact:cuf-off} display, we define two vertical cut-offs $\overline z$ and $\underline z$, which are measured from the center line of the ellipsoid.
+These enable the user to remove steep angles from the benchmark execution and puts the focus on horizontally approaching threats.
+\\
+The next section describes the impact location sampling on top of our impact surface.
+Abstractly speaking, we are therefore formulating a method to uniformly sample $n_p$ points $\bm p_i^\mathcal I$ on an ellipsoid ring $\mathcal I$, which is characterized by the ellipsoid radius $\bm r_\mathcal{I}$ and cut-offs $\underline z$, $\overline z$.
+The following sections present our uniform ellipsoid sampling algorithm.
+
+\subsubsection{Ellipsoid Sampling} \label{sec:eval:sampling}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/05_benchmark/gonzalez/comparison.pdf}
+  \caption{Comparison between Latitude-longitude lattices (top) and Fibonacci lattice (bottom) from Gonz{'a}lez 2010 \cite{gonzalez_2010}.}
+  \label{fig:eval:sampling:sampling:latticeComp}
+\end{figure}
+\Cref{fig:eval:sampling:sampling:latticeComp} shows a comparison between classical Latitude-longitude lattices and Fibonacci lattices.
+While Latitude-longitude lattices produce nonuniform positions, which are clustered at the poles, Fibonacci lattices are a great option for uniformly selecting samples on a sphere \cite{gonzalez_2010}.
+% Gonz{'a}lez points in his 2010 research \cite{gonzalez_2010} out that Fibonacci lattices are a great option for uniform sampling on spheres.
+However, Fibonacci lattices samples lose their equal distancing when transformed to ellipsoids \cite{marples_2024}.
+\\
+In general, rejection sampling methods, like gradient vector rejection sampling or area element rejection sampling, are advised for ellipsoids as they offer great solutions for high sample counts \cite{marples_2024,williamson_1987,melfi_2004}.
+As rejection sampling is driven by random point selection and rejection of none suitable samples, research like Marples et al. \cite{marples_2024} mostly compares these sampling-based methods on high sample counts (e.g., $10^{8}$).
+For low sample sizes, those methods show overpowering noise and therefore are not sufficient for our sampling requirements.
+\\
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/compare/rejection_1e2.pdf}
+    \caption{Rejection Sampling ($10^2$)}
+    \label{fig:eval:sampling:compare:rejection:low}
+  \end{subfigure}
+  \hspace{4em}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/compare/rejection_1e8.pdf}
+    \caption{Rejection Sampling ($10^8$)}
+    \label{fig:eval:sampling:compare:rejection:high}
+  \end{subfigure}
+  \\
+  \vspace{2em}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/compare/fibonacci_1e2.pdf}
+    \caption{Fibonacci Lattices ($10^2$)}
+    \label{fig:eval:sampling:compare:fibonacci:low}
+  \end{subfigure}
+  \hspace{4em}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/compare/fibonacci_1e8.pdf}
+    \caption{Fibonacci Lattices ($10^8$)}
+    \label{fig:eval:sampling:compare:fibonacci:high}
+  \end{subfigure}
+  \caption{
+  Comparison between gradient vector rejection and Fibonacci lattices with an ellipsoid reparametrization.
+  We compute $10^2$ (left) and $10^8$ (right) samples.
+  It is clearly visible, that the sampling in (a) is dominated by noise.
+  }
+  \label{fig:eval:sampling:compare}
+\end{figure}
+This can be seen in \cref{fig:eval:sampling:compare:rejection:low,fig:eval:sampling:compare:rejection:high} were, we display the uniformity of gradient rejection sampling for $10^2$ and $10^8$ samples.
+We can see the noise vanishing for high sample sizes, while dominating the resulting uniformity in \cref{fig:eval:sampling:compare:rejection:low}.
+In comparison sampling with Fibonacci lattices on a unit sphere and than transforming to an ellipsoid, achieves good results for low sample sizes, while introducing non uniformity for high samples (\cref{fig:eval:sampling:compare:fibonacci:low,fig:eval:sampling:compare:fibonacci:high}).
+To quantify uniformity we used the in Marples et al. 2024 \cite{marples_2024} defined points per segment metric.
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\textwidth]{figures/05_benchmark/marples/segments.pdf}
+  \caption{
+  This figure from Marples et al. 2024 \cite{marples_2024} displays their segment definition for setting a quantifiable uniformity metric.
+}
+  \label{fig:eval:sampling:uniformitySegments}
+\end{figure}
+Segments are defined like shown in \cref{fig:eval:sampling:uniformitySegments}, which was taken from Marples et al. 2024 \cite{marples_2024}.
+For the comparison and noise analysis in \cref{fig:eval:sampling:compare} we used $\Delta  \theta = \SI{1}{\deg}$ and $\Delta  \Phi = \SI{1}{\deg}$.
+\par
+We propose a combination of Fibonacci Lattices \cite{gonzalez_2010} with the optimization strategy of the well-known Thomson Problem \cite{thomson_1904}, to achieve a uniform sampling technique, that is also valid for small sample sizes.
+First our sampling places points on a sphere with the Fibonacci lattice strategy, which is described in \cref{sec:eval:sampling:fibonacci}.
+The sphere is than stretched to an ellipsoid.
+After transformation the points on the ellipsoid are not uniformly spaced anymore.
+However, as they are still roughly placed in the correct spot, we use them as starting points for our optimization (\cref{sec:eval:sampling:thomson}).
+
+\paragraph{Fibonacci Lattices} \label{sec:eval:sampling:fibonacci}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/05_benchmark/gonzalez/algorithm.pdf}
+  \caption{
+  Fibonacci lattice with 21 samples on a Fermal spiral.
+  Red: golden angle; Blue: complementary golden angle. \cite{gonzalez_2010}
+  }
+  \label{fig:eval:sampling:fibonacci:algoSpiral}
+\end{figure}
+Fibonacci Lattices are constructed by leveraging the well-known golden angle to pick points on a spiral.
+Gonz{'a}lez picked the Fermat spiral \cite{vogel_1979} to have an equal angle to area turn, while provindg an offset to the poles.
+This spiral, combined with the golden angle, produces a sampling that spreads the points across the whole sphere, while resulting in isotropic spacing \cite{gonzalez_2010}.
+\\
+\Cref{fig:eval:sampling:fibonacci:algoSpiral} displays the Fermat spiral.
+The figure shows two spirals, the red one was created with the golden angle, while a complementary is colored blue.
+Both spirals produce the same sampling as \cref{fig:eval:sampling:fibonacci:algoSpiral} shows.
+For a much deeper analysis, we strongly recommend Gonz{'a}lez 2010 work; it presents in great detail the construction and uniformity of Fibonacci Lattices.
+\\
+Another advantage of these lattices, compared with rejection sampling methods, is their deterministic nature.
+The construction includes no randomness and produces the same point positions for every run; therefore, no pseudo-random seeding is required at this step.
+% We strive for a uniform point placement on an ellipsoid ring with great reproducibility and accuracy for low sample sizes.
+To move from this unit sphere to an ellipsoid, we stretch the Fibonacci Lattice generated samples.
+
+\paragraph{Inter-point Distance Optimization} \label{sec:eval:sampling:thomson}
+During the process of reparameterizing the sphere, we changed the spacing between our samples (\cref{fig:eval:sampling:overview:transform}).
+They are no longer uniformly placed on the ellipsoid.
+For a typical humanoid upper body, the hull ellipsoid is stretched upwards and compressed around the frontal plane.
+Because of the cut-offs in \cref{fig:eval:setup:velPosImpact:cuf-off}, we ignore the high error regions at the top and bottom.
+The horizontal compression, however, introduces clumping of points at the sides of the robot, while fewer points are found at the front and back.
+\\
+We trim down both errors by applying optimization, which is also used to solve the Thomson problem \cite{thomson_1904} or also known as electrons on a sphere problem.
+The solution in Dolan et al. 2004 \cite{dolan_2004} minimizes the electrostatic potential energy, which results in an even spread of electrons across the unit sphere.
+In our case it maximizes the accumulated inter-point distances for impact locations $\bm p_i^\mathcal I$ between the upper $\overline z$ and lower ring cut-off $\underline z$ on our ellipsoid impact surface.
+\Cref{eq:eval:sampling:thomson} is the adapted formulation for the point count $n_p$.
+\begin{subequations}
+\label{eq:eval:sampling:thomson}
+  \begin{align}
+    \min_{\bm p} \sum^{n_p-1}_{i=1} \sum^{n_p}_{j=i+1} & \frac{1}{\|\bm p_i^{\mathcal I}- \bm p_j^{\mathcal I}\|_2} & \label{eq:eval:thomson:obj} \\
+  \text{s.t.} \qquad \left|\left|\frac{\bm p_i^\mathcal I}{\bm r}\right|\right|_2^2 & = 1 & \forall i \in \left[ 1, n_p \right] \label{eq:eval:thomson:ellipsoid} \\
+\overline z \leq \bm e_3^T \cdot p_i^{\mathcal I} & \leq \underline z &  \forall i \in \left[ 1, n_p \right] \label{eq:eval:thomson:cut}
+  \end{align}
+\end{subequations}
+We adjusted the formulation from Dolan et al. 2004 \cite{dolan_2004} to \cref{eq:eval:sampling:thomson} with an additional cut-off constraint (\cref{eq:eval:thomson:cut}) and reparametrization (\cref{eq:eval:thomson:ellipsoid}). \\
+For our sampling method, we set the stretched Fibonacci lattice points as initial guesses for the problem, as they are already sufficiently close to the solution, resulting in a refined positioning of the original points.
+In order to produce a reproducible sampling, the optimization algorithm has a fixed seed of zero.
+NLopt \cite{NLopt}, with its implementation of the \acrshort{slsqp} \cite{kraft_1994} solver, was chosen for solving \cref{eq:eval:sampling:thomson}.
+
+\paragraph{Resulting Sampling Algorithm} \label{sec:eval:sampling:algo}
+We proposed an ellipsoid sampling algorithm to produces a uniform spread of points $\bm p_i^\mathcal I$ across the chosen impact ellipsoid surface $\mathcal I$.
+\\
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/sampling/fibonacci.pdf}
+    \caption{Fibonacci Lattices}
+    \label{fig:eval:sampling:overview:fibonacci}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/sampling/transform.pdf}
+    \caption{Transform to Ellipsoid}
+    \label{fig:eval:sampling:overview:transform}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/sampling/thomson.pdf}
+    \caption{Optimized}
+    \label{fig:eval:sampling:overview:thomson}
+  \end{subfigure}
+  \caption{
+  To compute impact locations $\bm p_i^\mathcal I$ on the surface $\mathcal I$, we first sample on a unit sphere, using Fibonacci lattices (a).
+  Afterwards we reparameterize the unit sphere with the ellipsoid radius $\bm r$ (b).
+  The impact locations are not uniformly spread on the impact surface anymore.
+  We apply an optimization strategy that is also used to solve the Thomson problem and restore the uniformity of the samples.
+  }
+  \label{fig:eval:sampling:overview}
+\end{figure}
+The algorithm starts of by sampling a unit sphere by utilizing Fibonacci lattices \cite{gonzalez_2010} (\cref{fig:eval:sampling:overview:fibonacci}).
+Afterwards we transform the underlying sphere and sampled points to an ellipsoid (\cref{fig:eval:sampling:overview:transform}).
+\\
+To reinstate the introduced uniformity, we optimize the inter-point distance (\cref{fig:eval:sampling:overview:thomson}).
+This last step is analog to solving the Thomson problem \cite{thomson_1904}, with a formulation like the one mentioned in Dolan et al. 2004 \cite{dolan_2004}.
+We extended Dolans optimization with an ellipsoid constraint and cut-off limitations $\overline z$ and $\underline z$.
+The full optimization can be found in \cref{eq:eval:sampling:thomson}.
+For the implementation NLopt \cite{NLopt}, with its implementation of the \acrshort{slsqp} \cite{kraft_1994} solver, was chosen.
+\\
+Next up we present the complete benchmark algorithm of which the previous section is the core part.
+
+\subsubsection{Algorithm Structure} \label{sec:eval:algo}
+We derived an ellipsoid sampling method, which is able to select uniformly on low sample counts.
+It is used to extract $n_p$ impact locations $\bm p_i^\mathcal I$ from the user defined surface $\mathcal I$.
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/impactArea/front.pdf}
+    \caption{Front View (YZ)}
+    \label{fig:eval:algoStructure:impactArea:front}
+  \end{subfigure}
+  \hfill
+   \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/impactArea/side.pdf}
+    \caption{Side View (XZ)}
+    \label{fig:eval:algoStructure:impactArea:side}
+  \end{subfigure}
+  \vspace{1em}
+  \\
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/impactArea/top.pdf}
+    \caption{Top View (XY)}
+    \label{fig:eval:algoStructure:impactArea:top}
+  \end{subfigure}
+  \hfill
+ \begin{subfigure}[b]{0.5\textwidth}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/impactArea/velocity.pdf}
+    \caption{Overview}
+    \label{fig:eval:algoStructure:impactArea:overview}
+  \end{subfigure}
+  \caption{
+    The red points shows the tightly fitted impact hull around the robot.
+    Blue mark the outwards projected start positions for the approaching objects.
+    The trajectory for each individual projectile from the starting location (blue) through the chosen impact point (red) is visualized in gray.
+  }
+  \label{fig:eval:algoStructure:impactArea}
+\end{figure}
+\Cref{fig:eval:algoStructure:impactArea} displays $500$ impact locations as red points around the blue colored collision hull of the robot.
+The impact surface was chosen to cover the upper body and head area with a dense grid.
+We cut the surface on the top and bottom to primarily test for horizontally approaching objects.
+\par
+From the sampled impact locations we are able to derive velocities $\bm v$ and $\bm p_i^0$.
+In \cref{fig:eval:algoStructure:impactArea} object start positions $\bm p_i^0$ are marked as blue points.
+\begin{figure}
+  \centering
+  \caption{TODO}
+  \label{fig:eval:algoStructure:vel}
+\end{figure}
+The distance $d$ between impact location $\bm p_i^\mathcal I$ and $\bm p_i^0$ is set by the user to control the trajectory.
+% start position p_0 based on d
+Velocities are in the direction of surface normals $\bm n_i$.
+% velocity magnitude based on d
+\par
+% motion generation and success rate calculation
+\par
+Together with the previously described benchmarking method, any humanoid collision avoidance motion generator can be tested and investigated for its limitations.
+
+\subsection{Evaluation of the Optimal Motion Generator} \label{sec:eval:app}
+\subsubsection{Results} \label{sec:eval:app:result}
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/conv/top.pdf}
+    \caption{Top View (XY)}
+    \label{fig:results:convTop}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/conv/iso.pdf}
+    \caption{Isometric View}
+    \label{fig:results:convIso}
+  \end{subfigure}
+  \vfill
+  % \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/conv/front.pdf}
+    \caption{Front View (YZ)}
+    \label{fig:results:convFront}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/conv/side.pdf}
+    \caption{Side View (XZ)}
+    \label{fig:results:convSide}
+  \end{subfigure}
+  \caption{orange: no convergence, gray lines are not converged runs}
+  \label{fig:results:conv}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/plots/torqueJoint_original.pdf}
+  \caption{
+    Joint angles $\bm{q}$ and torques $\bm{\tau}$ for all successful dodging motions.
+    We can clearly see that some of those trajectories require the robot to operate at its limits.
+    Torques in general show a high usage of the available strength, indicating that the success rate is indeed limited by torque limits.
+  }
+  \label{fig:bipedal:results:limits}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/04_bipedalEvasion/plots/distance.pdf}
+  \caption{Distance of traveling object throughout the evasion motions over all successfully evaded object trajectories, with the minimal distance being clearly above the safety distance to the collision hull}
+  \label{fig:results:distance}
+\end{figure}
+
+
+\subsubsection{Motion Classes} \label{sec:eval:app:motionClasses}
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.23\textwidth}
+    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/motions/crouch.png}
+    \caption{crouching evasion}
+    \label{fig:results:motion:crouch}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.23\textwidth}
+    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/motions/lean.png}
+    \caption{leaning evasion}
+    \label{fig:results:motion:lean}
+  \end{subfigure}
+  % \vfill
+  \hfill
+  \begin{subfigure}[b]{0.23\textwidth}
+    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/motions/inverseNeo.png}
+    \caption{reverse neo evasion}
+    \label{fig:results:motion:inverseNeo}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.23\textwidth}
+    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/motions/neo.png}
+    \caption{classic neo evastion}
+    \label{fig:results:motion:neo}
+  \end{subfigure}
+  \caption{
+    We found, that our optimal object avoidance generator explored mainly four motion classes, for different kinds of approaching objects.
+    The leaning evasion in (b) was found to be the most common one, while the reverse neo motion was leveraged in a small amount of object avoidance motions.
+  }
+  \label{fig:results:motion}
+\end{figure}
+
+

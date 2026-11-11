@@ -3,4 +3,22 @@
 \end{huge}
 \vspace{1cm}
 
-Something was used somewhere without any amount of declaration.
+The only model used was \textit{Claude Sonnet 5.5}.
+Depending on the task, either "Medium" or "High" reasoning settings were applied.
+All code generated was verified and tested by the author.
+In the following we list all usage of the above mentioned Large Language Model.
+\\
+The main focus of its utilization lied on boilerplate code (\textbf{B}), tikz figure drafts (\textbf{F}) or implementation (\textbf{I}) of already existing related work for comparison purposes, in cases were the authors did not provide executable code.
+\vspace{3em}
+\begin{table}[H]
+  \centering
+  \begin{tabularx}{\textwidth}{p{0.3\textwidth} c l}
+    \toprule
+    \textbf{Subject} & \textbf{Use Case} & \multicolumn{1}{X}{\textbf{Comment}} \\
+    \midrule
+      \cref{fig:eval:setup:velPosImpact:cuf-off} & \textbf{F} & only small manual adjustments \\
+      \cref{fig:eval:algoStructure:impactArea:overview} & \textbf{F} & logic done by LLM \\
+      \verb|someFile.py| \newline  \verb|func(i : int) : bool| & \textbf{I} & something nobody reads anyway \\
+    \bottomrule
+  \end{tabularx}
+\end{table}

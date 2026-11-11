@@ -8,7 +8,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[acronym]{glossaries}
 % \glsdisablehyper
-\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorinlistoftodos, textwidth=2.1cm, textsize=small]{todonotes}
 \usepackage{tikz}
 \usetikzlibrary{positioning, fit, calc}
 \usepackage[T1]{fontenc}
@@ -42,6 +42,7 @@
 \usepackage{lipsum}
 \usepackage{bm}
 \usepackage{siunitx}
+\sisetup{uncertainty-mode=separate}
 
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -195,19 +196,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \input{sections/01_introduction.tex}
 \newpage
-% \input{sections/02_relatedWork.tex}
-% \newpage
-\input{sections/03_fundamentals.tex}
+\input{sections/02_fundamentals.tex}
 \newpage
-\input{sections/04_benchmark.tex}
+\input{sections/03_limboEvasion.tex}
 \newpage
-\input{sections/05_limboEvasion.tex}
+\input{sections/04_bipedalEvasion.tex}
 \newpage
-\input{sections/06_bipedalEvasion.tex}
+\input{sections/05_benchmark.tex}
 \newpage
-\input{sections/07_.tex}
-\newpage
-\input{sections/97_discussion.tex}
+\input{sections/06_discussion.tex}
 \newpage
 \input{sections/98_conclusion.tex}
 \newpage
