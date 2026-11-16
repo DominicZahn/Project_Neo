@@ -148,6 +148,7 @@ This can be seen in \cref{fig:eval:sampling:compare:rejection:low,fig:eval:sampl
 We can see the noise vanishing for high sample sizes, while dominating the resulting uniformity in \cref{fig:eval:sampling:compare:rejection:low}.
 In comparison sampling with Fibonacci lattices on a unit sphere and than transforming to an ellipsoid, achieves good results for low sample sizes, while introducing non uniformity for high samples (\cref{fig:eval:sampling:compare:fibonacci:low,fig:eval:sampling:compare:fibonacci:high}).
 To quantify uniformity we used the in Marples et al. 2024 \cite{marples_2024} defined points per segment metric.
+\todo[inline]{describe area weighted \acrshort{rsd}}
 \begin{figure}
   \centering
   \includegraphics[width=0.4\textwidth]{figures/05_benchmark/marples/segments.pdf}
@@ -296,11 +297,6 @@ We cut the surface on the top and bottom to primarily test for horizontally appr
 \par
 From the sampled impact locations we are able to derive velocities $\bm v$ and $\bm p_i^0$.
 In \cref{fig:eval:algoStructure:impactArea} object start positions $\bm p_i^0$ are marked as blue points.
-\begin{figure}
-  \centering
-  \caption{TODO}
-  \label{fig:eval:algoStructure:vel}
-\end{figure}
 The distance $d$ between impact location $\bm p_i^\mathcal I$ and $\bm p_i^0$ is set by the user to control the trajectory.
 % start position p_0 based on d
 Velocities are in the direction of surface normals $\bm n_i$.

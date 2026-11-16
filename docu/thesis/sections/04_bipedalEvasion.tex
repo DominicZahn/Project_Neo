@@ -7,7 +7,7 @@
   \toprule
     Symbol & Value & \multicolumn{1}{X}{Description} \\
   \midrule
-    $d(\bm q)$ & \textit{\cref{eq:limbo:distance:ellipsoid,eq:limbo:distance:smin}} & object robot distance \\
+    $d(\bm q)$ & \textit{\cref{eq:bipedal:distance:ellipsoid,eq:limbo:distance:smin}} & object robot distance \\
     $d_\text{safe}$ & $\SI{0.05}{\newton\metre}$ & object robot safety distance \\
   \midrule
   PoS & \textit{\cref{eq:bipedal:constraints:stability}} & \acrlong{pos} \\
@@ -90,26 +90,26 @@
 \begin{figure}
   \centering
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[width=\textwidth]{figures/03_limboEvasion/collisionHull/primitives.png}
+    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/collisionHull/primitives.png}
     \caption{individual primitives}
-    \label{fig:limbo:distance:primitives}
+    \label{fig:bipedal:distance:primitives}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[width=\textwidth]{figures/03_limboEvasion/collisionHull/composition.png}
+    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/collisionHull/composition.png}
     \caption{composed collision hull}
-    \label{fig:limbo:distance:composed}
+    \label{fig:bipedal:distance:composed}
   \end{subfigure}
   \caption{
   (a) visualizes the individual ellipsoid collision primitives, which are combined by leveraging the smooth transition function (\cref{eq:limbo:distance:smin}) to a composition in (b).
   }
-  \label{fig:limbo:distance}
+  \label{fig:bipedal:distance}
 \end{figure}
 
 \subsubsection{Ellipsoid SDFs}
 
 \begin{subequations}
-  \label{eq:limbo:distance:ellipsoid}
+  \label{eq:bipedal:distance:ellipsoid}
   \begin{align}
     k_0 &= \left| \frac{\bm{p} - \bm{c}}{\bm r} \right|_2 \\
     k_1 &= \left| \frac{\bm{p} - \bm{c}}{\bm r^2} \right|_2 \\
