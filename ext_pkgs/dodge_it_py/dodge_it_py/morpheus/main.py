@@ -154,7 +154,7 @@ def main():
                         required=False)
     parser.add_argument("--diff",
                         type=float,
-                        default=0.5,
+                        default=0.4,
                         required=False)
     args = parser.parse_args()
 

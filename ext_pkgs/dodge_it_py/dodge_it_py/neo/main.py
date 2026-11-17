@@ -12,7 +12,7 @@ from ext_pkgs.dodge_it_py.dodge_it_py.neo.ocp_def import OCP
 from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2, HeadlessData, generateVideoFromFrames
 from ext_pkgs.dodge_it_py.dodge_it_py.ocpDebugger import OcpDebugger
 import ext_pkgs.dodge_it_py.dodge_it_py.projectile as projectile
-from ext_pkgs.dodge_it_py.dodge_it_py.sample import SemiSphere, SemiEllipsoid
+from ext_pkgs.dodge_it_py.dodge_it_py.sample import SemiEllipsoid
 
 # --------------------------------- GLOBAL SETTINGS ---------------------------------
 DYNAMIC_JOINT_NAMES = [
@@ -100,7 +100,7 @@ def mainInteractive(showCollision : bool,
         visualization=vis)
     h1.setCollision(
         projectile.linear(h1.t,
-                          c.SX([0.7 ,0 , 1.7]),
+                          c.SX([0.7 ,0 , 1.5]),
                           c.SX([-0.5, 0., 0.])))
     assert(h1.model.nq)
     nq =  h1.model.nq

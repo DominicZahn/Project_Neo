@@ -165,7 +165,7 @@ class SemiEllipsoid:
         return points, normals
 
     @staticmethod
-    def obj(pts, grad, center, radius):
+    def obj(pts, grad):
         pts = pts.reshape(-1, 3)
         n = pts.shape[0]
         diff = pts[:, None, :] - pts[None, :, :]
@@ -175,7 +175,7 @@ class SemiEllipsoid:
         if grad.size > 0:
             g = -np.sum(diff / dist[:, :, None]**3, axis=1)
             grad[:] = g.flatten()
-        print("obj:", energy)
+        print(f"obj: {energy:.4} | grad: {np.linalg.norm(grad):.4}")
         return energy
     @staticmethod
     def consZUpper(res, pts, grad, zUpper):
@@ -185,8 +185,7 @@ class SemiEllipsoid:
         if grad.size > 0:
             grad[:] = 0.0
             for k in range(n):
-                grad[k, 3 * k + 2] = 1.0
-
+                grad[k, 3*k+2] = 1.0
     @staticmethod
     def consZLower(res, pts, grad, zLower):
         pts = pts.reshape(-1, 3)
@@ -195,8 +194,7 @@ class SemiEllipsoid:
         if grad.size > 0:
             grad[:] = 0.0
             for k in range(n):
-                grad[k, 3 * k + 2] = -1.0
-
+                grad[k, 3*k+2] = -1.0
     @staticmethod
     def consEllipsoid(res, pts, grad, center, radius):
         pts = pts.reshape(-1, 3)
@@ -206,7 +204,7 @@ class SemiEllipsoid:
         if grad.size > 0:
             grad[:] = 0.0
             for k in range(n):
-                grad[k, 3 * k : 3 * k + 3] = 2.0 * rel[k]
+                grad[k, 3*k:3*k+3] = 2.0 * rel[k]
 
     def sampleFibonacciThomson(
         self, samples: int, seed: int
@@ -243,13 +241,23 @@ class SemiEllipsoid:
         nlopt.srand(seed)
         ptsInit = ptsInit.flatten()
         opt = nlopt.opt(nlopt.LD_SLSQP, ptsInit.size)
+        # opt = nlopt.opt(nlopt.LD_AUGLAG, ptsInit.size)
+        # localOpt = nlopt.opt(nlopt.LN_BOBYQA, ptsInit.size)
+        # localOpt.set_xtol_abs(1e-8)
+        # localOpt.set_ftol_abs(1e-8)
+        # localOpt.set_param("tlog", 1e-8) # gradient tolerance
+        # localOpt.set_vector_storage(10)
+        # opt.set_local_optimizer(localOpt)
+
         opt.set_exceptions_enabled(False)
-        opt.set_xtol_abs(1e-3)
-        opt.set_ftol_abs(1e-3)
+        opt.set_xtol_abs(1e-8)
+        opt.set_ftol_abs(1e-8)
+        opt.set_min_objective(SemiEllipsoid.obj)
         opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZUpper(res, x, grad, self.relUpperZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
         opt.add_inequality_mconstraint(lambda res, x, grad: SemiEllipsoid.consZLower(res, x, grad, self.relLowerZ+self.center[2]), np.zeros(int(ptsInit.size/3)))
         opt.add_equality_mconstraint(lambda res, x, grad: SemiEllipsoid.consEllipsoid(res, x, grad, c, r), np.full(int(ptsInit.size/3), 1e-6))
         ptsOpt = opt.optimize(ptsInit)
+        print(f"[bold blue][INFO] Code: {opt.last_optimize_result()} {opt.get_errmsg()}")
         assert type(ptsOpt) is np.ndarray
         res = opt.last_optimize_result()
         if res < 0:

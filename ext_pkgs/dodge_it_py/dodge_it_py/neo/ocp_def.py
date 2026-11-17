@@ -60,6 +60,8 @@ class OCP:
         self.stabilityConstraintBack = 1.0 - (self.h1.ZMP[0] - back) / (c[0] - back)
         self.stabilityConstraintLeft = 1.0 - (left - self.h1.ZMP[1]) / (left - c[1])
         self.stabilityConstraintRight = 1.0 - (self.h1.ZMP[1] - right) / (c[1] - right)
+
+        self.stabilityConstraintScalar = PoS.stability_centerDistParable(self.h1.ZMP)
        
     def _cost(self) -> AcadosOcpCost:
         nq = self.h1.model.nq
@@ -70,12 +72,15 @@ class OCP:
         # Lagrange
         wJoints = 1.0
         wTau = 1e-4
+        # wStab = 0.0
         cost.cost_type = 'NONLINEAR_LS'
         x = self.ocp.model.x
         u = self.ocp.model.u
         costTau = c.dot(u,u) / (u.size1()*100.0**2)**2
         qOffset = x[:nq] - self.h1.q0
         costJoints = c.dot(qOffset,qOffset) / (x[:nq].size1()*(c.pi/2)**2)**2
+        costStab = self.stabilityConstraintScalar
+        # self.ocp.model.cost_y_expr = costTau*wTau + costJoints*wJoints + costStab*wStab
         self.ocp.model.cost_y_expr = costTau*wTau + costJoints*wJoints
         cost.yref = 0.0
         cost.W = np.eye(1)

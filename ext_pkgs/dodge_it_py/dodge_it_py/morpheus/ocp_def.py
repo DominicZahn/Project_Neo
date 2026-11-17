@@ -91,15 +91,26 @@ class OCP:
         cost.W = np.eye(1) / self.N
 
         # Mayer
-#        h_diff = 0.5
-#        cost.cost_type_e = 'NONLINEAR_LS'
-#        cost.cost_discretization_e = 'INTEGRATOR'
-#        self.f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
-#        self.ocp.model.cost_y_expr_e = self.f_headPos(self.h1.q)[2]
-#        cost.yref_e = self.headPosDesired
-#        cost.W_e = np.eye(1) / h_diff
+        cost.cost_type_e = 'NONLINEAR_LS'
+        cost.cost_discretization_e = 'INTEGRATOR'
+        self.f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
+        self.ocp.model.cost_y_expr_e = self._sigmoid(
+            self.f_headPos(self.h1.q)[0],
+            1.0,
+            30.0,
+            0.0
+        )
+        cost.yref_e = 0.0
+        cost.W_e = np.eye(1) * 1.0
 
         return cost
+
+    @staticmethod
+    def _sigmoid(x : c.SX,
+                 L : float,
+                 k : float,
+                 x0 : float) -> c.SX:
+        return L / (1.0 + c.exp(-k*(x-x0)))
     
     def _constraints(self) -> AcadosOcpConstraints:
         nq = self.h1.model.nq
