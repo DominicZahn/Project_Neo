@@ -1,0 +1,359 @@
+import casadi as c
+import numpy as np
+import numpy.typing as npt
+from pathlib import Path
+
+from ext_pkgs.dodge_it_py.dodge_it_py.H1Wrapper_v2 import H1Wrapper_v2
+from ext_pkgs.dodge_it_py.dodge_it_py.stability import PolygonOfSupport
+
+from acados_template import (
+    plot_trajectories,
+    AcadosOcp,
+    AcadosModel,
+    AcadosOcpCost,
+    AcadosOcpConstraints,
+    AcadosOcpSolver,
+    AcadosOcpOptions,
+)
+
+class OCP:
+    def __init__(self, h1 : H1Wrapper_v2, Tf : float, N : int, h_diff : float, initalStates : str = "", initalControl : str = ""):
+        self.h1 = h1
+        self.Tf = Tf
+        self.N = N
+
+        self.ocp = AcadosOcp()
+        self.ocp.model = self._model()
+        self._stability()
+        self._headPos(h_diff)
+        self.ocp.cost = self._cost()
+        self.ocp.constraints = self._constraints()
+        self._codeGenOptions()
+        self.solver = self._solver()
+
+        self.solver = self.loadInitalValues(initalStates, initalControl)
+    
+    def _model(self) -> AcadosModel:
+        model = AcadosModel()
+        model.name = "h1_2"
+        model.x = c.vertcat(self.h1.q, self.h1.qdot)
+        model.u = self.h1.tau[6:]
+
+        # parameter
+        #           set torques for floating base to 0Nm
+        model.p = self.h1.tau[:6]
+        self.ocp.parameter_values = np.zeros(6)
+        #           add timestamp at intervals
+        model.p = c.vertcat(model.p, self.h1.t)
+        self.ocp.parameter_values = np.hstack((self.ocp.parameter_values, 0.0))
+
+        model.f_expl_expr = c.vertcat(self.h1.qdot, self.h1.qddot)
+
+        return model
+    
+    def _stability(self) -> None:
+        PoS = PolygonOfSupport()
+        p00, _, p11, _ = PoS.get_corners()
+        c = PoS.get_center()
+        front, left, back, right = p11[0], p11[1], p00[0], p00[1]
+
+        self.stabilityConstraintFront = 1.0 - (front - self.h1.ZMP[0]) / (front - c[0])
+        self.stabilityConstraintBack = 1.0 - (self.h1.ZMP[0] - back) / (c[0] - back)
+        self.stabilityConstraintLeft = 1.0 - (left - self.h1.ZMP[1]) / (left - c[1])
+        self.stabilityConstraintRight = 1.0 - (self.h1.ZMP[1] - right) / (c[1] - right)
+
+        self.stabilityConstraintScalar = PoS.stability_centerDistParable(self.h1.ZMP)
+
+    def _headPos(self, h_diff : float) -> None:
+        self.f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
+        self.headPosDesired = self.f_headPos(self.h1.q0)
+        assert(type(self.headPosDesired) is c.DM)
+        self.headPosDesired = self.headPosDesired.toarray()[2] - h_diff
+        self.h_diff = h_diff
+       
+    def _cost(self) -> AcadosOcpCost:
+        nq = self.h1.model.nq
+        assert(nq is not None)
+
+        cost = AcadosOcpCost()
+
+        # Lagrange
+        wStab = 1.0
+        wTau = 1e-4
+        cost.cost_type = 'NONLINEAR_LS'
+        cost.cost_discretization = 'INTEGRATOR'
+        x = self.ocp.model.x
+        u = self.ocp.model.u
+        costTau = c.dot(u,u) / (u.size1()*100.0**2)**2
+        costStab = self.stabilityConstraintScalar
+        self.ocp.model.cost_y_expr = costTau*wTau + costStab*wStab
+        cost.yref = 0.0
+        cost.W = np.eye(1) / self.N
+
+        # Mayer
+#        h_diff = 0.5
+#        cost.cost_type_e = 'NONLINEAR_LS'
+#        cost.cost_discretization_e = 'INTEGRATOR'
+#        self.f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
+#        self.ocp.model.cost_y_expr_e = self.f_headPos(self.h1.q)[2]
+#        cost.yref_e = self.headPosDesired
+#        cost.W_e = np.eye(1) / h_diff
+
+        return cost
+    
+    def _constraints(self) -> AcadosOcpConstraints:
+        nq = self.h1.model.nq
+        assert(nq is not None)
+        cons = AcadosOcpConstraints()
+
+        # inital
+        cons.x0 = np.hstack((self.h1.q0, np.zeros(nq)))
+
+        # path
+        #       state limits
+        q_ub = self.h1.model.upperPositionLimit
+        q_lb = self.h1.model.lowerPositionLimit
+        assert(q_ub is not None and q_lb is not None)
+        cons.ubx = q_ub[6:]
+        cons.lbx = q_lb[6:]
+        cons.idxbx = np.arange(nq)[6:]
+
+        #       control limits
+        max_tau_knee = 360 # [Nm]
+        max_tau_hip = 220 # [Nm]
+        max_tau_waist = 220 # [Nm]
+        max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
+        max_shoulder = 120 # [Nm]
+        max_elbow = 120 # [Nm]
+        max_wrist = 30 # [Nm]
+        # lshoulder_roll_i = self.h1.qId('left_shoulder_roll_joint'),
+        # lshoulder_pitch_i = self.h1.qId('left_shoulder_pitch_joint'),
+        # lshoulder_yaw_i = self.h1.qId('left_shoulder_yaw_joint'),
+        # lelbow_i = self.h1.qId('left_elbow_joint'),
+        # rshoulder_roll_i = self.h1.qId('right_shoulder_roll_joint'),
+        # rshoulder_pitch_i = self.h1.qId('right_shoulder_pitch_joint'),
+        # rshoulder_yaw_i = self.h1.qId('right_shoulder_yaw_joint'),
+        # relbow_i = self.h1.qId('right_elbow_joint'),
+
+        rhip_pitch_i = self.h1.qId('right_hip_pitch_joint')
+        lhip_pitch_i = self.h1.qId('left_hip_pitch_joint')
+        # rhip_yaw_i = self.h1.qId('right_hip_yaw_joint')
+        # lhip_yaw_i = self.h1.qId('left_hip_yaw_joint')
+        # rhip_roll_i = self.h1.qId('right_hip_roll_joint')
+        # lhip_roll_i = self.h1.qId('left_hip_roll_joint')
+        rknee_i = self.h1.qId('right_knee_joint')
+        lknee_i = self.h1.qId('left_knee_joint')
+        rankle_pitch_i = self.h1.qId('right_ankle_pitch_joint')
+        lankle_pitch_i = self.h1.qId('left_ankle_pitch_joint')
+        # rankle_roll_i = self.h1.qId('right_ankle_roll_joint')
+        # lankle_roll_i = self.h1.qId('left_ankle_roll_joint')
+        torso_i = self.h1.qId('torso_joint')
+        max_tau = np.zeros(nq)
+        # max_tau[lshoulder_pitch_i] = max_shoulder
+        # max_tau[lshoulder_roll_i] = max_shoulder
+        # max_tau[lshoulder_yaw_i] = max_shoulder
+        # max_tau[lelbow_i] = max_elbow
+        # max_tau[rshoulder_pitch_i] = max_shoulder
+        # max_tau[rshoulder_roll_i] = max_shoulder
+        # max_tau[rshoulder_yaw_i] = max_shoulder
+        # max_tau[relbow_i] = max_elbow
+
+        max_tau[rhip_pitch_i] = max_tau_hip
+        max_tau[lhip_pitch_i] = max_tau_hip
+        # max_tau[rhip_yaw_i] = max_tau_hip
+        # max_tau[lhip_yaw_i] = max_tau_hip
+        # max_tau[rhip_roll_i] = max_tau_hip
+        # max_tau[lhip_roll_i] = max_tau_hip
+        max_tau[rknee_i] = max_tau_knee
+        max_tau[lknee_i] = max_tau_knee
+        max_tau[rankle_pitch_i] = max_tau_ankle_pitch
+        max_tau[lankle_pitch_i] = max_tau_ankle_pitch
+        # max_tau[rankle_roll_i] = max_tau_ankle_pitch
+        # max_tau[lankle_roll_i] = max_tau_ankle_pitch
+        max_tau[torso_i] = max_tau_waist
+
+        max_tau = max_tau[6:]
+
+        cons.idxbu = np.arange(max_tau.size)
+        cons.ubu = max_tau
+        cons.lbu = -max_tau
+
+        #       nonlinear constraints (h)
+        #           stability constraint
+        useablePoS = 0.8
+        cons.uh = np.append(cons.uh, np.full(4, useablePoS))
+        cons.lh = np.append(cons.lh, np.full(4, -1e6))
+        self.ocp.model.con_h_expr = c.vertcat(
+            self.ocp.model.con_h_expr,
+            self.stabilityConstraintFront,
+            self.stabilityConstraintBack,
+            self.stabilityConstraintLeft,
+            self.stabilityConstraintRight
+        )
+
+        #           planar friction
+        fricCoeff = 0.5
+        FLz = self.h1.cdata.lambda_c[2]
+        FL_cons = (FLz * fricCoeff)**2 - (self.h1.cdata.lambda_c[0]**2 + self.h1.cdata.lambda_c[1]**2)
+        FRz = self.h1.cdata.lambda_c[8]
+        FR_cons = (FRz * fricCoeff)**2 - (self.h1.cdata.lambda_c[6]**2 + self.h1.cdata.lambda_c[7]**2)
+
+        self.ocp.model.con_h_expr = c.vertcat(
+            self.ocp.model.con_h_expr,
+            FLz,
+            FRz,
+            FL_cons,
+            FR_cons
+        )
+        F_safety = 0.0 # Nm
+        cons.uh = np.hstack((
+            cons.uh, np.full(4, 1e6) # emulate unconstrainted
+        ))
+        cons.lh = np.hstack((
+            cons.lh,
+            np.full(2, F_safety),       # Fz
+            np.full(2, F_safety**2)     # Fcons^2
+        ))
+
+        # terminal
+        #       limit end velocity
+        v_stat = 0.1
+        cons.idxbx_e = np.arange(nq, 2*nq)
+        cons.ubx_e = np.hstack((
+            np.full(6, v_stat),             # 6
+            np.full(nq-6, v_stat)           # np-6
+        ))
+        cons.lbx_e = np.hstack((
+            np.full(6, -v_stat),            # 6
+            np.full(nq-6, -v_stat)          # np-6
+        ))
+
+        #       dodge constraint
+        cons.lh_e = np.append(cons.lh_e, np.full(1, 0.0))
+        cons.uh_e = np.append(cons.uh_e, np.full(1, 1e3))
+        self.ocp.model.con_h_expr_e = c.vertcat(
+            self.ocp.model.con_h_expr_e,
+            self.headPosDesired - self.f_headPos(self.h1.q)[2]
+        )
+
+        #       extend path constraints to terminal and inital
+        self.ocp.model.con_h_expr_0 = self.ocp.model.con_h_expr
+        cons.lh_0 = cons.lh
+        cons.uh_0 = cons.uh
+        return cons
+
+    def _solver(self) -> AcadosOcpSolver:
+        options = AcadosOcpOptions()
+        options.integrator_type = 'ERK'
+        # options.integrator_type = 'IRK'
+        options.N_horizon = self.N
+        options.tf = self.Tf
+        options.print_level = 2
+        options.nlp_solver_max_iter = 300
+        # options.nlp_solver_type = 'SQP_WITH_FEASIBLE_QP'
+        # options.hessian_approx = 'EXACT'
+        # options.globalization_line_search_use_sufficient_descent = 1
+        # options.globalization = 'MERIT_BACKTRACKING'
+        options.globalization = 'FUNNEL_L1PEN_LINESEARCH'
+        options.hpipm_mode = 'ROBUST'
+        options.qp_solver_iter_max = int(1e3)
+        options.tol = float(1e-3)
+        options.nlp_solver_tol_ineq = float(1e-6)
+        options.nlp_solver_tol_stat = float(1e-3)
+        options.sim_method_num_steps = 50
+
+        self.ocp.solver_options = options
+        self.ocp.solver_options.store_iterates = True
+        solver = AcadosOcpSolver(
+            self.ocp,
+            generate=False,
+            build=False
+        )
+        # set paramters
+        time_arr = np.linspace(0, self.Tf, self.N+1)
+        p = np.hstack((
+            np.zeros((self.N+1,6)),
+            np.array(time_arr)[:,None]))   # floating base base torque
+        solver.set_flat('p', p.flatten())  # time at intervalls
+        return solver
+    
+    def _codeGenOptions(self):
+        self.ocp.code_gen_options.ext_fun_compile_flags = "-O0"
+    
+    def loadInitalValues(self,
+                         stateFile : str = "",
+                         controlFile : str = "",
+                         rngPertubation : float = 0.0):
+        assert(self.h1.model.nq)
+
+        nu = self.ocp.model.u.size()[0]
+        nx = self.ocp.model.x.size()[0]
+        uInit = np.repeat(self.h1.getStandControls(), self.N)
+        xInit = np.zeros(((self.N+1), nx))
+        xInit[:,:int(nx/2)] = self.h1.q0[None,:]
+        xInit = xInit.flatten()
+
+        if len(stateFile)>0 and len(controlFile)>0 and Path(stateFile).exists() and Path(controlFile).exists():
+            print('[INFO] Loaded inital values from files.')
+            xInit = np.loadtxt(stateFile)
+            xInit = xInit.flatten()
+            uInit = np.loadtxt(controlFile)
+            uInit = uInit.flatten()
+
+        # pertubation
+        if rngPertubation > 0.0:
+            xInit += np.random.rand(xInit.size) * rngPertubation
+            uInit += np.random.rand(uInit.size) * rngPertubation
+
+        self.solver.set_flat('x', xInit)
+        self.solver.set_flat('u', uInit)
+
+        return self.solver
+
+    def solve(self, plot=False) -> int:
+        self.status = self.solver.solve()
+        self.solver.print_statistics()
+        print('Total Cost:', self.solver.get_cost())
+
+        if plot:
+            plot_trajectories(
+                x_traj_list=[self.getSimX()],
+                u_traj_list=[self.getSimU(floatBase=False)],
+                time_traj_list=[self.getSimT()],
+                labels_list=['OCP result'],
+                fig_filename='/home/robot/ws/neo_ocp_fig.png',
+                show_plot=False
+            )
+
+        return self.status
+
+    def getSimX(self) -> npt.NDArray:
+        assert(type(self.ocp.model.x) is c.SX)
+        return np.reshape(
+            self.solver.get_flat('x'),
+            (-1, self.ocp.model.x.size1()))
+    
+    def getSimU(self, floatBase : bool) -> npt.NDArray:
+        assert(type(self.ocp.model.u) is c.SX)
+        
+        uJoints = np.reshape(
+            self.solver.get_flat('u'),
+            (-1, self.ocp.model.u.size1()))
+        
+        if not floatBase:
+            return uJoints
+        
+        uBase = self.solver.get_flat('p')
+        uBase = np.reshape(uBase, (-1, 7))
+        return np.concatenate([uBase[:self.N,:6], uJoints], axis=1)
+
+    
+    def getSimT(self) -> npt.NDArray:
+        return np.linspace(0, self.Tf, self.N + 1)
+    
+    def saveAsInitalValues(self, stateFile : str, controlFile : str):
+        x = self.solver.get_flat('x')
+        u = self.solver.get_flat('u')
+        np.savetxt(stateFile, x)
+        np.savetxt(controlFile, u)
+        print('[INFO] saved result values to files')

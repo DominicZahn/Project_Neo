@@ -6,7 +6,7 @@ package_name = 'dodge_it_py'
 
 setup(
     name=package_name,
-    version='0.0.0',
+    version='0.2.0',
     packages=find_packages(),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -19,7 +19,7 @@ setup(
     zip_safe=True,
     maintainer='Dominic Zahn',
     maintainer_email='zahndominic@web.de',
-    description='Dodge_it develops multiple different algorithms to learn more about dodge motions of H1.',
+    description='Dodge_it develops multiple different algorithms to learn more about dodge motions of H1enz.',
     license='MIT',
     extras_require={},
     entry_points={
@@ -27,7 +27,8 @@ setup(
         'jackson = dodge_it_py.jackson.jackson:main',
         'bob = dodge_it_py.bob.bob:main',
         'john = dodge_it_py.john.john:main',
-        'neo = dodge_it_py.neo.main:main'
+        'neo = dodge_it_py.neo.main:main',
+        'morpheus = dodge_it_py.morpheus.main:main',
     ]
 }
 )
