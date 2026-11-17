@@ -78,7 +78,7 @@ Normals $\bm n_i$ at the impact locations than define the impact direction.
 In order to avoid creating focal points for the object trajectories an ellipsoid can be used.
 Ellipsoids normal vectors meet in a focal cone instead of a single focal point \cite{staude_1886}, which concludes in an even penetration of the volume.
 \par
-Our use case is bipedal standing evasion, which results in an impact surface that is fitted around the torso.
+Our use case is morpheus standing evasion, which results in an impact surface that is fitted around the torso.
 It is however, also possible, to place the impact surface on other parts of the robot to evaluate collision avoidance abilities.
 An example would be an impact surface at the lower leg for near ground level threat scenarios.
 \\
@@ -114,26 +114,26 @@ For low sample sizes, those methods show overpowering noise and therefore are no
 \begin{figure}
   \centering
   \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/compare/rejection_1e2.pdf}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/ZZ_results/compare/rejection_1e2.pdf}
     \caption{Rejection Sampling ($10^2$)}
     \label{fig:eval:sampling:compare:rejection:low}
   \end{subfigure}
   \hspace{4em}
   \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/compare/rejection_1e8.pdf}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/ZZ_results/compare/rejection_1e8.pdf}
     \caption{Rejection Sampling ($10^8$)}
     \label{fig:eval:sampling:compare:rejection:high}
   \end{subfigure}
   \\
   \vspace{2em}
   \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/compare/fibonacci_1e2.pdf}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/ZZ_results/compare/fibonacci_1e2.pdf}
     \caption{Fibonacci Lattices ($10^2$)}
     \label{fig:eval:sampling:compare:fibonacci:low}
   \end{subfigure}
   \hspace{4em}
   \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/compare/fibonacci_1e8.pdf}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/ZZ_results/compare/fibonacci_1e8.pdf}
     \caption{Fibonacci Lattices ($10^8$)}
     \label{fig:eval:sampling:compare:fibonacci:high}
   \end{subfigure}
@@ -220,19 +220,19 @@ We proposed an ellipsoid sampling algorithm to produces a uniform spread of poin
 \begin{figure}
   \centering
   \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/sampling/fibonacci.pdf}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/ZZ_results/sampling/fibonacci.pdf}
     \caption{Fibonacci Lattices}
     \label{fig:eval:sampling:overview:fibonacci}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/sampling/transform.pdf}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/ZZ_results/sampling/transform.pdf}
     \caption{Transform to Ellipsoid}
     \label{fig:eval:sampling:overview:transform}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/sampling/thomson.pdf}
+    \includegraphics[draft,width=\textwidth,height=5cm]{figures/05_benchmark/ZZ_results/sampling/thomson.pdf}
     \caption{Optimized}
     \label{fig:eval:sampling:overview:thomson}
   \end{subfigure}
@@ -311,26 +311,26 @@ Together with the previously described benchmarking method, any humanoid collisi
 \begin{figure}
   \centering
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/conv/top.pdf}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/conv/top.pdf}
     \caption{Top View (XY)}
     \label{fig:results:convTop}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/conv/iso.pdf}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/conv/iso.pdf}
     \caption{Isometric View}
     \label{fig:results:convIso}
   \end{subfigure}
   \vfill
   % \hfill
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/conv/front.pdf}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/conv/front.pdf}
     \caption{Front View (YZ)}
     \label{fig:results:convFront}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.45\textwidth}
-    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/conv/side.pdf}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/conv/side.pdf}
     \caption{Side View (XZ)}
     \label{fig:results:convSide}
   \end{subfigure}
@@ -340,18 +340,18 @@ Together with the previously described benchmarking method, any humanoid collisi
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/plots/torqueJoint_original.pdf}
+  \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/plots/torqueJoint_original.pdf}
   \caption{
     Joint angles $\bm{q}$ and torques $\bm{\tau}$ for all successful dodging motions.
     We can clearly see that some of those trajectories require the robot to operate at its limits.
     Torques in general show a high usage of the available strength, indicating that the success rate is indeed limited by torque limits.
   }
-  \label{fig:bipedal:results:limits}
+  \label{fig:morpheus:results:limits}
 \end{figure}
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.7\textwidth]{figures/04_bipedalEvasion/plots/distance.pdf}
+  \includegraphics[width=0.7\textwidth]{figures/05_benchmark/ZZ_results/plots/distance.pdf}
   \caption{Distance of traveling object throughout the evasion motions over all successfully evaded object trajectories, with the minimal distance being clearly above the safety distance to the collision hull}
   \label{fig:results:distance}
 \end{figure}
@@ -362,26 +362,26 @@ Together with the previously described benchmarking method, any humanoid collisi
 \begin{figure}
   \centering
   \begin{subfigure}[b]{0.23\textwidth}
-    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/motions/crouch.png}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/motions/crouch.png}
     \caption{crouching evasion}
     \label{fig:results:motion:crouch}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.23\textwidth}
-    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/motions/lean.png}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/motions/lean.png}
     \caption{leaning evasion}
     \label{fig:results:motion:lean}
   \end{subfigure}
   % \vfill
   \hfill
   \begin{subfigure}[b]{0.23\textwidth}
-    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/motions/inverseNeo.png}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/motions/inverseNeo.png}
     \caption{reverse neo evasion}
     \label{fig:results:motion:inverseNeo}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.23\textwidth}
-    \includegraphics[width=\textwidth]{figures/04_bipedalEvasion/motions/neo.png}
+    \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/motions/neo.png}
     \caption{classic neo evastion}
     \label{fig:results:motion:neo}
   \end{subfigure}

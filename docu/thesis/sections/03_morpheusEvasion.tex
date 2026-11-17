@@ -1,0 +1,121 @@
+\section{Morpheus} \label{sec:morpheus}
+We start of the development of a collision avoidance motion generator by trying to avoid an object that is targeted towards the head of the robot.
+An intuitive and easy solution is to move the head of the robot out of the way of the projectile.
+To achieve this motion we squat to establish a low enough height a
+
+\subsection{Formulation}
+
+\begin{subequations}
+  \label{eq:morpheus:dyn}
+  \begin{align}
+    \bm x(t) &=
+    \begin{bmatrix}
+      \bm{q} \\ \bm{\dot q}
+    \end{bmatrix} \label{eq:morpheus:dyn:x} \\
+    \bm u(t) &=
+    \bm{\tau} \label{eq:morpheus:dyn:u}\\
+    \bm{f}_\text{expl}(t) &=
+    \begin{bmatrix}
+      \bm{\dot q} \\
+      \text{cons. FD}(\bm q,\bm{\dot q},\bm{\tau})
+    \end{bmatrix} \label{eq:morpheus:dyn:f}
+  \end{align}
+\end{subequations}
+
+\begin{subequations}
+  \label{eq:morpheus:constraints}
+  \begin{align}
+    \min_{\bm x(\cdot),\bm u(\cdot)} \quad & \int_0^{T_f} \left(\omega_q l_\text{q}(\bm x) + \omega_\tau l_\tau(\bm{u}) \right) dt \label{morpheus:constraints:obj} \\
+    \textrm{s.t.} \quad & \qquad \textbf{Dodge Constraint} \nonumber \\
+    & d_\text{safe} \leq d(\bm p) & & \forall t \in [0,T_f) \label{eq:morpheus:constraints:dodge} \\
+    & \qquad \textbf{Stability Constraint} \nonumber \\
+    & \text{ZMP} \in \gamma \text{PoS} & & \forall t \in [0,T_f) \label{eq:morpheus:constraints:stability} \\
+    & \qquad \textbf{Joint Constraints} \nonumber \\
+    & \bm{\underline q} \leq \bm{q} \leq \bm{\overline q} & & \forall t \in [0,T_f) \label{eq:morpheus:constraints:joint}\\
+    & -\bm{\tau}_\text{max} \leq \bm u \leq \bm{\tau}_\text{max} & & \forall t \in [0,T_f)\label{eq:morpheus:constraints:torque}\\
+    & \qquad \textbf{Friction Constraints} \nonumber \\
+    & 0 \leq (\mu F_j^z)^2-\|\bm{F}_j\|^2_2 & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:morpheus:constraints:F} \\
+    & 0 \leq F_L^z & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:morpheus:constraints:Fz} \\
+    & \qquad \textbf{Terminal Pose Constraint} \nonumber \\
+    & \begin{bmatrix} \bm q_0-q_\epsilon \\ -\bm v_\text{stat.} \end{bmatrix}
+    \leq \bm x(T_f) \leq
+    \begin{bmatrix} \bm q_0+q_\epsilon \\ \bm v_\text{stat.} \end{bmatrix} \label{eq:morpheus:constraints:terminal}
+  \end{align}
+\end{subequations}
+
+\begin{subequations}
+  \label{eq:morpheus:obj}
+  \begin{align}
+    l_q(\bm x) &= \frac{\| \bm q-\bm q_0 \|^2_2}{(n_q \cdot \bm{q}_\text{exp}^2)^2}  \label{eq:morpheus:obj:joint} \\
+    l_\tau(\bm u) &= \frac{\|\bm{\tau}\|^2_2}{(n_u \cdot \bm{u}_\text{exp}^2)^2} \label{eq:morpheus:obj:torque}
+  \end{align}
+\end{subequations}
+
+
+
+\subsection{Model Choice}
+As mentioned before every model is an approximation of the real world, so we are required to form decisions to capture the details of the real-world that are essential for our specific problem.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.3\textwidth]{figures/03_morpheusEvasion/lumped_model.png}
+  \caption{TODO}
+  \label{fig:morpheus:lumped}
+\end{figure}
+
+\begin{itemize}
+  \item add figure
+  \item only sagital plane without torso
+  \item trade offs
+\end{itemize}
+
+\subsection{Initial Pose}
+\begin{itemize}
+  \item $\SI{0.4}{\radian}$ knees bend
+\end{itemize}
+
+\subsection{Hardware Limits}
+\todo[inline]{
+  How happy is Unitree that we publish there internals?
+  Maybe create schematics instead of real picture.
+}
+\begin{itemize}
+  \item joint limits from \verb|urdf|-file
+  \item derivation of ankle torques
+  \item other torque limits from Unitree website
+\end{itemize}
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/03_morpheusEvasion/ankle_top.jpeg}
+    \caption{Top View}
+    \label{fig:morpheus:ankle:top}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.4\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/03_morpheusEvasion/ankle_side.jpeg}
+    \caption{Side View}
+    \label{fig:morpheus:ankle:side}
+  \end{subfigure}
+  \caption{TODO}
+  \label{fig:morpheus:ankle}
+\end{figure}
+
+\subsection{Implementation Details}
+Why are we using the following components?
+\begin{itemize}
+  \item Pinocchio
+  \item Acados
+  \item Casadi
+\end{itemize}
+This should also discuss why \textit{analytical derivatives} are a good choice, maybe also cite something from casadi if they put a point behind it.
+
+\subsubsection{Initial Values}
+
+\subsection{Results and Discussion}
+
+
+

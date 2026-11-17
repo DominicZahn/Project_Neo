@@ -1,0 +1,125 @@
+\section{Neo} \label{sec:neo}
+
+\subsection{Formulation}
+\begin{table}
+  \centering
+  \begin{tabularx}{0.7\textwidth}{rcl}
+  \toprule
+    Symbol & Value & \multicolumn{1}{X}{Description} \\
+  \midrule
+    $d(\bm q)$ & \textit{\cref{eq:neo:distance:ellipsoid,eq:limbo:distance:smin}} & object robot distance \\
+    $d_\text{safe}$ & $\SI{0.05}{\newton\metre}$ & object robot safety distance \\
+  \midrule
+  PoS & \textit{\cref{eq:neo:constraints:stability}} & \acrlong{pos} \\
+    $\gamma$ & $0.8$ & \acrshort{pos} safety Limit \\
+    ZMP & \textit{\cref{eq:neo:constraints:stability}} & \acrlong{zmp} \\
+  \midrule
+    $\bm q$ & \textit{\cref{eq:neo:dyn:x}} & Joint Positions \\
+  $\bm{\tau}$ & \textit{\cref{eq:neo:dyn:u}} & Joint Torques \\
+    \midrule
+  $\bm{\underline q},\ \bm{\overline q}$ & \textit{\cref{fig:neo:results:limits}} & Joint Limits \\
+    $\bm{\tau}_{\text{max}}$ & \textit{\cref{fig:neo:results:limits}} & Max. Joint Torques \\
+  \midrule
+  $\bm F_L$, $\bm F_R$ & \textit{\cref{eq:neo:constraints:F,eq:neo:constraints:Fz}} & Ground Reaction Forces \\
+    % $F_\text{safe}$ & $\SI{1}{\newton}$ & Friction Force Safety Margin \\
+    $\mu$ & $0.5$ & Friction Coefficient \\
+  \midrule
+    $v_{\text{stat.}}$ & \SI{0.1}{\frac{\metre}{\second}} & Allowed Stationary Velocity \\
+    $q_\epsilon$ & \SI{0.1}{\radian} & Terminal Pose Offset \\
+  \midrule
+    $T_f$ & $\SI{2.5}{\second}$ & Terminal Time \\
+    $N$ & $120$ & Shooting Nodes \\
+    $l_q$ & \textit{\cref{eq:neo:obj:joint}} & Lagrange Obj. Pose Term \\
+    $\omega_q$ & $1$ & Lagrange Obj. Weight Pose Term \\
+    $l_\tau$ & \textit{\cref{eq:neo:obj:joint}} & Lagrange Obj. Regularization Term \\
+    $\omega_\tau$ & $10^{-4}$ & Lagrange Obj. Weight Pose Term \\
+  \bottomrule
+  \end{tabularx}
+  \caption{Variables and Parameters}
+  \label{tab:neo:variables}
+\end{table}
+
+\begin{subequations}
+  \label{eq:neo:dyn}
+  \begin{align}
+    \bm x(t) &=
+    \begin{bmatrix}
+      \bm{q} \\ \bm{\dot q}
+    \end{bmatrix} \label{eq:neo:dyn:x} \\
+    \bm u(t) &=
+    \bm{\tau} \label{eq:neo:dyn:u}\\
+    \bm{f}_\text{expl}(t) &=
+    \begin{bmatrix}
+      \bm{\dot q} \\
+      \text{cons. FD}(\bm q,\bm{\dot q},\bm{\tau})
+    \end{bmatrix} \label{eq:neo:dyn:f}
+  \end{align}
+\end{subequations}
+
+\begin{subequations}
+  \label{eq:neo:constraints}
+  \begin{align}
+    \min_{\bm x(\cdot),\bm u(\cdot)} \quad & \int_0^{T_f} \left(\omega_q l_\text{q}(\bm x) + \omega_\tau l_\tau(\bm{u}) \right) dt \label{neo:constraints:obj} \\
+    \textrm{s.t.} \quad & \qquad \textbf{Dodge Constraint} \nonumber \\
+    & d_\text{safe} \leq d(\bm p) & & \forall t \in [0,T_f) \label{eq:neo:constraints:dodge} \\
+    & \qquad \textbf{Stability Constraint} \nonumber \\
+    & \text{ZMP} \in \gamma \text{PoS} & & \forall t \in [0,T_f) \label{eq:neo:constraints:stability} \\
+    & \qquad \textbf{Joint Constraints} \nonumber \\
+    & \bm{\underline q} \leq \bm{q} \leq \bm{\overline q} & & \forall t \in [0,T_f) \label{eq:neo:constraints:joint}\\
+    & -\bm{\tau}_\text{max} \leq \bm u \leq \bm{\tau}_\text{max} & & \forall t \in [0,T_f)\label{eq:neo:constraints:torque}\\
+    & \qquad \textbf{Friction Constraints} \nonumber \\
+    & 0 \leq (\mu F_j^z)^2-\|\bm{F}_j\|^2_2 & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:neo:constraints:F} \\
+    & 0 \leq F_L^z & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:neo:constraints:Fz} \\
+    & \qquad \textbf{Terminal Pose Constraint} \nonumber \\
+    & \begin{bmatrix} \bm q_0-q_\epsilon \\ -\bm v_\text{stat.} \end{bmatrix}
+    \leq \bm x(T_f) \leq
+    \begin{bmatrix} \bm q_0+q_\epsilon \\ \bm v_\text{stat.} \end{bmatrix} \label{eq:neo:constraints:terminal}
+  \end{align}
+\end{subequations}
+
+\begin{subequations}
+  \label{eq:neo:obj}
+  \begin{align}
+    l_q(\bm x) &= \frac{\| \bm q-\bm q_0 \|^2_2}{(n_q \cdot \bm{q}_\text{exp}^2)^2}  \label{eq:neo:obj:joint} \\
+    l_\tau(\bm u) &= \frac{\|\bm{\tau}\|^2_2}{(n_u \cdot \bm{u}_\text{exp}^2)^2} \label{eq:neo:obj:torque}
+  \end{align}
+\end{subequations}
+
+\subsection{Robot Object Distance}
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/04_neoEvasion/collisionHull/primitives.png}
+    \caption{individual primitives}
+    \label{fig:neo:distance:primitives}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{figures/04_neoEvasion/collisionHull/composition.png}
+    \caption{composed collision hull}
+    \label{fig:neo:distance:composed}
+  \end{subfigure}
+  \caption{
+  (a) visualizes the individual ellipsoid collision primitives, which are combined by leveraging the smooth transition function (\cref{eq:limbo:distance:smin}) to a composition in (b).
+  }
+  \label{fig:neo:distance}
+\end{figure}
+
+\subsubsection{Ellipsoid SDFs}
+
+\begin{subequations}
+  \label{eq:neo:distance:ellipsoid}
+  \begin{align}
+    k_0 &= \left| \frac{\bm{p} - \bm{c}}{\bm r} \right|_2 \\
+    k_1 &= \left| \frac{\bm{p} - \bm{c}}{\bm r^2} \right|_2 \\
+    d(\bm{p}) &= \frac{k_0 \cdot (k_0-1)}{k_1}
+  \end{align}
+\end{subequations}
+
+\subsubsection{Smooth Transition Function}
+\begin{equation}
+\text{smin}(d_i,d_j) = d_i+\frac{d_j-d_i}{1-e^{\frac{d_j-d_i}{k\log 2}}} = d_\text{union} \label{eq:limbo:distance:smin}
+\end{equation}
+
+\subsection{Results and Discussion}
