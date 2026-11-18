@@ -6,35 +6,88 @@ The working title of this first generator is \textit{Morpheus} after the famous 
 Like the character in the movie, this formulation is the steppingstone for our more advanced Neo formulation, which is presented in \cref{sec:neo}.
 \par
 Therefore, we focus for \textit{Morpheus} on formulating a well rounded whole-body locomotion optimal control problem, that is able to reliably generate motions for the humanoid H1-2.
+\todo{reformulate to fit changed order}
 This formulation is described in \cref{sec:morpheus:formulation}, where we present the states, controls, dynamics, constraints, and objective function.
 Afterwards we discuss the trade-offs we took during model selection and present the actuated joints in \cref{sec:morpheus:model}.
 A investigation of the available hardware limits of the H1-2 rounds up the formulation.
 \\
 At last we discuss the shortcomings of our \textit{Morpheus} implementation on the example of a motion, that was generated for a head height reduction $\Delta h$ of $\SI{0.4}{\metre}$.
 
-\subsection{Formulation} \label{sec:morpheus:formulation}
+\subsection{Robot Model} \label{sec:morpheus:model}
+As mentioned before every model is an approximation of the real world, so we are required to form decisions to capture the details of the real-world that are essential for our specific problem.
+\\
+Like for every mobile robot we use a floating base model,
+\begin{equation}
+  \bm q =
+  \begin{bmatrix}
+    p_\text{world} \\
+    r_\text{world} \\
+    \bm q_\text{joints}
+  \end{bmatrix}
+  \label{eq:morpheus:joints}
+\end{equation}
+which means that our joint vector $\bm q$ additionally to the actual joints $\bm q_\text{joints}$, holds world position $\bm p_\text{world}$ and orientation $\bm r_\text{world}$.
+For some applications the orientation is defined as quaternions to provide smooth and fully defined transitions.
+This however would lead to complications in calculating the joint velocities as not every rigid-body library supports them.
+After all we decided to stick to euler angles for an easy to use system.
+\\
+The goal of our motion generator is to reduce the head height.
+To achieve this we do not need to employ joints outside the sagittal plane and can reduce the problem size therefore to ten joints: two ankle, knee, and hip joints plus the torso joint.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.3\textwidth]{figures/03_morpheusEvasion/lumped_model.png}
+  \caption{The movable segments of the defined robot model. Excluding the torso it is restricted to sagittal motions.}
+  \label{fig:morpheus:lumped}
+\end{figure}
+The resulting movable segments are marked in \cref{fig:morpheus:lumped}:
+Purple marks the torso, blue the thigh, green the shank and orange the feet.
+For the full robot model, we are utilizing the official Unitree H1-2 model and fixate all not required joints.
+\\
+Now that we defined our model, we are able to define the optimal control problem.
 
-Dynamics:
+\subsection{Optimal Control Formulation} \label{sec:morpheus:formulation}
+States, controls and system dynamics are defined as follows:
 \begin{subequations}
   \label{eq:morpheus:dyn}
   \begin{align}
-    \bm x(t) &=
+    \bm x &=
     \begin{bmatrix}
       \bm{q} \\ \bm{\dot q}
     \end{bmatrix} \label{eq:morpheus:dyn:x} \\
-    \bm u(t) &=
+    \bm u &=
     \bm{\tau} \label{eq:morpheus:dyn:u}\\
-    \bm{f}_\text{expl}(t) &=
+    \bm{f}_\text{expl} &=
     \begin{bmatrix}
       \bm{\dot q} \\
       \text{cons. FD}(\bm q,\bm{\dot q},\bm{\tau})
     \end{bmatrix} \label{eq:morpheus:dyn:f}
   \end{align}
 \end{subequations}
+To achieve highly dynamic motion synthesis, we select for our controls $\bm u$ the joint torques $\bm \tau$ of the robot.
+These controls are a common choice and were for example used to generate somersault motions, like Mombaur et al. \cite{mombaur_2005} showed.
+Additionally, it gives the open-loop controller as much controller as possible and closely ties to the real robots control inputs.
+\\
+The states of our system $\bm x$ are composed from joint positions $\bm q$ and velocities $\bm{\dot q}$.
+With these we are able to derive all the following system characteristics, for example \acrshort{zmp} and contact forces.
+\par
+System dynamics were chosen to be explicitly formulated, which results in joint velocities $\bm{\dot q}$ and accelerations.
+As our problem does not include stepping, we are likely to not encounter stiffness issues in the formulation, and therefore are able to utilize the faster optimization algorithms an explicit formulation unlocks.
+\\
+Joint accelerations can be calculated from positions, velocities, and torques using constraint forward dynamics.
+We settled for a solution of the in eq. ? \todo{ref to fundamentals} defined linear system, as it is already implemented in the rigid-body dynamics library Pinocchio \cite{pinocchioweb,carpentier2019pinocchio}.
+\par
+To fully utilize the strength of our selected optimal control library Acados \cite{verschueren_2021} we employ automatic differentiation in the form of CasADi \cite{andersson2019} expressions.
+Pinocchio \cite{carpentier2019pinocchio,pinocchioweb} as well as \acrfull{rbdl} \cite{Felis2016} are able to produce CasADi expressions for a given \verb|urdf|-model.
+Both are based on Featherstones methods and equations \cite{featherstone_2008}, however we chose Pinocchio as it is the faster \cite{carpentier2019pinocchio} and more commonly used library.
+As a result Pinocchio provides all our dynamics and kinematics equations of the H1-2, as well as the contact formulation mentioned before.
+\\
+Because Pinocchio has a specific style to define contact points and our robot model is moving solely in the sagital plane, we land on a singular KKT matrix $K_\rho$ in the contact equation eq. ? \todo{add ref to non proximal contact min problem}.
+Carpentier et al. \cite{carpentier_2021} present a reformulation with the proximal operator as a solution to this problem, like shown in eq. \todo{add ref to proximal settings}.
+This makes the KKT matrix invertable, but introduces an additional optimization problem (eq. \todo{add ref to proximal problem}).
+As the automatic differentiation requires a closed form of our contact formulation, we unroll a specified amount of solver iterations, which will most likely result in a suitable approximation.
+\\
+After clarifying the system dynamics we move towards the composited objective function and limiting constraints.
 
-Constraints and Core Formulation:
-\begin{itemize}
-\end{itemize}
 \begin{subequations}
   \label{eq:morpheus:constraints}
   \begin{align}
@@ -59,7 +112,8 @@ Constraints and Core Formulation:
   \end{align}
 \end{subequations}
 
-Objective Functions:
+\paragraph{Constraints}
+\paragraph{Objective Functions}
 \begin{subequations}
   \label{eq:morpheus:obj}
   \begin{align}
@@ -77,29 +131,6 @@ Sigmoid Curve (Logistic Function):
   \item $k_0$ supremum
   \item $k_1$ steepness of the curve
   \item $x_0$ cross point
-\end{itemize}
-
-
-\subsection{Model Choice} \label{sec:morpheus:model}
-As mentioned before every model is an approximation of the real world, so we are required to form decisions to capture the details of the real-world that are essential for our specific problem.
-
-\begin{itemize}
-  \item floating base
-  \item sagittal plane
-  \item contacts with proximal settings
-\end{itemize}
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.3\textwidth]{figures/03_morpheusEvasion/lumped_model.png}
-  \caption{TODO}
-  \label{fig:morpheus:lumped}
-\end{figure}
-
-\begin{itemize}
-  \item add figure
-  \item only sagital plane without torso
-  \item trade offs
 \end{itemize}
 
 \subsection{Hardware Limits} \label{sec:morpheus:limits}
@@ -127,17 +158,6 @@ As mentioned before every model is an approximation of the real world, so we are
   \caption{TODO}
   \label{fig:morpheus:ankle}
 \end{figure}
-
-\subsection{Implementation Details}
-\todo[inline]{probably move into the respective subsection}
-Why are we using the following components?
-\begin{itemize}
-  \item Pinocchio
-  \item Acados
-  \item Casadi
-\end{itemize}
-This should also discuss why \textit{analytical derivatives} are a good choice, maybe also cite something from casadi if they put a point behind it.
-
 
 \subsection{Results and Discussion} \label{sec:morpheus:results}
 \begin{itemize}
