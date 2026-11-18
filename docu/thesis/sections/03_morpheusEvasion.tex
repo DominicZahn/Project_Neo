@@ -1,10 +1,20 @@
 \section{Morpheus} \label{sec:morpheus}
-We start of the development of a collision avoidance motion generator by trying to avoid an object that is targeted towards the head of the robot.
-An intuitive and easy solution is to move the head of the robot out of the way of the projectile.
-To achieve this motion we squat to establish a low enough height a
+We start the development of a collision avoidance motion generator by trying to evading an approaching object that is targeted towards the head of the robot.
+An intuitive and easy solution is to move it downwards and of the way so that the object passes right over.
+\\
+The working title of this first generator is \textit{Morpheus} after the famous character from "The Matrix".
+Like the character in the movie, this formulation is the steppingstone for our more advanced Neo formulation, which is presented in \cref{sec:neo}.
+\par
+Therefore, we focus for \textit{Morpheus} on formulating a well rounded whole-body locomotion optimal control problem, that is able to reliably generate motions for the humanoid H1-2.
+This formulation is described in \cref{sec:morpheus:formulation}, where we present the states, controls, dynamics, constraints, and objective function.
+Afterwards we discuss the trade-offs we took during model selection and present the actuated joints in \cref{sec:morpheus:model}.
+A investigation of the available hardware limits of the H1-2 rounds up the formulation.
+\\
+At last we discuss the shortcomings of our \textit{Morpheus} implementation on the example of a motion, that was generated for a head height reduction $\Delta h$ of $\SI{0.4}{\metre}$.
 
-\subsection{Formulation}
+\subsection{Formulation} \label{sec:morpheus:formulation}
 
+Dynamics:
 \begin{subequations}
   \label{eq:morpheus:dyn}
   \begin{align}
@@ -22,39 +32,62 @@ To achieve this motion we squat to establish a low enough height a
   \end{align}
 \end{subequations}
 
+Constraints and Core Formulation:
+\begin{itemize}
+\end{itemize}
 \begin{subequations}
   \label{eq:morpheus:constraints}
   \begin{align}
-    \min_{\bm x(\cdot),\bm u(\cdot)} \quad & \int_0^{T_f} \left(\omega_q l_\text{q}(\bm x) + \omega_\tau l_\tau(\bm{u}) \right) dt \label{morpheus:constraints:obj} \\
-    \textrm{s.t.} \quad & \qquad \textbf{Dodge Constraint} \nonumber \\
-    & d_\text{safe} \leq d(\bm p) & & \forall t \in [0,T_f) \label{eq:morpheus:constraints:dodge} \\
+    \min_{\bm x(\cdot),\bm u(\cdot)} \quad
+      & \int_0^{T_f} \left(\omega_s l_\text{s}(\bm x) + \omega_\tau l_r(\bm{u}) \right) dt
+      + \omega_h l_h(\bm x_f) \label{morpheus:constraints:obj} \\
+    % Constraints
+    \textrm{s.t.} \quad & \qquad \textbf{Initial Pose Constraint} \nonumber \\
+    & \begin{bmatrix} \bm q_0 \\ 0 \end{bmatrix} = \bm x(0) & & \label{eq:morpheus:constraints:initalPose} \\
+    & \qquad \textbf{Dodge Constraint} \nonumber \\
+    & \bm p_\text{head,f}|_z \leq \bm p_\text{head,0}|_z - \Delta h & & \label{eq:morpheus:constraints:dodge} \\
     & \qquad \textbf{Stability Constraint} \nonumber \\
     & \text{ZMP} \in \gamma \text{PoS} & & \forall t \in [0,T_f) \label{eq:morpheus:constraints:stability} \\
     & \qquad \textbf{Joint Constraints} \nonumber \\
     & \bm{\underline q} \leq \bm{q} \leq \bm{\overline q} & & \forall t \in [0,T_f) \label{eq:morpheus:constraints:joint}\\
     & -\bm{\tau}_\text{max} \leq \bm u \leq \bm{\tau}_\text{max} & & \forall t \in [0,T_f)\label{eq:morpheus:constraints:torque}\\
     & \qquad \textbf{Friction Constraints} \nonumber \\
-    & 0 \leq (\mu F_j^z)^2-\|\bm{F}_j\|^2_2 & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:morpheus:constraints:F} \\
-    & 0 \leq F_L^z & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:morpheus:constraints:Fz} \\
+    & 0 \leq (\mu F_j|_z)^2-\|\bm{F}_j\|^2_2 & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:morpheus:constraints:F} \\
+    & 0 \leq F_j|_z & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:morpheus:constraints:Fz} \\
     & \qquad \textbf{Terminal Pose Constraint} \nonumber \\
-    & \begin{bmatrix} \bm q_0-q_\epsilon \\ -\bm v_\text{stat.} \end{bmatrix}
-    \leq \bm x(T_f) \leq
-    \begin{bmatrix} \bm q_0+q_\epsilon \\ \bm v_\text{stat.} \end{bmatrix} \label{eq:morpheus:constraints:terminal}
+    & -\bm v_\text{stat.} \leq \bm{\dot q_f} \leq \bm v_\text{stat.} \label{eq:morpheus:constraints:terminal}
   \end{align}
 \end{subequations}
 
+Objective Functions:
 \begin{subequations}
   \label{eq:morpheus:obj}
   \begin{align}
-    l_q(\bm x) &= \frac{\| \bm q-\bm q_0 \|^2_2}{(n_q \cdot \bm{q}_\text{exp}^2)^2}  \label{eq:morpheus:obj:joint} \\
-    l_\tau(\bm u) &= \frac{\|\bm{\tau}\|^2_2}{(n_u \cdot \bm{u}_\text{exp}^2)^2} \label{eq:morpheus:obj:torque}
+    l_s(\bm x) &= \frac{(\bm p_\text{ZMP} - \textbf{PoS}_\text{center})^2}{(\text{PoS}_\text{height})^2} \label{eq:morpheus:obj:stability} \\
+    l_r(\bm u) &= \frac{\|\bm{\tau}\|^2_2}{(n_u \cdot \bm{u}_\text{exp}^2)^2} \label{eq:morpheus:obj:regularization} \\
+    l_h(\bm x) &= \text{sigmoid}(\bm p_\text{head}(T_f)|_z) \label{eq:morpheus:obj:head} \\
   \end{align}
 \end{subequations}
 
+Sigmoid Curve (Logistic Function):
+\begin{equation}
+  \text{sigmoid}(x,k_0,k_1,x_0) = \frac{k_0}{1+e^{-k_1(x-x_0)}}
+\end{equation}
+\begin{itemize}
+  \item $k_0$ supremum
+  \item $k_1$ steepness of the curve
+  \item $x_0$ cross point
+\end{itemize}
 
 
-\subsection{Model Choice}
+\subsection{Model Choice} \label{sec:morpheus:model}
 As mentioned before every model is an approximation of the real world, so we are required to form decisions to capture the details of the real-world that are essential for our specific problem.
+
+\begin{itemize}
+  \item floating base
+  \item sagittal plane
+  \item contacts with proximal settings
+\end{itemize}
 
 \begin{figure}
   \centering
@@ -69,16 +102,7 @@ As mentioned before every model is an approximation of the real world, so we are
   \item trade offs
 \end{itemize}
 
-\subsection{Initial Pose}
-\begin{itemize}
-  \item $\SI{0.4}{\radian}$ knees bend
-\end{itemize}
-
-\subsection{Hardware Limits}
-\todo[inline]{
-  How happy is Unitree that we publish there internals?
-  Maybe create schematics instead of real picture.
-}
+\subsection{Hardware Limits} \label{sec:morpheus:limits}
 \begin{itemize}
   \item joint limits from \verb|urdf|-file
   \item derivation of ankle torques
@@ -105,6 +129,7 @@ As mentioned before every model is an approximation of the real world, so we are
 \end{figure}
 
 \subsection{Implementation Details}
+\todo[inline]{probably move into the respective subsection}
 Why are we using the following components?
 \begin{itemize}
   \item Pinocchio
@@ -113,9 +138,10 @@ Why are we using the following components?
 \end{itemize}
 This should also discuss why \textit{analytical derivatives} are a good choice, maybe also cite something from casadi if they put a point behind it.
 
-\subsubsection{Initial Values}
 
-\subsection{Results and Discussion}
-
+\subsection{Results and Discussion} \label{sec:morpheus:results}
+\begin{itemize}
+  \item No control over what happens before?
+\end{itemize}
 
 

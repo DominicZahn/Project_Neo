@@ -122,4 +122,18 @@
 \text{smin}(d_i,d_j) = d_i+\frac{d_j-d_i}{1-e^{\frac{d_j-d_i}{k\log 2}}} = d_\text{union} \label{eq:limbo:distance:smin}
 \end{equation}
 
+
+\subsubsection{Initial Values}
+As the formulation of our problem got more mathematically complex, we require initial values, from which the solver can start.
+These were computed with the same model but a separate script and are the necessary inputs to keep the robot in an upright pose for the duration.
+The solver therefore does not need to first start finding a dynamically stable baseline, but adjusts the provided values to evade the approaching object, while respecting the set constraints.
+\\
+The result is faster and more stable convergence.
+However, it should also be noticed, that such priming can lead to divergence in cases, where the solution vastly differs from the start trajectory.
+For our use case it was tested to be a net positive as ? of 500 feasible motions were found, with initial values.
+In contrast only ? \todo{run tests without inital values} of 500 motions were generated without priming the solver with the torques for a standing pose.
+\\
+We round up this section by presenting the resulting motion for a specific projectile trajectory.
+An in-depth evaluation of the now fully presented method can be found in \cref{sec:eval:app}.
+
 \subsection{Results and Discussion}
