@@ -20,22 +20,23 @@ Like for every mobile robot we use a floating base model,
 \begin{equation}
   \bm q =
   \begin{bmatrix}
-    p_\text{world} \\
-    r_\text{world} \\
+    \bm p_\text{world} \\
+    \bm r_\text{world} \\
     \bm q_\text{joints}
   \end{bmatrix}
   \label{eq:morpheus:joints}
 \end{equation}
-which means that our joint vector $\bm q$ additionally to the actual joints $\bm q_\text{joints}$, holds world position $\bm p_\text{world}$ and orientation $\bm r_\text{world}$.
+which means that our joint vector $\bm q \in \mathbb{R}^{n_q}$ additionally to the actual joints $\bm q_\text{joints} \in \mathbb{R}^{n_j}$, holds world position $\bm p_\text{world} \in \mathbb{R}^3$ and orientation $\bm r_\text{world} \in \mathbb{R}^3$.
 For some applications the orientation is defined as quaternions to provide smooth and fully defined transitions.
 This however would lead to complications in calculating the joint velocities as not every rigid-body library supports them.
 After all we decided to stick to euler angles for an easy to use system.
+In total our joint vector has the size of $n_q=6+n_j$.
 \\
 The goal of our motion generator is to reduce the head height.
 To achieve this we do not need to employ joints outside the sagittal plane and can reduce the problem size therefore to ten joints: two ankle, knee, and hip joints plus the torso joint.
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.3\textwidth]{figures/03_morpheusEvasion/lumped_model.png}
+  \includegraphics[width=0.2\textwidth]{figures/03_morpheusEvasion/lumped_model.png}
   \caption{The movable segments of the defined robot model. Excluding the torso it is restricted to sagittal motions.}
   \label{fig:morpheus:lumped}
 \end{figure}
@@ -55,12 +56,7 @@ States, controls and system dynamics are defined as follows:
       \bm{q} \\ \bm{\dot q}
     \end{bmatrix} \label{eq:morpheus:dyn:x} \\
     \bm u &=
-    \bm{\tau} \label{eq:morpheus:dyn:u}\\
-    \bm{f}_\text{expl} &=
-    \begin{bmatrix}
-      \bm{\dot q} \\
-      \text{cons. FD}(\bm q,\bm{\dot q},\bm{\tau})
-    \end{bmatrix} \label{eq:morpheus:dyn:f}
+    \bm{\tau} \label{eq:morpheus:dyn:u}
   \end{align}
 \end{subequations}
 To achieve highly dynamic motion synthesis, we select for our controls $\bm u$ the joint torques $\bm \tau$ of the robot.
@@ -68,9 +64,36 @@ These controls are a common choice and were for example used to generate somersa
 Additionally, it gives the open-loop controller as much controller as possible and closely ties to the real robots control inputs.
 \\
 The states of our system $\bm x$ are composed from joint positions $\bm q$ and velocities $\bm{\dot q}$.
-With these we are able to derive all the following system characteristics, for example \acrshort{zmp} and contact forces.
-\par
-System dynamics were chosen to be explicitly formulated, which results in joint velocities $\bm{\dot q}$ and accelerations.
+With these we are able to compute the objective function, system dynamics, and constraints, which are displayed in the following:
+\begin{subequations}
+  \label{eq:morpheus:constraints}
+  \begin{align}
+    \min_{\bm x(\cdot),\bm u(\cdot)} \quad
+      & \int_0^{T_f} \left(\omega_s l_\text{s}(\bm x) + \omega_\tau l_r(\bm{u}) \right) dt
+      + \omega_h m_h(\bm x_f) \label{morpheus:constraints:obj} \\
+    % Constraints
+    \textrm{s.t.} \quad & \bm{\dot x} =
+    \begin{bmatrix}
+      \bm{\dot q} \\
+      \text{cons. FD}(\bm q,\bm{\dot q},\bm{\tau})
+    \end{bmatrix} \label{eq:morpheus:dyn:f} \\
+    & \qquad \textbf{Initial Pose Constraint} \nonumber \\
+    & \begin{bmatrix} \bm q_0 \\ 0 \end{bmatrix} = \bm x(0) & & \label{eq:morpheus:constraints:initialPose} \\
+    & \qquad \textbf{Dodge Constraint} \nonumber \\
+    & \bm p_\text{head,f}|_z \leq \bm p_\text{head,0}|_z - \Delta h & & \label{eq:morpheus:constraints:dodge} \\
+    & \qquad \textbf{Stability Constraint} \nonumber \\
+    & \text{ZMP} \in \gamma \text{PoS} & & \forall t \in [0,T_f] \label{eq:morpheus:constraints:stability} \\
+    & \qquad \textbf{Joint Constraints} \nonumber \\
+    & \bm{\underline q} \leq \bm{q} \leq \bm{\overline q} & & \forall t \in [0,T_f) \label{eq:morpheus:constraints:joint}\\
+    & -\bm{\tau}_\text{max} \leq \bm u \leq \bm{\tau}_\text{max} & & \forall t \in [0,T_f)\label{eq:morpheus:constraints:torque}\\
+    & \qquad \textbf{Friction Constraints} \nonumber \\
+    & 0 \leq (\mu F_j|_z)^2-\|\bm{F}_j\|^2_2 & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:morpheus:constraints:F} \\
+    & 0 \leq F_j|_z & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:morpheus:constraints:Fz} \\
+    & \qquad \textbf{Terminal Pose Constraint} \nonumber \\
+    & -\bm v_\text{stat.} \leq \bm{\dot q_f} \leq \bm v_\text{stat.} \label{eq:morpheus:constraints:terminal}
+  \end{align}
+\end{subequations}
+We chose our system dynamics to be explicitly formulated, which results in joint velocities $\bm{\dot q}$ and accelerations.
 As our problem does not include stepping, we are likely to not encounter stiffness issues in the formulation, and therefore are able to utilize the faster optimization algorithms an explicit formulation unlocks.
 \\
 Joint accelerations can be calculated from positions, velocities, and torques using constraint forward dynamics.
@@ -86,54 +109,77 @@ Carpentier et al. \cite{carpentier_2021} present a reformulation with the proxim
 This makes the KKT matrix invertable, but introduces an additional optimization problem (eq. \todo{add ref to proximal problem}).
 As the automatic differentiation requires a closed form of our contact formulation, we unroll a specified amount of solver iterations, which will most likely result in a suitable approximation.
 \\
-After clarifying the system dynamics we move towards the composited objective function and limiting constraints.
+After clarifying the system dynamics we move towards the composited objective function and limiting constraints in \cref{eq:morpheus:constraints}.
 
-\begin{subequations}
-  \label{eq:morpheus:constraints}
-  \begin{align}
-    \min_{\bm x(\cdot),\bm u(\cdot)} \quad
-      & \int_0^{T_f} \left(\omega_s l_\text{s}(\bm x) + \omega_\tau l_r(\bm{u}) \right) dt
-      + \omega_h l_h(\bm x_f) \label{morpheus:constraints:obj} \\
-    % Constraints
-    \textrm{s.t.} \quad & \qquad \textbf{Initial Pose Constraint} \nonumber \\
-    & \begin{bmatrix} \bm q_0 \\ 0 \end{bmatrix} = \bm x(0) & & \label{eq:morpheus:constraints:initalPose} \\
-    & \qquad \textbf{Dodge Constraint} \nonumber \\
-    & \bm p_\text{head,f}|_z \leq \bm p_\text{head,0}|_z - \Delta h & & \label{eq:morpheus:constraints:dodge} \\
-    & \qquad \textbf{Stability Constraint} \nonumber \\
-    & \text{ZMP} \in \gamma \text{PoS} & & \forall t \in [0,T_f) \label{eq:morpheus:constraints:stability} \\
-    & \qquad \textbf{Joint Constraints} \nonumber \\
-    & \bm{\underline q} \leq \bm{q} \leq \bm{\overline q} & & \forall t \in [0,T_f) \label{eq:morpheus:constraints:joint}\\
-    & -\bm{\tau}_\text{max} \leq \bm u \leq \bm{\tau}_\text{max} & & \forall t \in [0,T_f)\label{eq:morpheus:constraints:torque}\\
-    & \qquad \textbf{Friction Constraints} \nonumber \\
-    & 0 \leq (\mu F_j|_z)^2-\|\bm{F}_j\|^2_2 & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:morpheus:constraints:F} \\
-    & 0 \leq F_j|_z & \forall j \in \{ \text{left}, \text{right} \} \qquad & \forall t \in [0,T_f) \label{eq:morpheus:constraints:Fz} \\
-    & \qquad \textbf{Terminal Pose Constraint} \nonumber \\
-    & -\bm v_\text{stat.} \leq \bm{\dot q_f} \leq \bm v_\text{stat.} \label{eq:morpheus:constraints:terminal}
-  \end{align}
-\end{subequations}
-
-\paragraph{Constraints}
-\paragraph{Objective Functions}
+\subsubsection{Objective Functions}
+The objective function represents the features we want to optimize, when formulating an optimal control problem.
+For our humanoid collision avoidance robot the main feature is to perform a matrix style bullet dodge, where the robot leans back, while lowering its head height.
+To fully avoid the head targeted approaching object we require the robot to lower its height more than $\Delta h$.
+As this is a hard limit we wish to enforce, it is formulated as a constraint in \cref{eq:morpheus:constraints:dodge}.
+\\
+Therefore, one of the objectives we would like to maximize is the lean back of H1-2.
+We are maximizing the negative $x$-coordinate of the head position $\bm p_\text{head}$.
+In order to project negative $x$-coordinates to near zero and positive values to one we employ a sigmoid curve in form of the logistic function:
+\begin{equation}
+  s(x,k_0,k_1,x_0) = \frac{k_0}{1+e^{-k_1(x-x_0)}}
+  \label{eq:morpheus:sigmoid}
+\end{equation}
+It reassembles the characteristical s-shape of a sigmoid function, by defining the supremum $k_0 = 1$, steepness $k_1 = 30$ and cross point $x_0 = 0$.
+\begin{figure}
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/03_morpheusEvasion/sigmoid/sigmoid.pdf}
+  \caption{The in \cref{eq:morpheus:sigmoid} described sigmoid function to push the robots head behind his hips.}
+  \label{fig:morpheus:sigmoid}
+\end{figure}
+The resulting function is shown together with markings for the \acrshort{pos} in \cref{fig:morpheus:sigmoid}.Through the logistic function we are able to apply a consistent penalty for leaned forward poses.
+We do not shift the sigmoid curve towards the \acrshort{pos} to keep model the natural bias of the humanoid robot, as its \acrshort{com} in the default position is at $\textbf{CoM}_0|_x = 0$.
+This is the cause of the robots feet being not symmetrical in $x$-direction, but resemble more the ones of a human, where the ankle joint is sitting towards the heel of the foot.
+\\
+By utilizing the logistic function $s(x)$ from \cref{eq:morpheus:sigmoid} we formulate the Mayer Objective Function $m_h$, which can be found in the following equation:
 \begin{subequations}
   \label{eq:morpheus:obj}
   \begin{align}
+    m_h(\bm x) &= s(\bm p_\text{head,f}|_z) \label{eq:morpheus:obj:head} \\
     l_s(\bm x) &= \frac{(\bm p_\text{ZMP} - \textbf{PoS}_\text{center})^2}{(\text{PoS}_\text{height})^2} \label{eq:morpheus:obj:stability} \\
-    l_r(\bm u) &= \frac{\|\bm{\tau}\|^2_2}{(n_u \cdot \bm{u}_\text{exp}^2)^2} \label{eq:morpheus:obj:regularization} \\
-    l_h(\bm x) &= \text{sigmoid}(\bm p_\text{head}(T_f)|_z) \label{eq:morpheus:obj:head} \\
+    l_r(\bm u) &= \frac{\|\bm{\tau}\|^2_2}{(n_u \cdot \bm{u}_\text{exp}^2)^2} \label{eq:morpheus:obj:regularization}
   \end{align}
 \end{subequations}
+Another objective of our formulation is to generate a dynamically stable motion.
+One tool tool to measure this metric is the in \cref{eq:fundamentals:dynamicStability} defined \acrshort{zmp}.
+Like we already mentioned in \cref{sec:fundamentals:dynamicStability} the \acrshort{zmp} has to be well inside the \acrshort{pos} to guarantee stability.
+It also only exists inside the \acrshort{pos} and when the robots feet are not slipping.
+The later is constraint by constraining the allowed friction \cref{eq:morpheus:constraints:F,eq:morpheus:constraints:Fz} with a coefficient of friction of $\mu = 0.5$.
+\Cref{eq:morpheus:constraints:Fz} further ensures, that no "pulling" contact forces are exploited, as this is mathematically possible with the formulation in eq. ? \todo{ref contact}, but would not be feasible in reality.
+To assure the existence of the \acrshort{zmp} we clamp it to the \acrshort{pos}.
+\Cref{eq:morpheus:constraints:stability} amplifies the restriction by reducing the \acrshort{pos} with the factor $\gamma$.
+This is a common practice, to account for uncertainties in the execution of the motion later in the pipeline.
+Additionally, we push the \acrshort{zmp} into the middle of the \acrshort{pos} by minimizing for the quadratic normalized distance between center and \acrshort{zmp}.
+Because we are optimizing over the full time we model it as the Lagrange objective function $l_s$, which can be found in \cref{eq:morpheus:obj:stability}.
+\par
+The last part of our objective function is a regularization term $l_r$.
+Like the other components it was normalized to approximately offer a value range of $\left[0,1\right]$.
+For the regularization we executed multiple test runs and selected an expected torque value of $\bm u_\text{exp}$.
+\\
+As a result we are able to weigh the objective function terms in order of importance.
+Stability and lean are the main optimization goals and should therefore receive the same weighting.
+To balance the fact out that the Lagrange function is integrated over the full duration, we scale the lean weight of our Mayer term by amount of shooting nodes $N$.
+Regularization, as the name already suggests, should remain small and not hinder the achievement of the other goals, its weight $\omega_r$ remains low.
+The exact weights are as follows:
+\begin{subequations}
+  \centering
+  \begin{align}
+    \omega_s &= 1 & \text{stability} \nonumber \\
+    \omega_h &= N & \text{head / lean} \nonumber \\
+    \omega_h &= 10^{-4} & \text{regularization} \nonumber
+  \end{align}
+  \label{eq:morpheus:weights}
+\end{subequations}
+\par
+We already covered some elementary constraints of the optimal control problem.
+The next section fills in the gaps by describing the rational behind the initial pose \cref{eq:morpheus:constraints:initialPose}, evasion constraint \cref{eq:morpheus:constraints:dodge}, hardware limits \cref{eq:morpheus:joints} and terminal constraint \cref{eq:morpheus:constraints:terminal}.
 
-Sigmoid Curve (Logistic Function):
-\begin{equation}
-  \text{sigmoid}(x,k_0,k_1,x_0) = \frac{k_0}{1+e^{-k_1(x-x_0)}}
-\end{equation}
-\begin{itemize}
-  \item $k_0$ supremum
-  \item $k_1$ steepness of the curve
-  \item $x_0$ cross point
-\end{itemize}
-
-\subsection{Hardware Limits} \label{sec:morpheus:limits}
+\subsubsection{Additional Constraints}
+\paragraph{Hardware Limits} \label{sec:morpheus:limits}
 \begin{itemize}
   \item joint limits from \verb|urdf|-file
   \item derivation of ankle torques
