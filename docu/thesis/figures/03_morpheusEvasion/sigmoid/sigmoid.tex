@@ -1,0 +1,35 @@
+\documentclass{standalone}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+
+\begin{document}
+\begin{tikzpicture}
+  \begin{axis}[
+      axis lines = middle,
+      xlabel = $x$,
+      xlabel style={anchor=west},
+      ylabel = $\text{s}(x)$,
+      ylabel style={anchor=south},
+      enlargelimits = 0.05,
+  ]
+  \addplot [
+      domain=-0.5:0.5,
+      samples=100,
+      color=red,
+      ]
+      {1 / (1+e^(-30*(x-0)))};
+  \addplot[
+    only marks,
+    mark=*,
+    mark options={scale=0.75,fill=white},
+    point meta=explicit symbolic,
+    nodes near coords,
+    nodes near coords style={anchor=south west},
+    every node near coord/.append style={font=\small},
+    ] coordinates {
+      (0.2, 0.9985) [(0.2, 0.998)]
+      (0.05, 0.8176) [(0.05, 0.818)]
+    };
+  \end{axis}
+\end{tikzpicture}
+\end{document}
