@@ -107,6 +107,7 @@ As a result Pinocchio provides all our dynamics and kinematics equations of the 
 Because Pinocchio has a specific style to define contact points and our robot model is moving solely in the sagital plane, we land on a singular KKT matrix $K_\rho$ in the contact equation eq. ? \todo{add ref to non proximal contact min problem}.
 Carpentier et al. \cite{carpentier_2021} present a reformulation with the proximal operator as a solution to this problem, like shown in eq. \todo{add ref to proximal settings}.
 This makes the KKT matrix invertable, but introduces an additional optimization problem (eq. \todo{add ref to proximal problem}).
+
 As the automatic differentiation requires a closed form of our contact formulation, we unroll a specified amount of solver iterations, which will most likely result in a suitable approximation.
 \\
 After clarifying the system dynamics we move towards the composited objective function and limiting constraints in \cref{eq:morpheus:constraints}.
@@ -179,31 +180,73 @@ We already covered some elementary constraints of the optimal control problem.
 The next section fills in the gaps by describing the rational behind the initial pose \cref{eq:morpheus:constraints:initialPose}, evasion constraint \cref{eq:morpheus:constraints:dodge}, hardware limits \cref{eq:morpheus:joints} and terminal constraint \cref{eq:morpheus:constraints:terminal}.
 
 \subsubsection{Additional Constraints}
-\paragraph{Hardware Limits} \label{sec:morpheus:limits}
-\begin{itemize}
-  \item joint limits from \verb|urdf|-file
-  \item derivation of ankle torques
-  \item other torque limits from Unitree website
-\end{itemize}
-
+Additional to the already discussed stability and friction constraints (\cref{eq:morpheus:constraints:dodge,eq:morpheus:constraints:F,eq:morpheus:constraints:Fz}) there are initial as well as terminal pose constraints, plus hardware limits in form of joint angle and torque constraints.
+\\
+The initial pose constraint \cref{eq:morpheus:constraints:initialPose}, ensures, that the solver is generating a trajectory, where the robot starts from a stationary predefined pose.
+The bespoken pose is defined with slight bend knees ($\SI{0.4}{\radian}$) to avoid the singularity prone straight knee pose.
+It also enables the robot to dampen rapid changes in $z$-direction over the ankle, knee, and hip joint.
+\par
+For an effective usage of the robots capabilities it is important to define the available resources as constraints.
+In our formulation these are set in \cref{eq:neo:constraints:joint}.
+As Unitree provides an officially supported \verb|urdf| model, we use the joint angle limits from there.
+\\
+However, when taking a closer look at the torque, or as it is called in the \verb|urdf| file, \verb|effort| they used significantly reduced values.
+The intention is to set a safety margin for controllers and especially for learning based methods.
+As our intent is the synthesis of a motion, we can trust the executing controller, like an \acrshort{mpc}, to prevent torques from overworking the motors.
+Still, we would like the motion generator to use as much of the available torque as possible, driving the robot to its limits, will not strongly overshooting.
+The result are torque limits we collected from the Unitree website \cite{unitreeH1-2} with addition to some of our own hands on research on the robot.
+\\
+\begin{table}
+  \centering
+  \begin{tabularx}{0.3\textwidth}{rc}
+    \toprule
+    Joint Name & Limits [Nm] \\
+    \midrule
+    Torso & 220 \\
+    Hip Pitch & 220 \\
+    Knee & 360 \\
+    Ankle Pitch & \textit{130} \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Torque Limits}
+  \label{tab:morpheus:limits}
+\end{table}
+\Cref{tab:morpheus:limits} displays the resulting values.
+While the torso, hip pitch and knee joints torque limits can be taken directly from the website, the two ankle joints, pitch and roll, are driven by two motors with a limit of $\SI{70}{\newton \metre}$ each.
+Therefore, the joints torque limits should not be set independently, as this results in over or underestimating the available performance.
+Instead we the combined torque needs to be limited.
+\\
+We support this claim with images from the internal of the H1-2 in the BioRobotics Lab at KIT.
 \begin{figure}
   \centering
-  \begin{subfigure}[b]{0.4\textwidth}
+  \begin{subfigure}[b]{0.34\textwidth}
     \centering
     \includegraphics[width=\textwidth]{figures/03_morpheusEvasion/ankle_top.jpeg}
     \caption{Top View}
     \label{fig:morpheus:ankle:top}
   \end{subfigure}
   \hfill
-  \begin{subfigure}[b]{0.4\textwidth}
+  \begin{subfigure}[b]{0.55\textwidth}
     \centering
     \includegraphics[width=\textwidth]{figures/03_morpheusEvasion/ankle_side.jpeg}
     \caption{Side View}
     \label{fig:morpheus:ankle:side}
   \end{subfigure}
-  \caption{TODO}
+  \caption{
+    Those pictures were taken from the H1-2 in the BioRobotics Lab of the KIT.
+    They show the internals of the pitch and roll joint in the ankle.
+    The driving lever arms $a$ were measured with $\SI{30}{\milli \metre}$ (a), while the one at the joint $b$ is $\SI{26}{\milli \metre}$ resulting in an approximate conversion rate of $0.87$.
+  }
   \label{fig:morpheus:ankle}
 \end{figure}
+\Cref{fig:morpheus:ankle} shows the two motors, which drive the pitch and roll ankle joints together.
+Because we solely require torques in the pitch direction for sagittal plane motions, we can contribute the whole performance of the motors towards this joint.
+The differing lever arms $a$ and $b$ at the motor and ankle lead to a reduced maximum torque of $\SI{130}{\newton \metre}$.
+\par
+With information about the limitation of our robotics hardware we can define the terminal pose constraint.
+For now our goal is to stop the movement in a quasi-static pose, it is not relevant what the pose exactly is as long as it full fills the dodge constraint in \cref{eq:morpheus:constraints:dodge}.
+\\
+We conclude the presentation of our \textit{Morpheus} formulation by discussing the resulting trajectory for a head height reduction of $\Delta h = \SI{0.4}{meter}$.
 
 \subsection{Results and Discussion} \label{sec:morpheus:results}
 \begin{itemize}
