@@ -91,6 +91,7 @@ class OCP:
         cost.W = np.eye(1) / self.N
 
         # Mayer
+        wHead = self.N
         cost.cost_type_e = 'NONLINEAR_LS'
         cost.cost_discretization_e = 'INTEGRATOR'
         self.f_headPos = c.Function('f_headPos', [self.h1.q], [self.h1.headPos])
@@ -101,16 +102,16 @@ class OCP:
             0.0
         )
         cost.yref_e = 0.0
-        cost.W_e = np.eye(1) * 1.0
+        cost.W_e = np.eye(1) * 1.0 * wHead
 
         return cost
 
     @staticmethod
     def _sigmoid(x : c.SX,
-                 L : float,
-                 k : float,
+                 k0 : float,
+                 k1 : float,
                  x0 : float) -> c.SX:
-        return L / (1.0 + c.exp(-k*(x-x0)))
+        return k0 / (1.0 + c.exp(-k1*(x-x0)))
     
     def _constraints(self) -> AcadosOcpConstraints:
         nq = self.h1.model.nq
@@ -247,7 +248,7 @@ class OCP:
             self.headPosDesired - self.f_headPos(self.h1.q)[2]
         )
 
-        #       extend path constraints to terminal and inital
+        #       extend path constraints to inital
         self.ocp.model.con_h_expr_0 = self.ocp.model.con_h_expr
         cons.lh_0 = cons.lh
         cons.uh_0 = cons.uh
