@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import cv2
 from playwright.sync_api import sync_playwright, Playwright, Page, Browser
+import viser
 import subprocess
 
 from ext_pkgs.dodge_it_py.dodge_it_py.stability import (
@@ -82,6 +83,7 @@ class HeadlessData:
     dir : str
     camPos : npt.NDArray | None
     camLookAt : npt.NDArray | None
+    camFov : float | None
     resolution : tuple[int,int]
     # filled during execution
     playwright : Playwright | None = None
@@ -354,7 +356,7 @@ class H1Wrapper_v2():
             if not p.exists():
                 p.mkdir()
 
-            url = self._vis.viewer.get_host()
+            port = self._vis.viewer.get_port()
             visualize.playwright = sync_playwright().start()
             visualize.browser = visualize.playwright.chromium.launch(
                 headless=True,
@@ -366,7 +368,7 @@ class H1Wrapper_v2():
             visualize.page = visualize.browser.new_page(viewport={
                 "width": visualize.resolution[0],
                 "height": visualize.resolution[1]})
-            visualize.page.goto(url)
+            visualize.page.goto(f"http://localhost:{port}")
             assert(not visualize.page.is_closed())
             print("[INFO] viewer opened")
         self.headlessData = visualize
@@ -417,35 +419,31 @@ class H1Wrapper_v2():
             pose[:3,3] = pos
             self._vis.setCameraPose(pose)
 
-    def _moveCamera(self,
+    def _setCamera(self,
                    pos: np.ndarray,
                    lookAt: np.ndarray,
-                   up : npt.NDArray = np.array([0.,0.,1.])) -> None:
-            camInvDirection = pos - lookAt
-            camInvDirection /= np.linalg.norm(camInvDirection)
-            camRight = np.cross(up, camInvDirection)
-            camRight /= np.linalg.norm(camRight)
-            camUp = np.cross(camInvDirection, camRight)
-
-            R = np.eye(4)
-            R[:3,:3] = np.column_stack([camRight, camUp, camInvDirection])
-            T = np.eye(4)
-            T[:3,3] = pos
-            pose = R @ T
-            # pose = T @ R
-            assert(pose is not None)
-            assert(self._vis is not None)
-            self._vis.setCameraPose(pose)
+                   fov : float) -> None:
+        assert(self._vis)
+        server: viser.ViserServer = self._vis.viewer
+        for client in server.get_clients().values():
+            client.camera.position = pos
+            client.camera.look_at = lookAt
+            client.camera.fov = fov
+        
+        @server.on_client_connect
+        def _(client: viser.ClientHandle):
+            client.camera.position = pos
+            client.camera.look_at = lookAt
+            client.camera.fov = fov
 
     def autoCapture(self,
                     outFile : str,
                     camPos : npt.NDArray | None = None,
-                    camLookAt : npt.NDArray | None = None):
+                    camLookAt : npt.NDArray | None = None,
+                    camFov : float | None = None):
         assert(self._vis is not None)
-        if camPos is not None or camLookAt is not None:
-            assert(type(camPos) is npt.NDArray)
-            assert(type(camLookAt) is npt.NDArray)
-            self._moveCamera(camPos, camLookAt)
+        if camPos is not None and camLookAt is not None and camFov is not None:
+            self._setCamera(camPos, camLookAt, camFov)
         imgRGB = self._vis.captureImage()
         imgBGR = cv2.cvtColor(imgRGB, cv2.COLOR_RGB2BGR)
         cv2.imwrite(outFile, imgBGR)
@@ -519,12 +517,13 @@ class H1Wrapper_v2():
             Path(f"{self.headlessData.dir}/frames/").mkdir()
 
         if type(self.headlessData) is HeadlessData:
+            print(f"save {self.globalFrameId}")
             fileName = f"{self.headlessData.dir}/frames/{str(self.globalFrameId).zfill(5)}.png"
             self.autoCapture(fileName,
                              self.headlessData.camPos,
-                             self.headlessData.camLookAt)
+                             self.headlessData.camLookAt,
+                             self.headlessData.camFov)
             self.globalFrameId += 1
-
 
     def visualizeJointTrajecotry(self,
                                  q_arr : npt.NDArray,
