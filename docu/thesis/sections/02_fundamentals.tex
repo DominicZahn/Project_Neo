@@ -11,6 +11,66 @@
   \item proximal settings exist
 \end{itemize}
 
+\paragraph{Constrained Dynamics}
+Eq 2 in \cite{carpentier_2021}:
+\begin{subequations}
+  \begin{align}
+    \min_{\bm {\dot v}(\cdot)} \quad & \frac 1 2 \| \bm{\dot v} \bm{\dot - v_\text{free}}(\bm q, \bm v, \bm \tau) \|^2_M \label{eq:consDyn:default:obj} \\
+    \text{s.t.} \quad & f_c(\bm q) = 0 \label{eq:consDyn:default:cons}
+  \end{align}
+\end{subequations}
+
+Eq 3b in \cite{carpentier_2021}:
+\begin{equation}
+  J_{f_c}(\bm{q})\,\dot{\bm{v}} + \underbrace{\dot{J}_{f_c}(\bm{q},\bm{v})\,\bm{v}}_{\gamma_{f_c}(\bm{q},\bm{v})} = 0
+  \label{eq:consDyn:default:jakobian}
+\end{equation}
+
+Eq 6 in \cite{carpentier_2021} (KKT Matrix):
+\begin{equation}
+  \underbrace{\begin{bmatrix}
+  \mathbf{0} & J_{f_c} \\
+  J_{f_c}^{t} & M
+  \end{bmatrix}}_{K(\boldsymbol{q})}
+  \begin{bmatrix}
+  \boldsymbol{\lambda} \\
+  \dot{\boldsymbol{v}}
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+  -\gamma_{f_c} \\
+  M \dot{\boldsymbol{v}}_{\mathrm{free}}
+  \end{bmatrix}
+\end{equation}
+
+Eq 9 Proximal Operator:
+\begin{equation}
+  \operatorname{prox}_{f,\alpha}(y) \overset{\text{def}}{=} \arg\min_{x \in \mathcal{X}} \; f(x) + \frac{1}{2\alpha} \|x - y\|_2^2
+\end{equation}
+
+Proximal Algorithms \cite{parikh_2014} with Iteration:
+\begin{equation}
+  x_{k+1} = \operatorname{prox}_{f,\alpha}(x_k)
+\end{equation}
+
+
+Eq 18 in \cite{carpentier_2021} (KKT Matrix with proximal operator applied):
+\begin{equation}
+  \underbrace{\begin{bmatrix}
+  \alpha I_m & J_{f_c} \\
+  J_{f_c}^{t} & M
+  \end{bmatrix}}_{K(\boldsymbol{q})}
+  \begin{bmatrix}
+  \boldsymbol{\lambda} \\
+  \dot{\boldsymbol{v}}
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+  -\gamma_{f_c}- \alpha I_m \\
+  M \dot{\boldsymbol{v}}_{\mathrm{free}}
+  \end{bmatrix}
+\end{equation}
+
 \subsection{Dynamic Stability} \label{sec:fundamentals:dynamicStability}
 \begin{itemize}
   \item static stability (projected \acrfull{com})
