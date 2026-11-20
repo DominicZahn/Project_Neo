@@ -39,6 +39,9 @@ DYNAMIC_JOINT_NAMES = [
     # 'right_elbow_joint',
 ]
 
+xINITAL_VALUES_FILE = '/home/robot/ws/initalValues_x.txt'
+uINITAL_VALUES_FILE = '/home/robot/ws/initalValues_u.txt'
+
 Tf = 2.5
 N = 120
 # ------------------------------- HELPER FUNCS --------------------------------------
@@ -82,10 +85,6 @@ def saveReport(solver : AcadosOcpSolver,
 def mainInteractive(showCollision : bool,
                     initalValues : bool,
                     visualize : str) -> int:
-
-    xINITAL_VALUES_FILE = '/home/robot/ws/initalValues_x.txt'
-    uINITAL_VALUES_FILE = '/home/robot/ws/initalValues_u.txt'
-
     if visualize == "interactive": vis = True
     elif visualize == "headless" : vis = HeadlessData("/home/robot/ws/_tmp/",
                                                       np.array([-0.05, -0.1, 0.7]),
@@ -142,7 +141,7 @@ def mainInteractive(showCollision : bool,
                 generateVideoFromFrames(visualize.dir, N, Tf)
     return status
 
-def mainBenchmark(sampleCount : int):
+def mainBenchmark(sampleCount : int, initalValues : bool = False):
     d = 1.0         # distance from hull to object start
     center = (0.00, 0.0, 1.3)
     radius = (0.1, 0.25, 0.5)
@@ -181,8 +180,11 @@ def mainBenchmark(sampleCount : int):
                 projectile.linear(h1.t,
                                   projectilePos,
                                   projectileVel))
-    
-            ocp = OCP(h1, Tf, N)
+
+            if initalValues:
+                ocp = OCP(h1, Tf, N, xINITAL_VALUES_FILE, uINITAL_VALUES_FILE)
+            else:
+                ocp = OCP(h1, Tf, N)
             status = ocp.solve(plot=True)
             if not Path(dirPath).exists():
                 Path(dirPath).mkdir()
@@ -215,11 +217,12 @@ def mainBenchmark(sampleCount : int):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--initalValues",
+                        action="store_true",
+                        required=False)
+
     interactiveGroup = parser.add_argument_group("interactive mode")
     interactiveGroup.add_argument("--showCollision",
-                                  action="store_true",
-                                  required=False)
-    interactiveGroup.add_argument("--initalValues",
                                   action="store_true",
                                   required=False)
     interactiveGroup.add_argument("--visualization",
