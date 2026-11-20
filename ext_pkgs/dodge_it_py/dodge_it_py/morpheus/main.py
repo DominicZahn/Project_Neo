@@ -86,10 +86,12 @@ def mainInteractive(h_diff : float,
                     visualize : str) -> int:
 
     if visualize == "interactive": vis = True
-    elif visualize == "headless" : vis = HeadlessData("/home/robot/ws/_tmp/",
-                                                      np.array([-0.05, -0.1, 0.7]),
-                                                      np.array([0.0, 0.0, -1.0]),
-                                                      (1080,1920))
+    elif visualize == "headless" : vis = HeadlessData(
+        dir="/home/robot/ws/_tmp/",
+        camPos=np.array([1.42, 1.18, 1.26]),
+        camLookAt=np.array([-0.34, -0.30, 0.88]),
+        camFov=1.31,
+        resolution=(1080,1920))
     else: vis = False
 
     h1 = H1Wrapper_v2(
@@ -99,8 +101,8 @@ def mainInteractive(h_diff : float,
         visualization=vis)
     h1.setCollision(
         projectile.linear(h1.t,
-                          c.SX([1.6 ,0 , 1.2]),
-                          c.SX([-0.5, 0., 0.])))
+                          c.SX([3.0, 0.0, 1.2]),
+                          c.SX([0.0, 0.0, 0.0])))
 
     assert(h1.model.nq)
     nq =  h1.model.nq
