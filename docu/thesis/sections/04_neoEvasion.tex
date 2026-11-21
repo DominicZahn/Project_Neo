@@ -13,6 +13,17 @@ Afterwards the formulation is adjusted to better suit the changes made in the do
 Like it was done for \textit{neo} we also conclude the \textit{Neo} method by analyzing a specific motion, before a full testing of the method is done in \cref{sec:eval}.
 
 \subsection{Robot Object Distance} \label{sec:neo:distance}
+Distance functions are an important tool in robotics and computer graphics to calculate object-to-object distances.
+These functions define, for each point in space, the distance to the specified object \cite{jones_2006}.
+\par
+\todo[inline]{related work distance calculation}
+\par
+The difference to a \textit{signed} distance function is that it is negative inside the shape, while retaining positive values on the outside.
+An inverse convention can also be found in some literature.
+A \acrshort{sdf} functions easy to evaluate and compose properties show themselves when used in path-planning for robotic arms \cite{zhu_2025}, autonomous navigation of \acrshort{uav}s \cite{jacquet_2025} or dexterous manipulation \cite{yang_2025}. \\
+Our work leverages a \acrshort{sdf} for the collision hull of our humanoid robot, it provides the distance between the robot and an approaching object $d(\bm{p}(t))$ for every point in time $t$.
+The following section presents the collision model for the upper body of our H1-2
+It is composed of ellipsoid-shaped collision primitives, which are fused together with a smooth transition function.
 
 \begin{figure}
   \centering
