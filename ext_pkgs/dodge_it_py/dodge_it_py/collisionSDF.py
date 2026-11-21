@@ -3,8 +3,8 @@ import numpy as np
 import numpy.typing as npt
 from skimage.measure import marching_cubes
 import casadi as c
-from pinocchio.visualize import MeshcatVisualizer
-from meshcat.geometry import TriangularMeshGeometry, MeshLambertMaterial
+from pinocchio.visualize import ViserVisualizer
+import viser
 
 def cRotMatFromEuler(xyz : c.SX) -> c.SX:
     x, y, z = xyz[0], xyz[1], xyz[2]
@@ -69,7 +69,7 @@ class CollisionSDF:
         return d0
 
     def enableVis(self,
-                  vis : MeshcatVisualizer,
+                  vis : ViserVisualizer,
                   resolution : int = 48,
                   margin : float = 2.0):
         self.vis = vis
@@ -115,23 +115,24 @@ class CollisionSDF:
         assert self.vis is not None
         grid, spacing, origin = self._sdfGrid()
 
+        scene = self.vis.viewer.scene
         if grid.min() > 0 or grid.max() < 0:
-            self.vis.viewer["collision"].delete()
+            collisionMesh = scene.get_handle_by_name("collision")
+            if collisionMesh is not None:
+                collisionMesh.remove()
             return
 
         verts, faces, _, _ = marching_cubes(grid, level=0.0,
                                              spacing=(spacing, spacing, spacing))
         verts += origin
-
-        self.vis.viewer["collision"].set_object(
-            TriangularMeshGeometry(verts, faces),
-            MeshLambertMaterial(
-                color=0x4287f5,
-                # color=0x082a54,
-                opacity=0.55,
-                transparent=True)
+        scene.add_mesh_simple(
+            name="collision",
+            vertices=verts,
+            faces=faces,
+            color=(66, 135, 245),
+            opacity=0.55,
         )
-    
+
     @staticmethod
     def _cEllipsoid(p : c.SX, r : c.SX) -> c.SX:
         """

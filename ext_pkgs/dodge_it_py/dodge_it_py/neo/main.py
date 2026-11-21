@@ -86,10 +86,12 @@ def mainInteractive(showCollision : bool,
                     initalValues : bool,
                     visualize : str) -> int:
     if visualize == "interactive": vis = True
-    elif visualize == "headless" : vis = HeadlessData("/home/robot/ws/_tmp/",
-                                                      np.array([-0.05, -0.1, 0.7]),
-                                                      np.array([0.0, 0.0, -1.0]),
-                                                      (1080,1920))
+    elif visualize == "headless" : vis = HeadlessData(
+        dir="/home/robot/ws/_tmp/",
+        camPos=np.array([1.42, 1.18, 1.26]),
+        camLookAt=np.array([-0.34, -0.30, 0.88]),
+        camFov=1.31,
+        resolution=(1080,1920))
     else: vis = False
 
     h1 = H1Wrapper_v2(
@@ -105,9 +107,9 @@ def mainInteractive(showCollision : bool,
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq), 0.0)
     if initalValues:
-        ocp = OCP(h1, Tf, N, "", "")
-    else:
         ocp = OCP(h1, Tf, N, xINITAL_VALUES_FILE, uINITAL_VALUES_FILE)
+    else:
+        ocp = OCP(h1, Tf, N, "", "")
     status = ocp.solve(plot=True)
 
     while True:
@@ -160,10 +162,12 @@ def mainBenchmark(sampleCount : int, initalValues : bool = False):
     projectilePosArr = startPointsCent + np.array(center)
     for i in range(sampleCount):
         dirPath = f"/home/robot/ws/benchmarks/{str(i).zfill(5)}/"
-        headlessData = HeadlessData(dirPath,
-                                np.array([-0.05, -0.1, 0.7]),
-                                np.array([0.0, 0.0, -1.0]),
-                                (1080,1920))
+        headlessData = HeadlessData(
+            dir=dirPath,
+            camPos=np.array([1.42, 1.18, 1.26]),
+            camLookAt=np.array([-0.34, -0.30, 0.88]),
+            camFov=1.31,
+            resolution=(1080,1920))
         
         h1 = H1Wrapper_v2(
             q0='knees_bend_0.4_straight',

@@ -72,7 +72,7 @@ class OCP:
         # Lagrange
         wJoints = 1.0
         wTau = 1e-4
-        # wStab = 0.0
+        wStab = 0.0
         cost.cost_type = 'NONLINEAR_LS'
         x = self.ocp.model.x
         u = self.ocp.model.u
@@ -80,8 +80,8 @@ class OCP:
         qOffset = x[:nq] - self.h1.q0
         costJoints = c.dot(qOffset,qOffset) / (x[:nq].size1()*(c.pi/2)**2)**2
         costStab = self.stabilityConstraintScalar
-        # self.ocp.model.cost_y_expr = costTau*wTau + costJoints*wJoints + costStab*wStab
-        self.ocp.model.cost_y_expr = costTau*wTau + costJoints*wJoints
+        self.ocp.model.cost_y_expr = costTau*wTau + costJoints*wJoints + costStab*wStab
+        # self.ocp.model.cost_y_expr = costTau*wTau + costJoints*wJoints
         cost.yref = 0.0
         cost.W = np.eye(1)
         return cost
