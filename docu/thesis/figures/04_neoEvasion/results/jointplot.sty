@@ -1,0 +1,77 @@
+% jointplot.sty -- shared template for the joint angle / torque figures.
+% Change layout, colours, markers, time step, units, ... here only.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{jointplot}[2026/11/20 joint angle and torque overlay plots]
+\RequirePackage{pgfplots}
+\RequirePackage{pgfplotstable}
+\pgfplotsset{compat=1.16}
+
+%% ---------- general settings (edit here) ----------
+\newcommand{\jpData}{data.csv}   % CSV with columns k,q0..q6,tau0..tau6
+\newcommand{\jpDt}{0.025}        % time step in s  (60 steps -> 1.5 s)
+\newcommand{\jpTend}{1.5}        % end of time axis in s
+\newcommand{\jpXticks}{0,0.25,0.5,0.75,1,1.25,1.5}  % time ticks in s
+\newcommand{\jpLast}{59}         % last index that has a torque (N-1)
+\newcommand{\jpWidth}{10cm}      % plot width
+\newcommand{\jpHeight}{4.5cm}    % plot height
+\newcommand{\jpMarkSize}{0.8pt}
+\newcommand{\jpLineWidth}{thick}
+
+\pgfkeys{/pgf/number format/.cd, fixed, precision=3}  % tick numbers: round to 3 digits, no trailing zeros
+
+%% ---------- colours ----------
+\definecolor{jpangle}{rgb}{0.90,0.45,0.00}   % joint angles: orange
+\definecolor{jptorque}{rgb}{0.00,0.35,0.75}  % joint torques: blue
+
+%% ---------- styles ----------
+\pgfplotsset{
+  jp base/.style={
+    scale only axis, width=\jpWidth, height=\jpHeight,
+    xmin=0, xmax=\jpTend, xtick={\jpXticks}, scaled y ticks=false,
+    tick label style={font=\footnotesize}, label style={font=\small},
+    xticklabel={\pgfmathprintnumber{\tick}}, yticklabel={\pgfmathprintnumber{\tick}},
+  },
+  jp marker/.style={mark=o, mark size=\jpMarkSize, mark options={fill=white, solid}},
+  jp angle axis/.style={
+    jp base, axis y line*=left,
+    xlabel={time $t$ (s)},
+    grid=both, grid style={gray!25},
+    ylabel style={jpangle}, yticklabel style={jpangle}, y axis line style={jpangle},
+  },
+  jp torque axis/.style={
+    jp base, axis y line*=right, axis x line=none,
+    ylabel style={jptorque, rotate=180}, yticklabel style={jptorque},
+    y axis line style={jptorque},
+  },
+  jp angle plot/.style={jpangle, \jpLineWidth, jp marker},
+  jp torque line/.style={jptorque, \jpLineWidth, const plot, no marks},
+  jp torque points/.style={jptorque, only marks, jp marker,
+    restrict expr to domain={\coordindex}{0:\jpLast}},
+}
+
+%% ---------- user interface ----------
+% \jointplot{idx=0, qmin=-3.14, qmax=2.5, qticks={...}, taumax=220}
+% optional: tauticks={...} (default -T,-T/2,0,T/2,T)
+\pgfkeys{/jp/.is family, /jp,
+  idx/.store in=\jpIdx, qmin/.store in=\jpQmin, qmax/.store in=\jpQmax,
+  qticks/.store in=\jpQticks, taumax/.store in=\jpTmax,
+  tauticks/.store in=\jpTticks,
+}
+\newcommand{\jointplot}[1]{%
+  \def\jpTticks{}%
+  \pgfkeys{/jp, #1}%
+  \pgfmathsetmacro\jpThalf{\jpTmax/2}%
+  \ifx\jpTticks\empty\edef\jpTticks{-\jpTmax,-\jpThalf,0,\jpThalf,\jpTmax}\fi
+  \begin{tikzpicture}
+    \begin{axis}[jp angle axis, ymin=\jpQmin, ymax=\jpQmax, ytick={\jpQticks},
+      ylabel={$q_{\jpIdx}$ (rad)}]
+      \addplot[jp angle plot] table[col sep=comma, x expr=\thisrow{k}*\jpDt, y=q\jpIdx] {\jpData};
+    \end{axis}
+    \begin{axis}[jp torque axis, ymin=-\jpTmax, ymax=\jpTmax, ytick={\jpTticks},
+      ylabel={$\tau_{\jpIdx}$ (Nm)}]
+      \addplot[jp torque line] table[col sep=comma, x expr=\thisrow{k}*\jpDt, y=tau\jpIdx] {\jpData};
+      \addplot[jp torque points] table[col sep=comma, x expr=\thisrow{k}*\jpDt, y=tau\jpIdx] {\jpData};
+    \end{axis}
+  \end{tikzpicture}%
+}
+\endinput

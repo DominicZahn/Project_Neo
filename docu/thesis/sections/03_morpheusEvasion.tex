@@ -265,7 +265,7 @@ It should be noted that classic merit backtracking did not converge for the give
   \caption{
     The whole generated $T_f=\SI{1.5}{\second}$ motion of a head reduction of $\Delta h=\SI{0.4}{\metre}$ created with \textit{Morpheus} is visualized.
     Each image is collected after ten frames.
-    As demanded by the stability constraint the red marked \acrshort{zmp} is inside the \acrshort{pos} is fairly stationary.
+    As demanded by the stability objective function the red marked \acrshort{zmp} is inside the \acrshort{pos} is fairly stationary.
   }
   \label{fig:morpheus:results:banner}
 \end{figure}
@@ -350,5 +350,4 @@ Another indicator for this is the motion itself.
 The result is a swing up move in the middle of the motion, which can be observed in the approximate time range from $\SI{0.25}{\s}$ to $\SI{1.0}{\s}$.
 Therefore the peak in ankle torques primarily occurs at the end of the motion, when the swing has to be stopped for the final quasi-static pose.
 \\
-In conclusion swing motion shows the need for a dodge constraints, which not only imposes constraints on the end node, but enforces a safety distance between approaching object and the robots body.
-
+The swing motion shows the need for a dodge constraints, which not only imposes constraints on the end node, but enforces a safety distance between approaching object and the robots body.
