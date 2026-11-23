@@ -5,4 +5,5 @@ Hupplers
 Marples
 NLopt
 Unitree
+polytope
 sigmoid
