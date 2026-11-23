@@ -28,9 +28,9 @@ The floating base joint vector
   \label{eq:morpheus:joints}
 \end{equation}
 holds not only the actual joints $\bm q_\text{joints} \in \mathbb{R}^{n_j}$, but also the world position $\bm p_\text{world} \in \mathbb{R}^3$ and orientation $\bm r_\text{world} \in \mathbb{R}^3$.
-In some applications the orientation is defined as quaternion to provide smooth and fully defined transitions.
+In some applications the orientation is defined as quaternion to provide singularity free transitions.
 This however would lead to complications in calculating the joint velocities as not every rigid-body library supports quaternion velocities.
-After all we decided to stick to euler angles for an easy to use system.
+Therefore, we decided to stick to euler angles for an easy to use system.
 In total our joint vector has the size of $n_q=6+n_j$.
 \\
 The goal of our motion generator is to reduce the head height while remaining in bipedal stance.
@@ -50,7 +50,7 @@ With the use of our rigid-body dynamics library of choice, we are able to fixate
 After we finished selecting our robot model, we are able to define the optimal control problem.
 
 \subsection{Optimal Control Formulation} \label{sec:morpheus:formulation}
-States, controls and system dynamics are defined as follows:
+States and controls are defined as follows:
 \begin{subequations}
   \label{eq:morpheus:dyn}
   \begin{align}
@@ -73,7 +73,7 @@ With these we are able to compute the objective function, system dynamics, and c
   \begin{align}
     & \qquad \textbf{Objective Function} \nonumber \\
     \min_{\bm x(\cdot),\bm u(\cdot)} \quad
-      & \int_0^{T_f} \left(\omega_s l_\text{s}(\bm x) + \omega_\tau l_r(\bm{u}) \right) dt
+      & \int_0^{T_f} \left(\omega_s l_s(\bm x) + \omega_r l_r(\bm{u}) \right) dt
       + \omega_h m_h(\bm x_f) \label{morpheus:constraints:obj} \\
     % Dynamics
     & \qquad \textbf{System Dynamics} \nonumber \\
@@ -121,7 +121,7 @@ As the automatic differentiation requires a closed form of our contact formulati
 After clarifying the system dynamics we move towards the composited objective function and limiting constraints in \cref{eq:morpheus:constraints}.
 
 \subsubsection{Objective Functions}
-The objective function represents the features we would like to optimize, when formulating an optimal control problem.
+The objective function represents the features we would like to achieve, when formulating an optimal control problem.
 For our humanoid collision avoidance robot the main feature is to perform a matrix style bullet dodge, where the robot leans back, while lowering its head height.
 In order to avoid the head targeted approaching object we require the robot to lower its height more than $\Delta h$.
 As this is a hard limit, it is formulated as a constraint in \cref{eq:morpheus:constraints:dodge}.
@@ -289,11 +289,11 @@ We conclude the presentation of our \textit{Morpheus} formulation by discussing 
     $T_f$ & $\SI{1.5}{\second}$ & Terminal Time \\
     $N$ & $60$ & Shooting Nodes \\
     $m_h$ & \textit{\cref{eq:morpheus:obj:head}} & Mayer Obj. Head Term \\
-    $\omega_h$ & $1$ & Mayer Obj. Weight Head Term \\
+    $\omega_h$ & $1$ & Mayer Obj. Head Term Weight \\
     $l_s$ & \textit{\cref{eq:morpheus:obj:stability}} & Lagrange Obj. Stability Term \\
-    $\omega_s$ & $1$ & Lagrange Obj. Weight Stability Term \\
-    $l_\tau$ & \textit{\cref{eq:morpheus:obj:regularization}} & Lagrange Obj. Regularization Term \\
-    $\omega_\tau$ & $10^{-4}$ & Lagrange Obj. Weight Regularization Term \\
+    $\omega_s$ & $1$ & Lagrange Obj. Stability Term Weight \\
+    $l_r$ & \textit{\cref{eq:morpheus:obj:regularization}} & Lagrange Obj. Regularization Term \\
+    $\omega_r$ & $10^{-4}$ & Lagrange Obj. Regularization Term Weight \\
   \bottomrule
   \end{tabularx}
   \caption{Variables and Parameters}
@@ -302,7 +302,7 @@ We conclude the presentation of our \textit{Morpheus} formulation by discussing 
 The collision avoidance motions in this section were generated for duration of $\SI{1.5}{\second}$ with $N=60$ shooting nodes.
 The head of our H1-2 should be lowered by $\Delta h = \SI{0.4}{\meter}$, while an end velocity of $\bm v_\text{stat.}=\SI{0.1}{\radian \per \second}$ is allowed.
 Additionally a \acrshort{pos} reduction of $\gamma=0.8$ is set to concede a safety margin.
-To solve the forward constraint dynamics a proximal setting $\alpha=10^{-12}$ with ten unrolled iterations should lead to a close approximation of the original jacobian.
+To solve the forward constraint dynamics a proximal setting $\alpha=10^{-12}$ with ten unrolled iterations should lead to a close approximation of the original Jacobian.
 A full list of all used parameters is displayed in \cref{tab:morpheus:variables}.
 \\
 In Acados we utilized \acrshort{hpipm} \cite{frison_hpipm_2020}, as it has the best integration in the framework.
@@ -321,7 +321,7 @@ It should be noted that classic merit backtracking did not converge for the give
   \label{fig:morpheus:results:banner}
 \end{figure}
 \par
-With this setup the \textit{Morpheus} algorithm achieved the in \cref{fig:morpheus:results:banner} displayed motion.
+With this setup the \textit{Morpheus} algorithm achieved the motion displayed in \cref{fig:morpheus:results:banner}.
 The figure was generated by capturing every tenth frame, starting from the first one and ending on the last available frame.
 \begin{figure}
   \centering

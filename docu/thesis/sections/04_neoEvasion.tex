@@ -11,7 +11,7 @@ This will form a descendant of the \textit{Morpheus} motion generator called \te
 \par
 At first we are tackling the challenge of computing the distance between robot and approaching object (\cref{sec:neo:distance}).
 Afterwards the formulation is adjusted to better suit the changes made in the dodge constraint.
-Like in the previous section we conclude with an analysis of a single motion, before thoroughly testing the method in \cref{sec:eval}.
+Like in the previous section we conclude with an analysis of a single motion (\cref{sec:neo:result}), before thoroughly testing the method in \cref{sec:eval}.
 
 \subsection{Robot Object Distance} \label{sec:neo:distance}
 The field of separation-distance calculation is closely tied to collision detection and avoidance.
@@ -58,7 +58,7 @@ Our work leverages a \acrshort{sdf} for the collision hull of our humanoid robot
 The following section presents the collision model for the upper body of our H1-2
 It is composed of ellipsoid-shaped collision primitives, which are fused together with a smooth transition function.
 
-\subsubsection{Ellipsoid Collision Primitives}
+\subsubsection{Ellipsoid Collision Primitives} \label{sec:neo:distance:primitives}
 To generate the collision hull for the Unitree H1-2 we chose ellipsoids as collision primitives.
 One advantage of ellipsoids over other collision shapes is the ability to seamlessly fit them onto a known geometry.
 John-Löwner Ellipsoids are a well-known solution for such problems \cite{john_1985}.
@@ -100,7 +100,7 @@ In our case fitting ellipsoids like shown in \cref{fig:neo:distance:primitives} 
 Each of the primitives is anchored to a local frame of the robot.
 Three of them are placed on each arm, one on the torso and another one in the head area.
 
-\subsubsection{Smooth Transition Function}
+\subsubsection{Smooth Transition Function} \label{sec:neo:distance:transition}
 The intuitive solution to compute the minimal distance to a set of objects, like the one displayed in \cref{fig:neo:distance:primitives} is to build a proximity graph, for example a Voroni diagram.
 The distance between a point in space and the shortest distance the set then requires the search on this structure \cite{toth_2017}.
 Especially for volumes like the ones displayed in \cref{fig:neo:distance:primitives}, the primitives can be fused to a single \acrshort{sdf}, which removes the necessity of the proximity graph.
@@ -188,15 +188,27 @@ For the next section we are taking a look at the resulting motion for an object 
 % \\
 % We round up this section by presenting the resulting motion for a specific projectile trajectory.
 % An in-depth evaluation of the now fully presented method can be found in \cref{sec:eval:app}.
-%
-\subsection{Results and Discussion}
 
-\begin{itemize}
-  \item duration and shooting nodes
-  \item dodge constraint at every shooting node
-\end{itemize}
-
-
+\subsection{Resulting Motion} \label{sec:neo:result}
+\begin{figure}
+  \centering
+  \makebox[\textwidth]{
+    \includegraphics[width=1.3\textwidth]{figures/04_neoEvasion/neoFrames/merge.png}
+  }
+  \caption{
+    An object avoidance motion created with the \textit{Neo} method is visualized at every twentieth frame.
+    The \acrshort{zmp} is displayed as a red dot inside the robots \acrshort{pos}.
+  }
+  \label{fig:neo:results:banner}
+\end{figure}
+\Cref{fig:neo:results:banner} shows a motion that was generated for a head targeted approaching object.
+The object was launched \SI{0.7}{\m} away from the robots head with a velocity of \SI{0.5}{\m \per \s}.
+Its trajectory is not perturbed by gravity and therefore remains horizontal.
+As we want to test the motion generators ability to find a collision avoidance motion containing an evasion and recovering move, the whole duration is set to $\SI{2.5}{\s}$.
+To provide a dense grid of dodge constraint checks a high amount of $120$ shooting nodes is used.
+\\
+For the terminal pose we define an allowed joint angle offset of $\SI{0.1}{\radian}$.
+The newly introduced pose term (\cref{eq:neo:obj:joint}) of the objective function is weighted as one to overshadow the regularization term \cref{eq:morpheus:obj:regularization}.
 \begin{table}[h]
   \centering
   \begin{tabularx}{0.7\textwidth}{rcl}
@@ -217,20 +229,9 @@ For the next section we are taking a look at the resulting motion for an object 
   \caption{Variables and Parameters}
   \label{tab:neo:variables}
 \end{table}
-
-
-\begin{figure}
-  \centering
-  \makebox[\textwidth]{
-    \includegraphics[width=1.3\textwidth]{figures/04_neoEvasion/neoFrames/merge.png}
-  }
-  \caption{
-    An object avoidance motion created with the \textit{Neo} method is visualized at every twentieth frame.
-    The \acrshort{zmp} is displayed as a red dot inside the robots \acrshort{pos}.
-  }
-  \label{fig:neo:results:banner}
-\end{figure}
-
+\Cref{tab:neo:variables} can be seen as listing of changes to \cref{tab:morpheus:variables}.
+\par
+Analogue to \cref{fig:morpheus:results:graphs}, \cref{fig:neo:results:graphs} displays the in \cref{fig:neo:results:banner} computed trajectories.
 \begin{figure}
   \centering
   \makebox[\textwidth]{
@@ -289,4 +290,17 @@ For the next section we are taking a look at the resulting motion for an object 
   }
   \label{fig:neo:results:graphs}
 \end{figure}
+
+\begin{itemize}
+  \item motion description: leans before it can move underneath the object, upright directly right afterwards
+  \item torso shifted to abuse angled head collision hull
+  \item upright body even without stability
+  \item during ducking and rotation ZMP jumping but inside PoS
+  \item goes upright to the limits
+  \item a lot more what we would call "natural"
+
+  \item high range of motion usage
+  \item lower usage of torques in ankels; knees do more work
+\end{itemize}
+See what will happen if the robot is forced to bend over for object which approach on an angled trajectory.
 
