@@ -14,8 +14,9 @@
 \paragraph{Constrained Dynamics}
 Eq 2 in \cite{carpentier_2021}:
 \begin{subequations}
+  \label{eq:consDyn:default}
   \begin{align}
-    \min_{\bm {\dot v}(\cdot)} \quad & \frac 1 2 \| \bm{\dot v} \bm{\dot - v_\text{free}}(\bm q, \bm v, \bm \tau) \|^2_M \label{eq:consDyn:default:obj} \\
+    \min_{\bm {\dot v}(\cdot)} \quad & \frac 1 2 \| \bm{\dot v} - \bm{\dot v_\text{free}}(\bm q, \bm v, \bm \tau) \|^2_M \label{eq:consDyn:default:obj} \\
     \text{s.t.} \quad & f_c(\bm q) = 0 \label{eq:consDyn:default:cons}
   \end{align}
 \end{subequations}
@@ -41,16 +42,19 @@ Eq 6 in \cite{carpentier_2021} (KKT Matrix):
   -\gamma_{f_c} \\
   M \dot{\boldsymbol{v}}_{\mathrm{free}}
   \end{bmatrix}
+  \label{eq:consDyn:default:KKT}
 \end{equation}
 
 Eq 9 Proximal Operator:
 \begin{equation}
   \operatorname{prox}_{f,\alpha}(y) \overset{\text{def}}{=} \arg\min_{x \in \mathcal{X}} \; f(x) + \frac{1}{2\alpha} \|x - y\|_2^2
+  \label{eq:consDyn:prox:operator}
 \end{equation}
 
 Proximal Algorithms \cite{parikh_2014} with Iteration:
 \begin{equation}
   x_{k+1} = \operatorname{prox}_{f,\alpha}(x_k)
+  \label{eq:consDyn:prox:algo}
 \end{equation}
 
 
@@ -69,6 +73,7 @@ Eq 18 in \cite{carpentier_2021} (KKT Matrix with proximal operator applied):
   -\gamma_{f_c}- \alpha I_m \\
   M \dot{\boldsymbol{v}}_{\mathrm{free}}
   \end{bmatrix}
+  \label{eq:consDyn:prox:KKT}
 \end{equation}
 
 \subsection{Dynamic Stability} \label{sec:fundamentals:dynamicStability}
@@ -76,6 +81,20 @@ Eq 18 in \cite{carpentier_2021} (KKT Matrix with proximal operator applied):
   \item static stability (projected \acrfull{com})
   \item \acrfull{zmp} / \acrfull{cop}
 \end{itemize}
+
+Eq 4.1.1 \cite{sharbafi_2017}: \\
+\todo[inline]{review equation and reformulate with better variable names}
+\begin{equation}
+  \bm p_\text{ZMP} = \frac{n \times M^{gi}}{R_{gi} \cdot n}
+  \label{eq:dynStab:ZMP}
+\end{equation}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.3\textwidth]{figures/02_fundamentals/bioInspired/dynPoints.pdf}
+  \caption{TODO}
+  \label{fig:dynStab:zmp}
+\end{figure}
 
 \subsection{Optimal Control} \label{sec:fundamentals:optimalControl}
 \begin{itemize}
