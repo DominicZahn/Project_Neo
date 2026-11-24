@@ -204,7 +204,7 @@ For the next section we are taking a look at the resulting motion for an object 
 \Cref{fig:neo:results:banner} shows a motion that was generated for a head targeted approaching object.
 The object was launched \SI{0.7}{\m} away from the robots head with a velocity of \SI{0.5}{\m \per \s}.
 Its trajectory is not perturbed by gravity and therefore remains horizontal.
-As we want to test the motion generators ability to find a collision avoidance motion containing an evasion and recovering move, the whole duration is set to $\SI{2.5}{\s}$.
+As we want to test the motion generators ability to find a collision avoidance motion containing an evasion and recovering move, the whole duration is raised to $\SI{2.5}{\s}$.
 To provide a dense grid of dodge constraint checks a high amount of $120$ shooting nodes is used.
 \\
 For the terminal pose we define an allowed joint angle offset of $\SI{0.1}{\radian}$.
@@ -229,9 +229,8 @@ The newly introduced pose term (\cref{eq:neo:obj:joint}) of the objective functi
   \caption{Variables and Parameters}
   \label{tab:neo:variables}
 \end{table}
-\Cref{tab:neo:variables} can be seen as listing of changes to \cref{tab:morpheus:variables}.
+\Cref{tab:neo:variables} lists the above described changes to the \textit{Morpheus} setup in \cref{tab:morpheus:variables}.
 \par
-Analogue to \cref{fig:morpheus:results:graphs}, \cref{fig:neo:results:graphs} displays the in \cref{fig:neo:results:banner} computed trajectories.
 \begin{figure}
   \centering
   \makebox[\textwidth]{
@@ -290,17 +289,43 @@ Analogue to \cref{fig:morpheus:results:graphs}, \cref{fig:neo:results:graphs} di
   }
   \label{fig:neo:results:graphs}
 \end{figure}
-
-\begin{itemize}
-  \item motion description: leans before it can move underneath the object, upright directly right afterwards
-  \item torso shifted to abuse angled head collision hull
-  \item upright body even without stability
-  \item during ducking and rotation ZMP jumping but inside PoS
-  \item goes upright to the limits
-  \item a lot more what we would call "natural"
-
-  \item high range of motion usage
-  \item lower usage of torques in ankels; knees do more work
-\end{itemize}
-See what will happen if the robot is forced to bend over for object which approach on an angled trajectory.
+\Cref{fig:neo:results:banner} visualizes the resulting motion at every 20th frame.
+The in \cref{sec:neo:distance} defined collision hull is rendered in blue around the robots upper body.
+Like previously with \textit{Morpheus} we mark the \acrshort{zmp} as a red dot.
+Now that full object tracking is possible the approaching object itself is also displayed as a blue marker in space.
+The to the generated motion corresponding trajectories can be found in \cref{fig:neo:results:graphs}.
+\par
+Our first step is to walk through the motion sequence and analyze the calculated solution.
+As the generator optimizes for keeping the initial pose as long as possible the robot remains in an upright position until the third image.
+However, if we look closer at second image and the corresponding joint angles in \cref{fig:neo:results:graphs} at around $\SI{0.5}{\s}$, we find a change in torso height.
+It seems that the robot lowers its torso, to move into a more stable, and torque efficient pose.
+\Cref{fig:neo:results:graphs:leftAnkle,fig:neo:results:graphs:leftKnee} show a substantial temporal dip in torques, for the ankle and knee joint.
+To counter this motion, the hip joint needs to be slightly raised (\cref{fig:neo:results:graphs:leftHip}).
+\\
+Shortly before the object reaches the head, the robot is propelled back up and into a lean over pose.
+While the previous torque minimization was likely caused by the objective regularization term \cref{eq:morpheus:obj:regularization}, we did not include any initiative for leaning over.
+The third image in \cref{fig:morpheus:results:banner} displays the lean over part of the motion well.
+The H1-2 is pushed to its limits, regarding the ankle and knee hardware limitations (\cref{fig:neo:results:graphs:leftKnee,fig:neo:results:graphs:leftAnkle}), as well as the \acrshort{zmp} position.
+\\
+\todo[inline]{probably good to add zmp but do to time constraints...}
+At this point the object is approximately above the robots root.
+To avoid the object the robot squats underneath the object, turning its head to bring even more distance between the collision hull and the object.
+This is possible due to the angled placement of the head collision ellipsoid.
+Therefore, the highest collision hull point is above the forehead instead and slightly of center.
+The result is the torso rotation at approximately $\SI{1.5}{\s}$, which can be seen in \cref{fig:neo:results:graphs:torso}.
+\\
+Now that the object fully passed the robots body recovers into the initial pose.
+\todo[inline]{should have labeled the phases}
+\par
+Through out the motion it is apparent, that the motion generator explores the capabilities of the H1-2, pushing it to the in \cref{eq:morpheus:constraints:joint} defined hardware limitations.
+The \acrshort{zmp} for example is pushed to the bounds of our reduced \acrshort{pos} during the lean phase at around $\SI{1}{\s}$.
+Interestingly the hip joints range of motion is also fully used by during the squatting part of this specific motion.
+Compared to the previous motion, this one not only uses high torques in the ankle, but also in knee joints.
+As the stability constraint was removed from the objective function and substituted by a joint pose goal, the solver is not forced towards solely centered \acrshort{zmp} solutions.
+This possibly allows the \textit{Neo} to explore more difficult motions.
+\par
+We showed that the \textit{Neo} motion generator is capable to finding dynamically stable evasion motions for horizontally approaching objects.
+To find the limitations of this method robot combination, a multitude of different object trajectories has to be tested.
+This will be especially interesting for angled trajectories, which can be avoided by small upper body perturbation.
+An implementation for such a test setup is provided in the following section.
 
