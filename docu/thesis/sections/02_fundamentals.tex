@@ -1,15 +1,98 @@
 \section{Fundamentals} \label{sec:fundamentals}
+During this section a brief overview of fundamental concepts in rigid body dynamics, dynamic stability and optimal control is given.
+We will focus on concepts concepts used in the later stages of the thesis, so they can be referenced.
+The goal is not to give an exhaustive explanation of these formulations, but provide the reader with a high-level understanding.
+Through out each subject we will recommend suitable literature for in depth research.
+\\
+To start of we go right into rigid body dynamics.
 
 \subsection{Rigid Body Dynamics} \label{sec:fundamentals:rigid}
+Most of the shown equations are taken from Featherstones 2008 "Rigid Body Dynamics Algorithms" Book.
+These are also the algorithms implemented in libraries like Pinocchio \cite{pinocchioweb,carpentier2019pinocchio} and \acrfull{rbdl} \cite{Felis2016}.
+\\
+In its book Featherstone describes rigid body systems as collection of bodies connected by joints.
+Each body is considered rigid so not able to change its shape and inertia like soft bodies would.
+The whole rigid body system may also stand under the influence of various forces, while the joints restrict the resulting motions of the bodies.
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[b]{0.28\textwidth}
+    \includegraphics[width=\textwidth]{figures/02_fundamentals/featherstone/rigidBody.pdf}
+    \caption{rigid body}
+    \label{fig:rbd:featherstone:rbd:bodies:rigid}
+  \end{subfigure}
+  \hspace{1.5cm}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \includegraphics[width=\textwidth]{figures/02_fundamentals/featherstone/articulatedBody.pdf}
+    \caption{articulated body}
+    \label{fig:rbd:featherstone:rbd:bodies:articulated}
+  \end{subfigure}
+  \caption{TODO}
+  \label{fig:rbd:featherstone:rbd:bodies}
+\end{figure}
+An exemplary system build from multiple bodies and joints is shown in \cref{fig:rbd:featherstone:rbd:bodies:articulated}.
+Body $B$ is influenced by the force $f$ and constrained through the adjacent joint towards its children $B'$.
+The motion of a rigid body is described by the equation of motion.
+
 \paragraph{Equation of Motion}
+When a single rigid body $B$ is experiencing the force $\bm f$ its motion is described by
+\begin{equation}
+    \bm f = I \bm a + \bm p \label{eq:rbd:motionEq:rigid},
+\end{equation}
+where the inertia $I$ and bias force $\bm p$ are parameters of the body and $a$ the resulting acceleration.
+For an articulated body of multiple rigid bodies the equation is analogue to the one of a single body:
+\begin{equation}
+    \bm f = I^A \bm a + \bm p^A \label{eq:rbd:motionEq:articulated}
+\end{equation}
+The difference lies only in the inertia $I^A$ and bias force $\bm p^A$, which now also include the ones from $B'$.
+Through usage of generalized forces $\tau$ instead of $\bm f$, as well as adding joint angle dependency, we specialize \cref{eq:rbd:motionEq:articulated} to the classical formulation for the equation of motions:
+\begin{equation}
+  \bm \tau = M(\bm q)\bm{\ddot q}+C(\bm q, \bm{\ddot q}) \label{eq:rbd:motionEq:full}
+\end{equation}
+In \cref{eq:rbd:motionEq:full} $\bm q$ represents the joint angles, while joint
+
 \paragraph{Forward Dynamics and Inverse Dynamics}
+Eq 1.2 and 1.3 in \cite{featherstone_2008}:
+\begin{subequations}
+  \begin{align}
+    \bm{\ddot q} &= \text{FD}(\text{model},\bm q,\bm{\dot q},\bm \tau) \\
+    \bm \tau &= \text{ID}(\text{model},\bm q,\bm{\dot q},\bm{\ddot q})
+  \end{align}
+\end{subequations}
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{figures/02_fundamentals/featherstone/aba1.pdf}
+    \label{fig:rbd:featherstone:rbd:aba_articulatedBodies}
+    \caption{}
+  \end{subfigure}
+  \hspace{2cm}
+  \begin{subfigure}[b]{0.2\textwidth}
+    \includegraphics[width=\textwidth]{figures/02_fundamentals/featherstone/aba2.pdf}
+    \label{fig:rbd:featherstone:rbd:aba_acceleration}
+    \caption{}
+  \end{subfigure}
+  \caption{The figure was taken from Featherstone 2005 \cite{featherstone_2008} and visualizes the main elements of the \acrshort{aba}.}
+  \label{fig:rbd:featherstone:rbd:aba}
+\end{figure}
+
+%
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=0.6\textwidth]{figures/02_fundamentals/featherstone/rnea.pdf}
+%   \caption{
+%     TODO \acrshort{rnea}
+%   }
+%   \label{fig:rbd:featherstone:rbd:rnea}
+% \end{figure}
+%
+
+\begin{itemize}
+  \item ABA (p.128) : FD
+  \item RNEA (p.92) : ID
+\end{itemize}
 
 \subsection{Contact Formulation} \label{sec:fundamentals:contacts}
-\begin{itemize}
-  \item formulation from Pinocchio
-  \item constraint dynamics
-  \item proximal settings exist
-\end{itemize}
 
 \paragraph{Constrained Dynamics}
 Eq 2 in \cite{carpentier_2021}:
@@ -44,8 +127,9 @@ Eq 6 in \cite{carpentier_2021} (KKT Matrix):
   \end{bmatrix}
   \label{eq:consDyn:default:KKT}
 \end{equation}
-Significantly ill-conditioned \\
 
+\paragraph{Ill-conditioned Jakobian $J_{f_c}$}
+"Significantly ill-conditioned" \\
 Eq 9 Proximal Operator:
 \begin{equation}
   \operatorname{prox}_{f,\alpha}(y) \overset{\text{def}}{=} \arg\min_{x \in \mathcal{X}} \; f(x) + \frac{1}{2\alpha} \|x - y\|_2^2
