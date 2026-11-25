@@ -7,8 +7,8 @@ Through out each subject we will recommend suitable literature for in depth rese
 To start of we go right into rigid body dynamics.
 
 \subsection{Rigid Body Dynamics} \label{sec:fundamentals:rigid}
-Most of the shown equations are taken from Featherstones 2008 "Rigid Body Dynamics Algorithms" Book.
-These are also the algorithms implemented in libraries like Pinocchio \cite{pinocchioweb,carpentier2019pinocchio} and \acrfull{rbdl} \cite{Felis2016}.
+The following equations are taken from Featherstones 2008 "Rigid Body Dynamics Algorithms" Book.
+These are also the fundamentals for the algorithms implemented in for example Pinocchio \cite{pinocchioweb,carpentier2019pinocchio} and \acrfull{rbdl} \cite{Felis2016}.
 \\
 In its book Featherstone describes rigid body systems as collection of bodies connected by joints.
 Each body is considered rigid so not able to change its shape and inertia like soft bodies would.
@@ -30,27 +30,35 @@ The whole rigid body system may also stand under the influence of various forces
   \label{fig:rbd:featherstone:rbd:bodies}
 \end{figure}
 An exemplary system build from multiple bodies and joints is shown in \cref{fig:rbd:featherstone:rbd:bodies:articulated}.
-Body $B$ is influenced by the force $f$ and constrained through the adjacent joint towards its children $B'$.
-The motion of a rigid body is described by the equation of motion.
+The figure shows body $B$, which influenced by the force $f$ and constrained through the joint towards $B'$.
+We can describe the context between force and motion of a rigid body with the equations of motions.
 
-\paragraph{Equation of Motion}
+\paragraph{Equations of Motions}
 When a single rigid body $B$ is experiencing the force $\bm f$ its motion is described by
 \begin{equation}
-    \bm f = I \bm a + \bm p \label{eq:rbd:motionEq:rigid},
+    \bm f = M \bm a + \bm p \label{eq:rbd:motionEq:rigid},
 \end{equation}
-where the inertia $I$ and bias force $\bm p$ are parameters of the body and $a$ the resulting acceleration.
+where the inertia $M$ and bias force $\bm p$ are characteristics of the body and $a$ the resulting acceleration.
 For an articulated body of multiple rigid bodies the equation is analogue to the one of a single body:
 \begin{equation}
-    \bm f = I^A \bm a + \bm p^A \label{eq:rbd:motionEq:articulated}
+    \bm f = M^A \bm a + \bm p^A \label{eq:rbd:motionEq:articulated}
 \end{equation}
 The difference lies only in the inertia $I^A$ and bias force $\bm p^A$, which now also include the ones from $B'$.
-Through usage of generalized forces $\tau$ instead of $\bm f$, as well as adding joint angle dependency, we specialize \cref{eq:rbd:motionEq:articulated} to the classical formulation for the equation of motions:
+Through usage of generalized forces $\tau$ instead of $\bm f$, as well as adding joint angle dependency, we specialize \cref{eq:rbd:motionEq:articulated} to the classical formulation of the equation of motions:
 \begin{equation}
-  \bm \tau = M(\bm q)\bm{\ddot q}+C(\bm q, \bm{\ddot q}) \label{eq:rbd:motionEq:full}
+  \bm \tau = M(\bm q)\bm{\ddot q}+C(\bm q, \bm{\dot q}) \label{eq:rbd:motionEq:general}
 \end{equation}
-In \cref{eq:rbd:motionEq:full} $\bm q$ represents the joint angles, while joint
+In \cref{eq:rbd:motionEq:general} $\bm q$ represents the joint angles, with joint velocities $\bm{\dot q}$ and accelerations $\bm{\ddot q}$.
+$M(\bm q)$ denotes as the generalized inertia matrix of the rigid body system.
+As the relative positioning of the rigid bodies towards each other changes the overall inertia of the system, it depends on the joint angle positions $\bm q$.
+The generalized bias force is renamed to $C(\bm q, \bm{\dot q})$ a $\mathbb{R}^{n_q \cross n_q}$ matrix, to better fit its representation for Coriolis and centrifugal forces, gravity, and any other forces acting on the system that are not coming from the generalized force vector $\bm \tau$.
+Because of that the generalized bias force is also a function of the joint angles $\bm q$ and velocities $\bm{\dot q}$.
+\\
+This results in \cref{eq:rbd:motionEq:general} being constructed from the variables $\bm q$ and $\bm \tau$, as well as the coefficients $M$ and $C$.
 
 \paragraph{Forward Dynamics and Inverse Dynamics}
+Based on previously formulated generalized equation of motion we are able to calculate either the generalized forces $\bm \tau$ or joint velocities $\bm{\dot q}$.
+\par
 Eq 1.2 and 1.3 in \cite{featherstone_2008}:
 \begin{subequations}
   \begin{align}
