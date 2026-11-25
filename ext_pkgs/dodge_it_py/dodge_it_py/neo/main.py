@@ -143,7 +143,9 @@ def mainInteractive(showCollision : bool,
                 generateVideoFromFrames(visualize.dir, N, Tf)
     return status
 
-def mainBenchmark(sampleCount : int, initalValues : bool = False):
+def mainBenchmark(sampleCount : int,
+                  initalValues : bool = False,
+                  visualize : str = ""):
     d = 1.0         # distance from hull to object start
     center = (0.00, 0.0, 1.3)
     radius = (0.1, 0.25, 0.5)
@@ -162,19 +164,25 @@ def mainBenchmark(sampleCount : int, initalValues : bool = False):
     projectilePosArr = startPointsCent + np.array(center)
     for i in range(sampleCount):
         dirPath = f"/home/robot/ws/benchmarks/{str(i).zfill(5)}/"
-        headlessData = HeadlessData(
-            dir=dirPath,
-            camPos=np.array([1.42, 1.18, 1.26]),
-            camLookAt=np.array([-0.34, -0.30, 0.88]),
-            camFov=1.31,
-            resolution=(1080,1920))
-        
+
+        if visualize == "interactive":
+            print("[ERROR] select headless or None as visualization during benchmarks")
+            return -1
+        elif visualize == "headless" :
+            vis = HeadlessData(
+                dir=dirPath,
+                # camPos=np.array([1.42, 1.18, 1.26]),
+                camPos=np.array([1.52, 1.28, 1.46]),
+                camLookAt=np.array([-0.34, -0.30, 0.88]),
+                camFov=1.8,
+                resolution=(1080,1920))
+        else: vis = False
+
         h1 = H1Wrapper_v2(
             q0='knees_bend_0.4_straight',
             dynamicJoints=DYNAMIC_JOINT_NAMES,
             showCollisionSDF=True,
-            # visualization=headlessData)
-            visualization=False)
+            visualization=vis)
 
         try:
             projectilePos = c.SX(projectilePosArr[i])
@@ -203,16 +211,18 @@ def mainBenchmark(sampleCount : int, initalValues : bool = False):
                 nq =  h1.model.nq
                 q = x[:,:nq]
                 qdot = x[:,nq:]
-    
-                # h1.visualizeJointTrajecotry(q, qdot, tau, t, 1.0)
-                # generateVideoFromFrames(headlessData)
+
+                if type(vis) == HeadlessData:
+                    h1.visualizeJointTrajecotry(q, qdot, tau, t, 1.0)
+                    generateVideoFromFrames(dirPath, N, Tf)
 
             del ocp
             
             color = "bold green" if status == 0 else "bold orange1"
             print(f"[{color}][INFO][/{color}] run {i} complete")
         finally:
-            # h1.closeHeadless()
+            if type(vis) == HeadlessData:
+                h1.closeHeadless()
             del h1
 
             libgomp = ctypes.CDLL("libgomp.so.1")
@@ -248,4 +258,7 @@ def main():
                 args.initalValues,
                 args.visualization))
     else:
-        sys.exit(mainBenchmark(args.samples))
+        sys.exit(mainBenchmark(
+            args.samples,
+            args.initalValues,
+            args.visualization))
