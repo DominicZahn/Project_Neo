@@ -72,18 +72,19 @@ class OCP:
         # Lagrange
         wJoints = 1.0
         wTau = 1e-4
-        wStab = 0.0
+        # wStab = 1.0
         cost.cost_type = 'NONLINEAR_LS'
         x = self.ocp.model.x
         u = self.ocp.model.u
         costTau = c.dot(u,u) / (u.size1()*100.0**2)**2
         qOffset = x[:nq] - self.h1.q0
         costJoints = c.dot(qOffset,qOffset) / (x[:nq].size1()*(c.pi/2)**2)**2
-        costStab = self.stabilityConstraintScalar
-        self.ocp.model.cost_y_expr = costTau*wTau + costJoints*wJoints + costStab*wStab
-        # self.ocp.model.cost_y_expr = costTau*wTau + costJoints*wJoints
-        cost.yref = 0.0
-        cost.W = np.eye(1)
+        # costStab = self.stabilityConstraintScalar
+        self.ocp.model.cost_y_expr = c.SX(2,1)
+        self.ocp.model.cost_y_expr[0,0] = costJoints
+        self.ocp.model.cost_y_expr[1,0] = costTau
+        cost.yref = np.zeros(2)
+        cost.W = np.diag([wJoints, wTau])
         return cost
     
     def _constraints(self) -> AcadosOcpConstraints:

@@ -86,9 +86,11 @@ class OCP:
         u = self.ocp.model.u
         costTau = c.dot(u,u) / (u.size1()*100.0**2)**2
         costStab = self.stabilityConstraintScalar
-        self.ocp.model.cost_y_expr = costTau*wTau + costStab*wStab
-        cost.yref = 0.0
-        cost.W = np.eye(1) / self.N
+        self.ocp.model.cost_y_expr = c.SX(2,1)
+        self.ocp.model.cost_y_expr[0,0] = costStab
+        self.ocp.model.cost_y_expr[1,0] = costTau
+        cost.yref = np.zeros(2)
+        cost.W = np.diag([wStab, wTau])
 
         # Mayer
         wHead = self.N
@@ -102,7 +104,7 @@ class OCP:
             0.0
         )
         cost.yref_e = 0.0
-        cost.W_e = np.eye(1) * 1.0 * wHead
+        cost.W_e = np.eye(1) * wHead
 
         return cost
 
