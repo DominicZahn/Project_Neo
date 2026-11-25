@@ -180,13 +180,13 @@ Additionally, to solely requiring a quasi-stable end position, we add the initia
 Another change is done in the composed objective function:
 \begin{equation}
   \min_{\bm x(\cdot),\bm u(\cdot)} \quad
-  \int_0^{T_f} \left(\omega_q l_q(\bm q) + \omega_r l_r(\bm{u}) \right) dt
+  \int_0^{T_f} \frac 1 2 \left(\omega_q l_q(\bm q)^2 + \omega_r l_r(\bm{u})^2 \right) dt
 \end{equation}
 As the motion has to cover evasion and recovery, and is therefore longer, we need to make sure that the solver does not "park" the robot in an unnatural stability optimum.
 Instead of primarily optimizing the positioning of the \acrshort{zmp}, we hold the robot as long as possible in the initial pose, to mimicking a robot working on a task, and initiating the evasion in the last possible moment.
 The consequence is the removal of the stability $l_s$ and head term $m_h$ in favor of a new joint pose Lagrange term:
 \begin{equation}
-    l_q(\bm x) = \frac{\| \bm q-\bm q_0 \|^2_2}{(n_q \cdot \bm{q}_\text{exp}^2)^2}
+    l_q(\bm x) = \frac{\| \bm q-\bm q_0 \|^2_2}{n_q \cdot \bm{q}_\text{exp}^2}
     \label{eq:neo:obj:joint}
 \end{equation}
 These changes to \cref{eq:morpheus:constraints} form our new \textit{Neo} formulation.

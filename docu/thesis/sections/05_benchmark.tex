@@ -308,35 +308,41 @@ Together with the previously described benchmarking method, any humanoid collisi
 
 \subsection{Evaluation of the Optimal Motion Generator} \label{sec:eval:app}
 \subsubsection{Results} \label{sec:eval:app:result}
+
 \begin{figure}
   \centering
   \begin{subfigure}[b]{0.45\textwidth}
     \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/conv/top.pdf}
     \caption{Top View (XY)}
-    \label{fig:results:convTop}
+    \label{fig:eval:results:convTop}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.45\textwidth}
     \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/conv/iso.pdf}
     \caption{Isometric View}
-    \label{fig:results:convIso}
+    \label{fig:eval:results:convIso}
   \end{subfigure}
   \vfill
   % \hfill
   \begin{subfigure}[b]{0.45\textwidth}
     \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/conv/front.pdf}
     \caption{Front View (YZ)}
-    \label{fig:results:convFront}
+    \label{fig:eval:results:convFront}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.45\textwidth}
     \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/conv/side.pdf}
     \caption{Side View (XZ)}
-    \label{fig:results:convSide}
+    \label{fig:eval:results:convSide}
   \end{subfigure}
   \caption{orange: no convergence, gray lines are not converged runs}
-  \label{fig:results:conv}
+  \label{fig:eval:results:conv}
 \end{figure}
+The benchmark results from 500 individual test runs shown earlier are visualized in \cref{fig:eval:results:conv}.
+The figure displays the starting position of each object, as well as the impact locations of trajectories that could not be evaded.
+Green marks a successfully generated avoidance trajectory, while orange shows occasions where the solver could not find an optimal motion.
+These failed runs originate from different causes, ranging from significantly exceeding the typical iteration count to divergence in the \acrfull{qp} problem.
+Overall, our optimal trajectory generator achieved an 81.2\% (406) success rate.
 
 \begin{figure}
   \centering
@@ -346,50 +352,94 @@ Together with the previously described benchmarking method, any humanoid collisi
     We can clearly see that some of those trajectories require the robot to operate at its limits.
     Torques in general show a high usage of the available strength, indicating that the success rate is indeed limited by torque limits.
   }
-  \label{fig:morpheus:results:limits}
+  \label{fig:eval:results:limits}
 \end{figure}
 
 \begin{figure}
   \centering
   \includegraphics[width=0.7\textwidth]{figures/05_benchmark/ZZ_results/plots/distance.pdf}
   \caption{Distance of traveling object throughout the evasion motions over all successfully evaded object trajectories, with the minimal distance being clearly above the safety distance to the collision hull}
-  \label{fig:results:distance}
+  \label{fig:eval:results:distance}
 \end{figure}
 
+Before we take a closer look at the non-converged cases, we visualize in \cref{fig:eval:results:distance} the distance between the robot and the projectile at each time step.
+\Cref{fig:eval:results:distance} displays the sequence of distances for every individual successful object trajectory.
+For better visualization, a convex hull around all sequences is drawn.
+All generated motions come closest to the robot around the middle of the trajectory.
+We also view the safety distance $d_\text{safe}$ in the form of a blue limit.
+As is typical for optimal control, the solution found runs the robot as close as allowed to the limitations, sometimes even going down to the minimal allowed distance.
+Another interesting insight is that for a minority of trajectories the robot is closest to the object before or after the mid time.
+These are probably object trajectories, which are extremely steep.
+For such evasion maneuvers, a leaning motion with long durations of close proximity to the object is the result.
+It is clear that the optimal collision-avoidance motion generator goes right up to the set constraint.
+\\
+To better understand limitations imposed by either the trajectory generator or Unitrees H1-2, we investigate the impact locations and velocity vectors of the non-converged trajectories.
+\Cref{fig:eval:results:conv} marks failed trajectory generation attempts as orange object starting points.
+Most trajectories our controller struggles with come directly from the front or back and cross nearly the same area.
+\\
+To investigate potential hardware restrictions, we examine the motion-defining torque controls in \cref{fig:eval:results:limits}.
+As in the distance plot \cref{fig:eval:results:distance}, we display controls for each converged motion.
+A convex hull helps to visualize the extreme values of all controls.
+The hardware torque limit for each joint is shown on the side of each plot, with minima and maxima marked for clarity.
+We find that the robot is relying heavily on ankle and knee torque to stabilize and balance itself, as all reach their boundaries over an excessive time frame.
+While hips and knees seem to be sufficiently powered, especially the ankle torques possibly limit the abilities of the robot to perform more demanding avoidance motions.
+\\
+A likely explanation lies in the general strategy we employ.
+Most collision avoidance work on humanoids like \cite{yang_2026,kohlbrenner_2026} allows multiple capture steps.
+Therefore, the robot does not need to apply high torques on its ankle as it steps away from the approaching object.
+Our strategy, however, keeps the robot in a bipedal stance in order to avoid risking collisions with the environment, particularly other platforms possibly roaming the floor, requesting higher ankle and knee torques.
+\\
+Finally, we inspect the range of motion through \cref{fig:eval:results:limits}.
+While the hip joints offer a huge range of motion, which is barely used, ankles and especially knee joints are driven towards their joint boundaries.
+It is reasonable to assume that having the humanoid bend over could violate its dynamic stability constraint; therefore, the robot exploits squatting or upper body rotation to avoid collisions.
+Crouching, in particular, is bound by the lower joint limit of the knees, as shown in \cref{fig:eval:results:limits}. \par
+After we analyzed the generated motions, we found four distinct types, as well as one clear hardware limitation of the employed H1-2 for fixed-feet bipedal object evasion.
+Our benchmark, however, provides a tool to make such hurdles visible.
 
 \subsubsection{Motion Classes} \label{sec:eval:app:motionClasses}
-
 \begin{figure}
   \centering
   \begin{subfigure}[b]{0.23\textwidth}
     \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/motions/crouch.png}
     \caption{crouching evasion}
-    \label{fig:results:motion:crouch}
+    \label{fig:eval:results:motion:crouch}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.23\textwidth}
     \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/motions/lean.png}
     \caption{leaning evasion}
-    \label{fig:results:motion:lean}
+    \label{fig:eval:results:motion:lean}
   \end{subfigure}
   % \vfill
   \hfill
   \begin{subfigure}[b]{0.23\textwidth}
     \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/motions/inverseNeo.png}
     \caption{reverse neo evasion}
-    \label{fig:results:motion:inverseNeo}
+    \label{fig:eval:results:motion:inverseNeo}
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.23\textwidth}
     \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/motions/neo.png}
     \caption{classic neo evastion}
-    \label{fig:results:motion:neo}
+    \label{fig:eval:results:motion:neo}
   \end{subfigure}
   \caption{
     We found, that our optimal object avoidance generator explored mainly four motion classes, for different kinds of approaching objects.
     The leaning evasion in (b) was found to be the most common one, while the reverse neo motion was leveraged in a small amount of object avoidance motions.
   }
-  \label{fig:results:motion}
+  \label{fig:eval:results:motion}
 \end{figure}
-
+To start off, we explore the different strategies our optimal object avoidance controller found.
+\Cref{fig:eval:results:motion} displays the four major evasion motions.
+By far the most common motion is a leaning pose perturbation.
+The robot mainly adjusts its upper body by tilting it away from the incoming object (\cref{fig:eval:results:motion:lean}).
+Two interesting strategies result from low-flying objects, orthogonally targeted towards the robot's front or back (\cref{fig:eval:results:motion:inverseNeo,fig:eval:results:motion:neo}).
+These object trajectories can be evaded by leaning back significantly, almost like the protagonist of the famous movie "The Matrix".
+We therefore call these extremely dynamic strategies reverse and classic neo evasion.
+Additionally, both leverage a small rotation around the torso joint to keep the robot's balance.
+The last motion type is a crouching or squatting strategy.
+The humanoid crouches underneath low horizontal flying targets, as seen in \cref{fig:eval:results:motion:crouch}.
+For further visualization we provide a video with exemplary trajectories of the mentioned motion classes.
+We suspect a weakness in the robot's ability to avoid front- and back-targeted objects, as those need to be evaded by employing difficult and highly dynamic strategies, like crouching, as well as the neo motions.
+\\
 

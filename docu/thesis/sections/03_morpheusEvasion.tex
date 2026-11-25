@@ -86,8 +86,8 @@ With these we are able to compute the objective function, system dynamics, and c
   \begin{align}
     & \qquad \textbf{Objective Function} \nonumber \\
     \min_{\bm x(\cdot),\bm u(\cdot)} \quad
-      & \int_0^{T_f} \left(\omega_s l_s(\bm x) + \omega_r l_r(\bm{u}) \right) dt
-      + \omega_h m_h(\bm x_f) \label{morpheus:constraints:obj} \\
+      & \int_0^{T_f} \frac 1 2 \left(\omega_s l_s(\bm x)^2 + \omega_r l_r(\bm{u})^2 \right) dt
+      + \frac 1 2 \omega_h m_h(\bm x_f)^2 \label{morpheus:constraints:obj} \\
     % Dynamics
     & \qquad \textbf{System Dynamics} \nonumber \\
     \textrm{s.t.} \quad & \bm{\dot x} =
@@ -141,6 +141,15 @@ As this is a hard limit, it is formulated as a constraint in \cref{eq:morpheus:c
 \\
 To resemble a full matrix style dodge, we would like to maximize the lean back of H1-2.
 Therefore, the negative $x$-coordinate of the head position $\bm p_\text{head}$ is optimized.
+\todo[inline]{motivate with naive approach}
+\begin{equation}
+  m_h(x) = \| \bm p_\text{head}|_z \|^2_2
+\end{equation}
+\begin{equation}
+  \min_{\bm x(\cdot),\bm u(\cdot)} \quad \int_0^{T_f} \|l(\bm x,\bm u)\|^2_2  dt + \|m(\bm x_f)\|^2_2
+  \label{eq:morpheus:acados:obj}
+\end{equation}
+
 In order to project negative $x$-coordinates to near zero and positive values to one we employ a sigmoid curve in form of the logistic function:
 \begin{equation}
   s(x,k_0,k_1,x_0) = \frac{k_0}{1+e^{-k_1(x-x_0)}}
@@ -163,8 +172,11 @@ By utilizing the logistic function $s(x)$ from \cref{eq:morpheus:sigmoid} we for
   \label{eq:morpheus:obj}
   \begin{align}
     m_h(\bm x) &= s(\bm p_\text{head,f}|_z) \label{eq:morpheus:obj:head} \\
-    l_s(\bm x) &= \frac{(\bm p_\text{ZMP} - \textbf{PoS}_\text{center})^2}{(\text{PoS}_\text{height})^2} \label{eq:morpheus:obj:stability} \\
-    l_r(\bm u) &= \frac{\|\bm{\tau}\|^2_2}{(n_u \cdot \bm{u}_\text{exp}^2)^2} \label{eq:morpheus:obj:regularization}
+    l_s(\bm x) &= 
+      \left(\frac{\textbf{ZMP}|_x - \textbf{PoS}_\text{center}|_x}{0.5\text{PoS}_\text{height}}\right)^2 
+      + \left(\frac{\textbf{ZMP}|_y - \textbf{PoS}_\text{center}|_y}{0.5\text{PoS}_\text{width}}\right)^2
+      \label{eq:morpheus:obj:stability} \\
+    l_r(\bm u) &= \frac{\|\bm{\tau}\|^2_2}{n_u \cdot \bm{u}_\text{exp}^2} \label{eq:morpheus:obj:regularization}
   \end{align}
 \end{subequations}
 Another objective of our formulation is to generate a dynamically stable motion.
