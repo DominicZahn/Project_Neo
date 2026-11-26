@@ -43,7 +43,7 @@ xINITAL_VALUES_FILE = '/home/robot/ws/initalValues_x.txt'
 uINITAL_VALUES_FILE = '/home/robot/ws/initalValues_u.txt'
 
 Tf = 2.5
-N = 120
+N = 90
 # ------------------------------- HELPER FUNCS --------------------------------------
 @staticmethod
 def extractVarsFromSolver(ocp : OCP) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
@@ -88,10 +88,10 @@ def mainInteractive(showCollision : bool,
     if visualize == "interactive": vis = True
     elif visualize == "headless" : vis = HeadlessData(
         dir="/home/robot/ws/_tmp/",
-        camPos=np.array([1.42, 1.18, 1.26]),
-        camLookAt=np.array([-0.34, -0.30, 0.88]),
+        camPos=np.array([0.919, 1.579, 2.521]),
+        camLookAt=np.array([0., 0., 0.8]),
         camFov=1.31,
-        resolution=(1080,1920))
+        resolution=(1080,1080))
     else: vis = False
 
     h1 = H1Wrapper_v2(
@@ -103,6 +103,7 @@ def mainInteractive(showCollision : bool,
         projectile.linear(h1.t,
                           c.SX([0.7 ,0 , 1.5]),
                           c.SX([-0.5, 0., 0.])))
+                        #   c.SX([0., 0., 0.])))
     assert(h1.model.nq)
     nq =  h1.model.nq
     h1.visualizeJointConfig(h1.q0, np.zeros(nq), np.zeros(nq), 0.0)
@@ -171,11 +172,10 @@ def mainBenchmark(sampleCount : int,
         elif visualize == "headless" :
             vis = HeadlessData(
                 dir=dirPath,
-                # camPos=np.array([1.42, 1.18, 1.26]),
-                camPos=np.array([1.52, 1.28, 1.46]),
-                camLookAt=np.array([-0.34, -0.30, 0.88]),
-                camFov=1.8,
-                resolution=(1080,1920))
+                camPos=np.array([0.919, 1.579, 2.521]),
+                camLookAt=np.array([0., 0., 0.8]),
+                camFov=1.31,
+                resolution=(1080,1080))
         else: vis = False
 
         h1 = H1Wrapper_v2(

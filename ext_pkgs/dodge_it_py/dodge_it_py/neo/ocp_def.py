@@ -16,6 +16,14 @@ from acados_template import (
     AcadosOcpOptions,
 )
 
+max_tau_knee = 360 # [Nm]
+max_tau_hip = 220 # [Nm]
+max_tau_waist = 220 # [Nm]
+max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
+max_shoulder = 120 # [Nm]
+max_elbow = 120 # [Nm]
+max_wrist = 30 # [Nm]
+
 class OCP:
     def __init__(self, h1 : H1Wrapper_v2, Tf : float, N : int, initalStates : str = "", initalControl : str = ""):
         self.h1 = h1
@@ -70,21 +78,38 @@ class OCP:
         cost = AcadosOcpCost()
 
         # Lagrange
-        wJoints = 1.0
-        wTau = 1e-4
-        # wStab = 1.0
+        # wJoints = 1.0
+        wJoints = 1e-6
+        wTau = 1e-8
+        
+        assert(self.h1.model.upperPositionLimit is not None and self.h1.model.lowerPositionLimit is not None)
+
         cost.cost_type = 'NONLINEAR_LS'
         x = self.ocp.model.x
         u = self.ocp.model.u
-        costTau = c.dot(u,u) / (u.size1()*100.0**2)**2
-        qOffset = x[:nq] - self.h1.q0
-        costJoints = c.dot(qOffset,qOffset) / (x[:nq].size1()*(c.pi/2)**2)**2
-        # costStab = self.stabilityConstraintScalar
+        # costTau = c.dot(u,u) / (u.size1()*100.0**2)
+        # ------------------- WARNING THIS IS JOINT SPECIFIC ------------------
+        u_max = np.array([
+            max_tau_hip,
+            max_tau_knee,
+            max_tau_ankle_pitch,
+            max_tau_hip,
+            max_tau_knee,
+            max_tau_ankle_pitch,
+            max_tau_waist
+        ])
+        # ---------------------------------------------------------------------
+        costTau = u / u_max
+        costTau = c.dot(costTau,costTau)
+        qOffset = x[6:nq] - self.h1.q0[6:] # no floating base
+        costJoints = 2*qOffset / (self.h1.model.upperPositionLimit[6:] - self.h1.model.lowerPositionLimit[6:])
+        costJoints = c.dot(costJoints,costJoints)
         self.ocp.model.cost_y_expr = c.SX(2,1)
         self.ocp.model.cost_y_expr[0,0] = costJoints
         self.ocp.model.cost_y_expr[1,0] = costTau
-        cost.yref = np.zeros(2)
+        cost.yref = np.full(2, 0)
         cost.W = np.diag([wJoints, wTau])
+
         return cost
     
     def _constraints(self) -> AcadosOcpConstraints:
@@ -105,13 +130,7 @@ class OCP:
         cons.idxbx = np.arange(nq)[6:]
 
         #       control limits
-        max_tau_knee = 360 # [Nm]
-        max_tau_hip = 220 # [Nm]
-        max_tau_waist = 220 # [Nm]
-        max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
-        max_shoulder = 120 # [Nm]
-        max_elbow = 120 # [Nm]
-        max_wrist = 30 # [Nm]
+
         # lshoulder_roll_i = self.h1.qId('left_shoulder_roll_joint'),
         # lshoulder_pitch_i = self.h1.qId('left_shoulder_pitch_joint'),
         # lshoulder_yaw_i = self.h1.qId('left_shoulder_yaw_joint'),
@@ -244,12 +263,12 @@ class OCP:
         options.nlp_solver_max_iter = 300
         # options.nlp_solver_type = 'SQP_WITH_FEASIBLE_QP'
         # options.hessian_approx = 'EXACT'
-        # options.globalization_line_search_use_sufficient_descent = 1
+        options.globalization_line_search_use_sufficient_descent = 1
         # options.globalization = 'MERIT_BACKTRACKING'
         options.globalization = 'FUNNEL_L1PEN_LINESEARCH'
         options.hpipm_mode = 'ROBUST'
         options.qp_solver_iter_max = int(1e3)
-        options.tol = float(1e-3)
+        options.tol = float(1e3)
         options.nlp_solver_tol_ineq = float(1e-6)
         options.nlp_solver_tol_stat = float(1e-3)
         options.sim_method_num_steps = 50
