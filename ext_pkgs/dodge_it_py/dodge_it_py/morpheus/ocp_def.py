@@ -16,6 +16,14 @@ from acados_template import (
     AcadosOcpOptions,
 )
 
+max_tau_knee = 360 # [Nm]
+max_tau_hip = 220 # [Nm]
+max_tau_waist = 220 # [Nm]
+max_tau_ankle_pitch = 130 # [Nm] (26mm / 30mm)*2*75Nm
+max_shoulder = 120 # [Nm]
+max_elbow = 120 # [Nm]
+max_wrist = 30 # [Nm]
+
 class OCP:
     def __init__(self, h1 : H1Wrapper_v2, Tf : float, N : int, h_diff : float, initalStates : str = "", initalControl : str = ""):
         self.h1 = h1
@@ -77,6 +85,18 @@ class OCP:
 
         cost = AcadosOcpCost()
 
+        # ------------------- WARNING THIS IS JOINT SPECIFIC ------------------
+        u_max = np.array([
+            max_tau_hip,
+            max_tau_knee,
+            max_tau_ankle_pitch,
+            max_tau_hip,
+            max_tau_knee,
+            max_tau_ankle_pitch,
+            max_tau_waist
+        ])
+        # ---------------------------------------------------------------------
+
         # Lagrange
         wStab = 1.0
         wTau = 1e-4
@@ -84,7 +104,8 @@ class OCP:
         cost.cost_discretization = 'INTEGRATOR'
         x = self.ocp.model.x
         u = self.ocp.model.u
-        costTau = c.dot(u,u) / (u.size1()*100.0**2)**2
+        costTau = u / u_max
+        costTau = c.dot(costTau,costTau)
         costStab = self.stabilityConstraintScalar
         self.ocp.model.cost_y_expr = c.SX(2,1)
         self.ocp.model.cost_y_expr[0,0] = costStab
