@@ -131,6 +131,11 @@ class CollisionSDF:
             faces=faces,
             color=(66, 135, 245),
             opacity=0.55,
+            side="double",
+            flat_shading=False,
+            cast_shadow=False,
+            receive_shadow=False,
+            wireframe=False,
         )
 
     @staticmethod
