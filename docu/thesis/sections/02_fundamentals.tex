@@ -51,22 +51,17 @@ Through usage of generalized forces $\tau$ instead of $\bm f$, as well as adding
 In \cref{eq:rbd:motionEq:general} $\bm q$ represents the joint angles, with joint velocities $\bm{\dot q}$ and accelerations $\bm{\ddot q}$.
 $M(\bm q)$ denotes as the generalized inertia matrix of the rigid body system.
 As the relative positioning of the rigid bodies towards each other changes the overall inertia of the system, it depends on the joint angle positions $\bm q$.
-The generalized bias force is renamed to $C(\bm q, \bm{\dot q})$ a $\mathbb{R}^{n_q \cross n_q}$ matrix, to better fit its representation for Coriolis and centrifugal forces, gravity, and any other forces acting on the system that are not coming from the generalized force vector $\bm \tau$.
+The generalized bias force is renamed to $C(\bm q, \bm{\dot q})$, in order to better fit its representation for Coriolis and centrifugal forces, gravity, and any other forces acting on the system that are not coming from the generalized force vector $\bm \tau$.
 Because of that the generalized bias force is also a function of the joint angles $\bm q$ and velocities $\bm{\dot q}$.
 \\
 This results in \cref{eq:rbd:motionEq:general} being constructed from the variables $\bm q$ and $\bm \tau$, as well as the coefficients $M$ and $C$.
 
 \paragraph{Forward Dynamics and Inverse Dynamics}
-Based on previously formulated generalized equation of motion we are able to calculate either the generalized forces $\bm \tau$ or joint velocities $\bm{\dot q}$.
+Based on the previously formulated generalized equation of motion (\cref{eq:rbd:motionEq:general}) we are able to calculate either the generalized forces $\bm \tau$ or joint velocities $\bm{\dot q}$.
+As those describe the dynamics of our system, it is either called forward or inverse dynamics.
+Inverse dynamics calculates the resulting generalized forces from joint angles, velocities and accelerations, it can be solved with the \acrfull{rnea}.
+To find the produced joint accelerations, for an articulated body with $\bm \tau$ the problem of forward dynamics has to be solved.
 \par
-Eq 1.2 and 1.3 in \cite{featherstone_2008}:
-\begin{subequations}
-  \begin{align}
-    \bm{\ddot q} &= \text{FD}(\text{model},\bm q,\bm{\dot q},\bm \tau) \\
-    \bm \tau &= \text{ID}(\text{model},\bm q,\bm{\dot q},\bm{\ddot q})
-  \end{align}
-\end{subequations}
-
 \begin{figure}
   \centering
   \begin{subfigure}[b]{0.4\textwidth}
@@ -83,7 +78,22 @@ Eq 1.2 and 1.3 in \cite{featherstone_2008}:
   \caption{The figure was taken from Featherstone 2005 \cite{featherstone_2008} and visualizes the main elements of the \acrshort{aba}.}
   \label{fig:rbd:featherstone:rbd:aba}
 \end{figure}
-
+However in forward dynamics not only joint accelerations, but also joint constraint forces are unknown.
+As a result we are using propagation methods to calculate coefficients locally and propagate them to their neighbors.
+The fastest method is the \acrfull{aba}, with a complexity of $O(n_B)$ if $n_B$ is the amount of bodies in a kinematic tree.
+\\
+The algorithm is split into three passes to calculate:
+\begin{enumerate}
+  \item velocities and bias terms (Outward Pass),
+  \item group inertias and bias forces (Inward Pass) and
+  \item accelerations (Outward Pass)
+\end{enumerate}
+During the first pass we starting from the root of the kinematic tree and move towards the leafs.
+It calculates the local velocities and bias forces for each body $B_i$.
+The next pass computes from the leafs towards the root the in \cref{fig:rbd:featherstone:rbd:aba_articulatedBodies} shown articulated bodies $A_i$ inertia and bias force.
+For a final pass the algorithm moves again outwards, building on top of the previously calculated elements to find the accelerations.
+\\
+For a detailed rundown of the algorithm and its equations we recommend chapter 7.3 in Featherstones book.
 %
 % \begin{figure}
 %   \centering
@@ -94,80 +104,105 @@ Eq 1.2 and 1.3 in \cite{featherstone_2008}:
 %   \label{fig:rbd:featherstone:rbd:rnea}
 % \end{figure}
 %
-
-\begin{itemize}
-  \item ABA (p.128) : FD
-  \item RNEA (p.92) : ID
-\end{itemize}
-
 \subsection{Contact Formulation} \label{sec:fundamentals:contacts}
+Contact Formulations are an important part in robotics and can be modelled in different forms.
+While there are soft contacts, that handle connections between, for example an robots feet and the ground as a spring-damper system, it is also common to find rigid contacts as a solution.
+As our overarching application is a humanoid, that performs dynamic high force inducing motions, we opt for rigid contacts.
+For stepping, this choice would lead us to a multi-phase model, as the solution connects rigidly to the ground.
+However, as we are planning to keep the robot in a bipedal stance, this is not the case.
+\\
+Generally rigid body contacts can be formulated a constraint equations of motion, which is solved during constrained dynamics.
 
 \paragraph{Constrained Dynamics}
-Eq 2 in \cite{carpentier_2021}:
+The following equations and methods can be found in \cite{carpentier_2021}, which describes the algorithms used to handle constrained dynamics in the rigid body dynamics library Pinocchio \cite{pinocchioweb}.
+\\
+Carpentier et al. states that the constraint equations of motion follow the least-action, or Maupertuis principle.
+It declares, that the acceleration of the system $\bm{\ddot q}$ should as close as possible to the free-falling case $\bm{\ddot q}_\text{free}$ \cite{carpentier_2021} in terms of the kinematic metric.
+As a consequence the principle can be written as following optimization problem: 
 \begin{subequations}
   \label{eq:consDyn:default}
   \begin{align}
-    \min_{\bm {\dot v}(\cdot)} \quad & \frac 1 2 \| \bm{\dot v} - \bm{\dot v_\text{free}}(\bm q, \bm v, \bm \tau) \|^2_M \label{eq:consDyn:default:obj} \\
+    \min_{\bm {\ddot q}(\cdot)} \quad & \frac 1 2 \| \bm{\ddot q} - \bm{\ddot q_\text{free}}(\bm q, \bm{\dot q}, \bm \tau) \|^2_M \label{eq:consDyn:default:obj} \\
     \text{s.t.} \quad & f_c(\bm q) = 0 \label{eq:consDyn:default:cons}
   \end{align}
 \end{subequations}
-
-Eq 3b in \cite{carpentier_2021}:
+The kinematic metric used by Carpentier et al. is a norm with respect to the mass-inertia matrix $M$.
+\Cref{eq:consDyn:default:cons} shows the implicit constraint function $f_C$, which forces for example a foot to stay at a specific ground position.
+\\
+We derive the constraint \cref{eq:consDyn:default:cons} two times, which introduces the Jacobian $J_{f_c}$ and its derivative, and forms:
 \begin{equation}
-  J_{f_c}(\bm{q})\,\dot{\bm{v}} + \underbrace{\dot{J}_{f_c}(\bm{q},\bm{v})\,\bm{v}}_{\gamma_{f_c}(\bm{q},\bm{v})} = 0
-  \label{eq:consDyn:default:jakobian}
+  J_{f_c}(\bm{q})\,\bm{\dot q} + \underbrace{\dot{J}_{f_c}(\bm{q},\bm{\dot q})\,\bm{\dot q}}_{\gamma_{f_c}(\bm{q},\bm{\dot q})} = 0
+  \label{eq:consDyn:default:jacobian}
 \end{equation}
-
-Eq 6 in \cite{carpentier_2021} (KKT Matrix):
+The second term $\gamma_{f_c}(\bm{q},\bm{\dot q})$ can be understood as acceleration drift.
+\Cref{eq:consDyn:default:obj,eq:consDyn:default:jacobian} combine to an equality-constraint quadratic program.
+As this is a well-known problem class we can skip right to the \acrfull{kkt} condition:
 \begin{equation}
   \underbrace{\begin{bmatrix}
   \mathbf{0} & J_{f_c} \\
   J_{f_c}^{t} & M
-  \end{bmatrix}}_{K(\boldsymbol{q})}
+  \end{bmatrix}}_{K(\bm{q})}
   \begin{bmatrix}
-  \boldsymbol{\lambda} \\
-  \dot{\boldsymbol{v}}
+  \bm \lambda \\
+  \bm{\ddot q}
   \end{bmatrix}
   =
   \begin{bmatrix}
   -\gamma_{f_c} \\
-  M \dot{\boldsymbol{v}}_{\mathrm{free}}
+  M \bm{\ddot q}_{\mathrm{free}}
   \end{bmatrix}
   \label{eq:consDyn:default:KKT}
 \end{equation}
+Solving it leads us right to the optimum of our original constraint equation of motion \cref{eq:consDyn:default}.
+$M$ represents the mass-inertia matrix, while $K(\bm q)$ is the so-called \acrfull{kkt} matrix.
+In an ideal world it is symmetrical positive definite so we are able to solve \cref{eq:consDyn:default:KKT} with for example the Cholesky Decomposition.
+This saddle point is than holding the contact forces $\bm \lambda$ and acceleration $\bm{\ddot q}$.
+For cases where the \acrshort{kkt} matrix is not symmetrical positive definite, we need to find different solutions.
 
-\paragraph{Ill-conditioned Jakobian $J_{f_c}$}
-"Significantly ill-conditioned" \\
-Eq 9 Proximal Operator:
+\paragraph{Ill-conditioned Jacobian $J_{f_c}$}
+The desired method for solving the \acrshort{kkt} condition \cref{eq:consDyn:default:KKT} is by using the Cholesky Decomposition.
+A requirement for this method is a symmetrical positive definite \acrshort{kkt} matrix $K(\bm q)$.
+For positive mass $M$ can be considered as symmetrical positive definite.
+The Jacobian $J_{f_c}$ however can reach rank deficient states, when the robots configuration uses redundant contacts or reaches singularities.
+\\
+Therefore it is not always possible to find the inverse of the \acrshort{kkt} matrix.
+Carpentier et al. mentions, that there are different generic methods to solve it numerically.
+However none of these is specifically catered towards explicitly exploiting the typical structure of the matrix.
+\par
+To fill this gap they propose in \cite{carpentier_2021} an alternative method, which is based on the idea of proximal algorithms \cite{parikh_2014}.
+Those are typically used to solve nonsmooth, constrained, large-scale or distributed optimization problems \cite{parikh_2014}.
+The heart of each proximal algorithm is a proximal operator of the form:
 \begin{equation}
   \operatorname{prox}_{f,\alpha}(y) \overset{\text{def}}{=} \arg\min_{x \in \mathcal{X}} \; f(x) + \frac{1}{2\alpha} \|x - y\|_2^2
   \label{eq:consDyn:prox:operator}
 \end{equation}
-
-Proximal Algorithms \cite{parikh_2014} with Iteration:
+It still searches for the minimal value $x$ of the function $f(\bm x)$, but does so on a smooth variant.
+Through the addition of the second term the proximal operator ensures the smoothness of the function, but changes the resulting minimum.
+To remove that perturbation the proximal operator is used in the recursion:
 \begin{equation}
   x_{k+1} = \operatorname{prox}_{f,\alpha}(x_k)
   \label{eq:consDyn:prox:algo}
 \end{equation}
-
-
-Eq 18 in \cite{carpentier_2021} (KKT Matrix with proximal operator applied):
+$\alpha$ is used as a step size, while a tolerance or maximum iteration count stop the algorithm at a sufficient approximation of the optimal value.
+\par
+In \cite{carpentier_2021} Carpentier et al. apply the proximal algorithm concept to finding the solution of an ill-conditioned \acrshort{kkt} condition \cref{eq:consDyn:default:KKT}:
 \begin{equation}
   \underbrace{\begin{bmatrix}
   \alpha I_m & J_{f_c} \\
   J_{f_c}^{t} & M
-  \end{bmatrix}}_{K(\boldsymbol{q})}
+  \end{bmatrix}}_{K(\bm{q})}
   \begin{bmatrix}
-  \boldsymbol{\lambda} \\
-  \dot{\boldsymbol{v}}
+  \bm{\lambda} \\
+  \bm{\ddot{q}}
   \end{bmatrix}
   =
   \begin{bmatrix}
   -\gamma_{f_c}- \alpha I_m \\
-  M \dot{\boldsymbol{v}}_{\mathrm{free}}
+  M \bm{\ddot q}_{\mathrm{free}}
   \end{bmatrix}
   \label{eq:consDyn:prox:KKT}
 \end{equation}
+The claim to reach sufficient results for even small iteration counts and provide it as an algorithm, to calculate contact forces and accelerations in there rigid body dynamics library Pinocchio \cite{pinocchioweb,carpentier2019pinocchio}.
 
 \subsection{Dynamic Stability} \label{sec:fundamentals:dynamicStability}
 \begin{itemize}
