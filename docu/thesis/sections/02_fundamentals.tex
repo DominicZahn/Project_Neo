@@ -1,18 +1,17 @@
 \section{Fundamentals} \label{sec:fundamentals}
-During this section a brief overview of fundamental concepts in rigid body dynamics, dynamic stability and optimal control is given.
-We will focus on concepts concepts used in the later stages of the thesis, so they can be referenced.
+During this section a brief overview of fundamental concepts in rigid body dynamics (\cref{sec:fundamentals:rbd}), dynamic stability (\cref{sec:fundamentals:dynamicStability}) and optimal control (\cref{sec:fundamentals:optimalControl}) is given.
+We will focus on concepts used in the later stages of the thesis, so they can be referenced.
 The goal is not to give an exhaustive explanation of these formulations, but provide the reader with a high-level understanding.
 Through out each subject we will recommend suitable literature for in-depth research.
-\\
-To start of we go right into rigid body dynamics.
+We start of by going right into rigid body dynamics.
 
-\subsection{Rigid Body Dynamics} \label{sec:fundamentals:rigid}
+\subsection{Rigid Body Dynamics} \label{sec:fundamentals:rbd}
 The following equations are taken from Featherstones 2008 "Rigid Body Dynamics Algorithms" Book.
 These are also the fundamentals for the algorithms implemented in for example Pinocchio \cite{pinocchioweb,carpentier2019pinocchio} and \acrfull{rbdl} \cite{Felis2016}.
 \\
 In its book Featherstone describes rigid body systems as collection of bodies connected by joints.
 Each body is considered rigid so not able to change its shape and inertia like soft bodies would.
-The whole rigid body system may also stand under the influence of various forces, while the joints restrict the resulting motions of the bodies.
+The whole rigid body system may also stand under the influence of various forces, while joints restrict the resulting motions of the bodies.
 \begin{figure}[h]
   \centering
   \begin{subfigure}[b]{0.28\textwidth}
@@ -26,11 +25,17 @@ The whole rigid body system may also stand under the influence of various forces
     \caption{articulated body}
     \label{fig:rbd:featherstone:rbd:bodies:articulated}
   \end{subfigure}
-  \caption{TODO}
+  \caption{
+    We lend this figure from Featherstone \cite{featherstone_2008}.
+    (a) shows a single rigid body $B$ under the influence of a $\bm f$.
+    The produced acceleration is denoted as $\bm a$.
+    On the right (b) shows an articulated body consisting of two bodies $B$ and $B'$.
+    The joint between both hinders the acceleration of $B$.
+  }
   \label{fig:rbd:featherstone:rbd:bodies}
 \end{figure}
 An exemplary system build from multiple bodies and joints is shown in \cref{fig:rbd:featherstone:rbd:bodies:articulated}.
-The figure shows body $B$, which influenced by the force $f$ and constrained through the joint towards $B'$.
+The figure shows body $B$, which influenced by the force $\bm f$ and constrained through the joint towards $B'$.
 We can describe the context between force and motion of a rigid body with the equations of motions.
 
 \paragraph{Equations of Motions}
@@ -38,20 +43,20 @@ When a single rigid body $B$ is experiencing the force $\bm f$ its motion is des
 \begin{equation}
     \bm f = M \bm a + \bm p \label{eq:rbd:motionEq:rigid},
 \end{equation}
-where the inertia $M$ and bias force $\bm p$ are characteristics of the body and $a$ the resulting acceleration.
-For an articulated body of multiple rigid bodies the equation is analogue to the one of a single body:
+where the inertia $M$ and bias force $\bm p$ are characteristics of the body and $\bm a$ the resulting acceleration.
+For an articulated body, like the one shown in \cref{fig:rbd:featherstone:rbd:bodies:articulated} of multiple rigid bodies the equation is analogue to the one of a single body:
 \begin{equation}
     \bm f = M^A \bm a + \bm p^A \label{eq:rbd:motionEq:articulated}
 \end{equation}
-The difference lies only in the inertia $I^A$ and bias force $\bm p^A$, which now also include the ones from $B'$.
-Through usage of generalized forces $\tau$ instead of $\bm f$, as well as adding joint angle dependency, we specialize \cref{eq:rbd:motionEq:articulated} to the classical formulation of the equation of motions:
+The difference lies only in the inertia $I^A$ and bias force $\bm p^A$, which now also includes the ones from $B'$.
+Through reformulation towards the use of generalized forces $\bm \tau$, as well as adding joint angle dependency, we specialize \cref{eq:rbd:motionEq:articulated} to the classical formulation of the equation of motions:
 \begin{equation}
   \bm \tau = M(\bm q)\bm{\ddot q}+C(\bm q, \bm{\dot q}) \label{eq:rbd:motionEq:general}
 \end{equation}
 In \cref{eq:rbd:motionEq:general} $\bm q$ represents the joint angles, with joint velocities $\bm{\dot q}$ and accelerations $\bm{\ddot q}$.
-$M(\bm q)$ denotes as the generalized inertia matrix of the rigid body system.
-As the relative positioning of the rigid bodies towards each other changes the overall inertia of the system, it depends on the joint angle positions $\bm q$.
-The generalized bias force is renamed to $C(\bm q, \bm{\dot q})$, in order to better fit its representation for Coriolis and centrifugal forces, gravity, and any other forces acting on the system that are not coming from the generalized force vector $\bm \tau$.
+$M(\bm q)$ denotes the generalized inertia matrix of the articulated body system.
+As the relative positioning of the rigid bodies towards each other changes, the overall inertia of the system has to depend on the joint angle $\bm q$ as well.
+The generalized bias force is renamed to $C(\bm q, \bm{\dot q})$, in order to better fit its representation for Coriolis, centrifugal forces, gravity, and any other forces acting on the system that are accounted by the generalized force vector $\bm \tau$.
 Because of that the generalized bias force is also a function of the joint angles $\bm q$ and velocities $\bm{\dot q}$.
 \\
 This results in \cref{eq:rbd:motionEq:general} being constructed from the variables $\bm q$ and $\bm \tau$, as well as the coefficients $M$ and $C$.
@@ -66,21 +71,21 @@ To find the produced joint accelerations, for an articulated body with $\bm \tau
   \centering
   \begin{subfigure}[b]{0.4\textwidth}
     \includegraphics[width=\textwidth]{figures/02_fundamentals/featherstone/aba1.pdf}
-    \label{fig:rbd:featherstone:rbd:aba_articulatedBodies}
     \caption{}
+    \label{fig:rbd:featherstone:rbd:aba_articulatedBodies}
   \end{subfigure}
   \hspace{2cm}
   \begin{subfigure}[b]{0.2\textwidth}
     \includegraphics[width=\textwidth]{figures/02_fundamentals/featherstone/aba2.pdf}
-    \label{fig:rbd:featherstone:rbd:aba_acceleration}
     \caption{}
+    \label{fig:rbd:featherstone:rbd:aba_acceleration}
   \end{subfigure}
   \caption{The figure was taken from Featherstone 2005 \cite{featherstone_2008} and visualizes the main elements of the \acrshort{aba}.}
   \label{fig:rbd:featherstone:rbd:aba}
 \end{figure}
 However in forward dynamics not only joint accelerations, but also joint constraint forces are unknown.
 As a result we are using propagation methods to calculate coefficients locally and propagate them to their neighbors.
-The fastest method is the \acrfull{aba}, with a complexity of $O(n_B)$ if $n_B$ is the amount of bodies in a kinematic tree.
+The fastest method is the \acrfull{aba}, with a complexity of $O(n_B)$ if $n_B$ is the amount of bodies in the kinematic tree.
 \\
 The algorithm is split into three passes to calculate:
 \begin{enumerate}
@@ -90,8 +95,8 @@ The algorithm is split into three passes to calculate:
 \end{enumerate}
 During the first pass we starting from the root of the kinematic tree and move towards the leafs.
 It calculates the local velocities and bias forces for each body $B_i$.
-The next pass computes from the leafs towards the root the in \cref{fig:rbd:featherstone:rbd:aba_articulatedBodies} shown articulated bodies $A_i$ inertia and bias force.
-For a final pass the algorithm moves again outwards, building on top of the previously calculated elements to find the accelerations.
+The next pass computes from the leafs towards the root the in \cref{fig:rbd:featherstone:rbd:aba} shown articulated bodies $A_i$ inertia and bias force.
+In a final pass the algorithm moves again outwards, building on top of the previously calculated elements to find the accelerations.
 \\
 For a detailed rundown of the algorithm and its equations we recommend chapter 7.3 in Featherstones book.
 %
@@ -106,12 +111,13 @@ For a detailed rundown of the algorithm and its equations we recommend chapter 7
 %
 \subsection{Contact Formulation} \label{sec:fundamentals:contacts}
 Contact Formulations are an important part in robotics and can be modelled in different forms.
-While there are soft contacts, that handle connections between, for example a robots feet and the ground as a spring-damper system, it is also common to find rigid contacts as a solution.
-As our overarching application is a humanoid, that performs dynamic high force inducing motions, we opt for rigid contacts.
-For stepping, this choice would lead us to a multi-phase model, as the solution connects rigidly to the ground.
-However, as we are planning to keep the robot in a bipedal stance, this is not the case.
+Soft contacts handle connections as a spring-damper system between for example feet and the ground.
+Another common solution are rigid contacts, where feet are connected rigidly to the contact patch, resembling a rigid body joint.
 \\
-Generally rigid body contacts can be formulated a constraint equations of motion, which is solved during constrained dynamics.
+As our overarching application is a humanoid, that performs dynamic high force inducing motions, we opt for rigid contacts.
+For stepping, this choice would lead us to a multi-phase formulation.
+However, as we are planning to keep the robot in a bipedal stance, this is not the case and we are able to stick with a single phase.
+Generally rigid body contacts can be formulated as constrained equations of motion.
 
 \paragraph{Constrained Dynamics}
 The following equations and methods can be found in \cite{carpentier_2021}, which describes the algorithms used to handle constrained dynamics in the rigid body dynamics library Pinocchio \cite{pinocchioweb}.
