@@ -3,26 +3,25 @@
 Modern Humanoids are able to achieve highly dynamic motions that their statically stable predecessors could only dream of \cite{tong_2024}.
 Unitrees H1 and G2 execute impressive tasks, dancing \cite{sun_2026} and catching footballs like goalkeepers \cite{ren_2026}.
 Having such powerful platforms at hand enables research towards extended evasion maneuvers.
-These motions were previously not feasible due to the lack of power, stability, and joint range.
-Yang et al. 2026 \cite{yang_2026} display such evasion by implementing a full dodge ball controller onto the G2.
+These motions were previously not feasible due to the lack of power and stability.
+Yang et al. \cite{yang_2026} display such evasion by implementing a full dodge ball controller onto the G2.
 \\
 When it comes to handling collisions with approaching objects, previous robots, like the HRP-2 \cite{kaneko_2004}, were mostly limited to impact resistance or slow evasion maneuvers.
 The field of push recovery is traditionally either dominated by "ankle" or "hip" strategies.
-\todo{necessary?}
-Hofmann \cite{hofmann_2006} mentions Allum and Honegger \cite{allum_1992}, as well as Nashner and McCollum \cite{nashner_1985}, as the foundational works in human push recovery studies.
+% Hofmann \cite{hofmann_2006} mentions Allum and Honegger \cite{allum_1992}, as well as Nashner and McCollum \cite{nashner_1985}, as the foundational works in human push recovery studies.
 Those strategies, however, are only feasible for small impact forces.
 Higher forces, which exceed a certain threshold require capture steps \cite{pratt_2006}.
 \\
-In scenarios with low impact force compliance control can be used.
-Compliance control describes methods to control a robot, which has to smooth out motions under the influence of external disturbances.
-Such disturbances can be produced by impacts or error tolerances.
-Per definition push resistance and locomotion tasks are different in there models, as the former requires an additional contact.
-Hung et al. model those as a spring-damper system. \cite{huang_2022}
+In scenarios with low impact force, compliance control can be used.
+Compliance control describes methods, which smooth out motions under the influence of external disturbances.
+Such disturbances can be produced by impacts, model inaccuracies or errors in during execution.
+To implement push resistance with compliance control spring-damper systems can be used \cite{huang_2022}. 
+For highly dynamic motions however rigid body contacts are preferred.
 \\
-However, the superior solution would be to evade the approaching object and return to the initial pose without any contact.
+The superior solution would be to evade the approaching object and return to the initial pose without any contact.
 This way the humanoid can calculate beforehand the resulting motion as well as counteract the possible stability difficulties.
 Full collision avoidance also removes the risk of damage to both the humanoid and the object to evade.
-As a result of there human-like statue, humanoids are for example set for applications in industry, health care or social service \cite{tong_2024,mccartney_2020}.
+As a result of their human-like statue, humanoids are currently developed to be used in industry, health care or social service \cite{tong_2024,mccartney_2020}.
 Such settings require humanoids to be aware of other actors in their environment, like robotic arms or human coworkers.
 Especially when working around humans it is essential to keep a reasonable safety distance.
 This topic leads us to the well known research area of collision avoidance.
@@ -31,7 +30,7 @@ This topic leads us to the well known research area of collision avoidance.
 To solve the NP-hard problem of avoiding collisions in robotics, different approaches have been developed \cite{canny_1988}.
 A main distinction is the time frame in which the evasion motion has to be known.
 Works like \cite{yang_2026,kohlbrenner_2026} focus on real-time planning, with a closed loop and black-boxed system, spanning object detection, motion synthesis and control.
-Recent systems of that kind are mostly driven by reinforcement or imitation learning providing little to no inside into their internals. \todo{bold statement?}
+Recent systems of that kind are mostly driven by reinforcement or imitation learning providing little to no inside into their internals.
 \\
 The most important element of the system is the motion generator.
 By usage of a unified system for detection, path planning and motion execution, well understood components are reimplemented.
@@ -113,7 +112,7 @@ This full run-down enables the reader to reproduce the test setup and compare ow
 Afterwords we will provide the two stages of development our motion generator was undergoing.
 \Cref{sec:morpheus} describes our first iteration, where fundamental concepts are implemented.
 Our core optimal control formulation can be found here as well as the usage of the in \cref{sec:fundamentals:contacts} described contact formulation.
-Additionally, we will outline implementation details for the Pinocchio \cite{pinocchioweb} Acados \cite{verschueren_2021} setup.
+Additionally, we will outline implementation details for the Pinocchio \cite{pinocchioweb} acados \cite{verschueren_2021} setup.
 The second iteration prioritizes a refinement of the optimal control formulation, especially when it comes to modeling the collision hull and robot to object distance.
 We also revise here the formulation and adjust it to the changed collision constraint.
 \\

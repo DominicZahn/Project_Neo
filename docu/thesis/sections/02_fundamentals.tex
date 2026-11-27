@@ -2,7 +2,7 @@
 During this section a brief overview of fundamental concepts in rigid body dynamics, dynamic stability and optimal control is given.
 We will focus on concepts concepts used in the later stages of the thesis, so they can be referenced.
 The goal is not to give an exhaustive explanation of these formulations, but provide the reader with a high-level understanding.
-Through out each subject we will recommend suitable literature for in depth research.
+Through out each subject we will recommend suitable literature for in-depth research.
 \\
 To start of we go right into rigid body dynamics.
 
@@ -106,7 +106,7 @@ For a detailed rundown of the algorithm and its equations we recommend chapter 7
 %
 \subsection{Contact Formulation} \label{sec:fundamentals:contacts}
 Contact Formulations are an important part in robotics and can be modelled in different forms.
-While there are soft contacts, that handle connections between, for example an robots feet and the ground as a spring-damper system, it is also common to find rigid contacts as a solution.
+While there are soft contacts, that handle connections between, for example a robots feet and the ground as a spring-damper system, it is also common to find rigid contacts as a solution.
 As our overarching application is a humanoid, that performs dynamic high force inducing motions, we opt for rigid contacts.
 For stepping, this choice would lead us to a multi-phase model, as the solution connects rigidly to the ground.
 However, as we are planning to keep the robot in a bipedal stance, this is not the case.
@@ -205,32 +205,145 @@ In \cite{carpentier_2021} Carpentier et al. apply the proximal algorithm concept
 The claim to reach sufficient results for even small iteration counts and provide it as an algorithm, to calculate contact forces and accelerations in there rigid body dynamics library Pinocchio \cite{pinocchioweb,carpentier2019pinocchio}.
 
 \subsection{Dynamic Stability} \label{sec:fundamentals:dynamicStability}
-\begin{itemize}
-  \item static stability (projected \acrfull{com})
-  \item \acrfull{zmp} / \acrfull{cop}
-\end{itemize}
-
-Eq 4.1.1 \cite{sharbafi_2017}: \\
-\todo[inline]{review equation and reformulate with better variable names}
-\begin{equation}
-  \bm p_\text{ZMP} = \frac{n \times M^{gi}}{R_{gi} \cdot n}
-  \label{eq:dynStab:ZMP}
-\end{equation}
-
-\begin{figure}
+For legged and especially bipedal robotics stability is a fundamental property.
+At first the definition of a stable motion seems as simple as, "do not tip over", but when it comes to quantifying it the criteria are differing and full of drawbacks.
+\\
+\begin{figure}[h]
   \centering
   \includegraphics[width=0.3\textwidth]{figures/02_fundamentals/bioInspired/dynPoints.pdf}
-  \caption{TODO}
-  \label{fig:dynStab:zmp}
+  \caption{Multiple different stability criteria, which are sketched out for an exemplary human working motion \cite{sharbafi_2017}.}
+  \label{fig:dynStab:points}
 \end{figure}
+The most intuitive and oldest solution is the ground projected \acrfull{com} (GCoM).
+As visualized in \cref{fig:dynStab:points} it is a direct projection of the \acrshort{com} onto the ground.
+Is it inside the region of support or also called \acrfull{pos}, is the pose considered statically stable.
+However as the name already suggests, this solely works for static poses.
+During for example walking motions the GCoM regularly leaves the \acrshort{pos} and still the robot is not falling.
+\par
+This is were dynamic stability comes into play.
+Therefore we shift our focus to dynamic properties of the walking motions.
+Mombaur and Vallery describe all of the points shown in \cref{fig:dynStab:points} in a sub-chapter of \cite{sharbafi_2017}.
+They also go into more detail, how each point is computed and can be used to realize for example a walking controller.
+In this section we are restricting ourselves to the three most common ones.
+\\
+If we think about for example situations, where humans are pushed from a bipedal stance one of their immediate reactions will be a step to stop the momentum and come to a hold.
+The exact point at which the person places their foot can be described by the \acrfull{cp} \cite{pratt_2006}.
+To compute it we model the human as a linear inverted pendulum and solve the differential equation.
+For a \acrshort{cp} inside the \acrshort{pos} there is no need to take a step, so the robot or human is considered stable.
+\\
+Another important point is the \acrfull{cop}.
+It is the point, where all of the distributed forces across contact patch can be expressed by a single equivalent force \cite{kajita_2014}.
+In the case of nonsliding motions, level ground and no external forces, apart form ground reaction forces, it is equivalent to the \acrfull{zmp} \cite{vukobratovic_1990}.
+While both describe the same location during these conditions they are computed from different sources.
+The \acrshort{cop} results from external forces, while the \acrshort{zmp} is defined by the moment $M^{gi}$, that is induced by gravity, acceleration and change of angular momentum in the segments, as well as the sum of gravity and inertia forces at the \acrshort{com}.
+As a result the \acrshort{zmp} is computed from the internal properties and accelerations, in contrast to the more externally focused \acrshort{cop}.
+The \acrshort{zmp} can be formulated as follows:
+\begin{equation}
+  \bm p_\text{ZMP} = \frac{\bm n \times M^{gi}}{R_{gi} \cdot \bm n}
+  \label{eq:dynStab:ZMP}
+\end{equation}
+Besides $R_{gi}$ and $M^{gi}$ the normal vector $\bm n$ has to be known in order to calculate the position of the \acrshort{zmp}.
+\\
+Kajita et al. list three limitations of the \acrshort{zmp}:
+\begin{itemize}
+  \item not able to determine slipping
+  \item none flat ground surfaces
+  \item additional contacts using the hands
+\end{itemize}
+\par
+Through out this section we gave a rough overview about some legged robots stability metrics.
+For the interested reader, we recommend "Stability and Robustness of Bipedal Walking" \cite{sharbafi_2017} as well as "Introduction to Humanoid Robotics" \cite{kajita_2014} as more indepth works in the field of walking control.
+General system stability criteria like Lyapunov Stability \cite{lyapunov_1992} were diligently left out to put focus on legged motion specific ones, like the \acrshort{zmp}.
 
 \subsection{Optimal Control} \label{sec:fundamentals:optimalControl}
-\begin{itemize}
-  \item What is Optimal Control used for and why do we care?
-  \item Direct vs Indirect Methods
-  \item Modelling is important
-\end{itemize}
-\subsubsection{Multiple Shooting} \label{sec:fundamentals:optimalControl:multipleShooting}
+Optimal Control is used in multiple different areas, controlling legged robots, or chemical processes.
+It can come to use, whenever an dynamic system needs to be optimized.
+At least in robotics its most popular applications are in real-time control or motion generation.
+\\
+During this section we are closely following the philosophy and implementation of Acados \cite{verschueren_2021}, as this is the software will are using in this project.
+A general non-linear optimal control problem can be formulated in the form:
+\begin{subequations}
+  \label{eq:oc:noc}
+  \begin{align}
+    & \qquad \textbf{Objective Function} \nonumber \\
+    \min_{\bm x(\cdot),\bm u(\cdot)} \quad
+      & \int_0^{T_f} l\left(\bm x(t), \bm u(t)\right) dt
+      + m(\bm x(T_f)) \label{eq:oc:noc:obj} \\
+    % Dynamics
+    & \qquad \textbf{System Dynamics} \nonumber \\
+    \textrm{s.t.} \quad & \bm{\dot x}(t) = f(\bm x(t),\bm u(t)), & t \in \left[0,T_f \right], \label{eq:oc:noc:dyn} \\
+    % Equality Constraints
+    & \qquad \textbf{Equality Constraint} \nonumber \\
+    & 0 \leq g(\bm x(t),\bm u(t)), & t \in \left[0,T_f \right], \label{eq:oc:noc:eqCons} \\
+    % Inequality Constraints
+    & \qquad \textbf{Inequality Constraint} \nonumber \\
+    & 0 = h(\bm x(t),\bm u(t)), & t \in \left[0,T_f \right]. \label{eq:oc:noc:ineqCons}
+  \end{align}
+\end{subequations}
+The problem is defined by the dynamics $f(\bm x(t),u(t))$, states $\bm x(t)$ and controls $\bm u(t)$ of the system.
+\Cref{eq:oc:noc:obj} is the objective function for which the states and controls will be optimized, this can for example be the total energy of the system.
+Additionally it equality (\cref{eq:oc:noc:eqCons}) and inequality (\cref{eq:oc:noc:eqCons}) constraints can be formulated.
+The previously mentioned \acrshort{zmp} could be limited to a shrunken \acrshort{pos} to ensure dynamic stability, with an inequality constraint.
+\\
+As the problem is described over a duration $\left[0,T_f\right]$, time, states and controls are continuous.
+Controls are mostly discretized through piecewise polynomials or constants.
+To transfer the states $\bm x$ there are in general two classes of approaches: direct and indirect.
+Direct methods first discretize and than optimize, while indirect choose an inverse idea.
+Indirect methods are therefore a lot harder to solve and are mostly used as ground-truth of direct methods.
+\\
+A popular direct solution direct multiple shooting \cite{bock_1984}, where the states are discretized by forward simulating with the given controls to the next state over the time span.
 
+\subsubsection{Multiple Shooting} \label{sec:fundamentals:optimalControl:multipleShooting}
+Direct shooting methods introduce a discrete time grid $t_k$, which leads to discrete states $\bm x_k$.
+The idea is to "shoot" from state $\bm x_k$ to the next one using the piecewise defined control $\bm u_k$ to simulate with the forward integration:
+\begin{equation}
+  \bm x_{k+1} = \bm \Phi_k(\bm x_k, \bm u_k), \quad k=0,\dots,N-1
+  \label{eq:oc:forwardInt}
+\end{equation}
+Despite the differing naming schema, \cref{fig:oc:multiple} from Gros and Diehl \cite{gros_}, displays the bespoken intervals, controls and states well.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/02_fundamentals/nocses/multiple.pdf}
+  \caption{This example of a multiple shooting approach was taken from \cite{gros_}. The piecewise constant controls here $\bm q_k$ are used to forward integrate the states and create a discrete \acrfull{nlp}, like \cref{eq:oc:multiple}.}
+  \label{fig:oc:multiple}
+\end{figure}
+To be precise the in \cref{fig:oc:multiple} visualized approach is direct multiple shooting.
+In contrast to direct single shooting it uses multiple intervals over which the method is optimizing simultaneous.
+Single shooting is fully sequential and tends to diverge for long integration times.
+This long time span is cut down by introducing more smaller intervals, which are required to be connected.
+These connections are added as equality constraints.
+The general multiple shooting method was first found by Brock and Plitt \cite{bock_1984}.
+\\
+After applying direct multiple shooting to \cref{eq:oc:noc}, we achieve the discrete \acrshort{nlp} formulation:
+\begin{subequations}
+  \label{eq:oc:multiple}
+  \begin{align}
+    & \qquad \textbf{Objective Function} \nonumber \\
+    \min_{\substack{\bm x_0, \dots, \bm x_N, \\ \bm u_0, \dots, \bm u_{N-1}}} \quad
+    & \sum_{k=0}^{N-1} (t_{k+1}-t_k) \cdot l\left(\bm x_k, \bm u_k\right) dt
+      + m(\bm x_N) \label{eq:oc:multiple:obj} \\
+    % Dynamics
+    & \qquad \textbf{System Dynamics} \nonumber \\
+    \textrm{s.t.} \quad & \bm x_{k+1} = \bm \Phi(\bm x_k, \bm u_k), & k = 0,\dots,N-1, \label{eq:oc:multiple:dyn} \\
+    % Equality Constraints
+    & \qquad \textbf{Equality Constraint} \nonumber \\
+    & 0 \leq g_k(\bm x_k,\bm u_k), & k=1,\dots,N-1, \label{eq:oc:multiple:eqCons} \\
+    % Inequality Constraints
+    & \qquad \textbf{Inequality Constraint} \nonumber \\
+    & 0 = h(\bm x_k,\bm u_k), & k=1,\dots,N-1. \label{eq:oc:multiple:ineqCons}
+  \end{align}
+\end{subequations}
+Such problems are now solvable with standard \acrfull{nlp} solvers like \acrfull{ipopt} \cite{wachter_2006} or specifically catered ones, that abuse the structure of the system.
+Acados does this, by using an \acrfull{sqp} algorithm to break the solution up into a cascade of smaller \acrfull{qp} formulations, which are easier to solve.
+%
+% \begin{subequations}
+%   \label{eq:oc:sqp}
+%   \begin{align}
+%     \bm w^{\left[i+1\right]} &= \bm w^{\left[i\right]}+ \bm{\Delta w}^\text{QP}, \quad & i=0,1,\dots \label{eq:oc:sqp:w} \\
+%     \bm \pi^{\left[i+1\right]} &= \bm \pi^\text{QP}, & i=0,1,\dots \label{eq:oc:sqp:pi} \\
+%     \bm \lambda^{\left[i+1\right]} &= \bm \lambda^\text{QP}, & i=0,1,\dots \label{eq:oc:sqp:lambda}
+%   \end{align}
+% \end{subequations}
+%
 \par
 After we got the general view of our fundamentals concepts down, we proceed to create a first draft of an optimal collision avoidance motion generator in the next section.

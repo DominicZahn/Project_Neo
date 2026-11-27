@@ -1,7 +1,10 @@
 Acados
+Featherstone
+Featherstones
 H1
 Huppler
 Hupplers
+Jacobian
 Marples
 NLopt
 Unitree
