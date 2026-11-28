@@ -6,18 +6,17 @@
   }
   \caption{
     The motion was generated with the \textit{Neo} method.
-    The frames were captured every 20th shooting node.
-    For the \acrshort{zmp} a red was used as a marker.
+    The frames are captured every eighth shooting node.
     Blue visualizes the \acrshort{sdf} collision hull around the robots upper body, while the also blue colored dot displays the horizontally approaching object.
   }
   \label{fig:neo:results:banner}
 \end{figure}
 In the last section we identified the dodge constraint \cref{eq:neo:constraints:dodge} as a major shortcoming of our \textit{Morpheus} method.
-During the swing up motion, the approaching object is able to hit the robot before it reaches its final pose.
+During the swing up motion, the approaching object  able to hit the robot before it reaches its final pose.
 Another problem are approaching objects with steep collision angles.
 Those objects can not be avoided by the robot ducking underneath a certain height, as the end pose and positioning of the upper body has to be adjusted accordingly.
 \\
-The solution is a safety distance, that should be kept all the time between the robot and the approaching object.
+The solution is a safety distance that should be kept all the time between the robot and the approaching object.
 Calculating the distance between object and robot body also enables the generator to find minimal evasion motions, where the robot perturbs away from the object, without the need for spacious or unstable motions.
 The next step is therefore to improve our previous formulation by inclusion of a more detailed dodge constraint.
 This will form a descendant of the \textit{Morpheus} motion generator we call \textit{Neo}.
@@ -28,7 +27,7 @@ Like in the previous section we conclude with an analysis of a single motion (\c
 
 \subsection{Robot Object Distance} \label{sec:neo:distance}
 The field of separation-distance calculation is closely tied to collision detection and avoidance.
-To effectively plane motions for collision avoidance, distance functions towards objects have to be computable \cite{toth_2017}.
+To effectively plan motions for collision avoidance, distance functions towards objects have to be computed \cite{toth_2017}.
 \\
 During the last decades multiple different solutions were developed.
 One of them is the DCOL algorithm from Tracy et al. \cite{tracy_2023}.
@@ -54,18 +53,19 @@ So called distance functions define, for each point in space, the distance to a 
 As the name already suggests, \textit{signed} distance functions differentiate themselves from normal distance function by providing a direction.
 They are for example defined as negative inside the described shape, while retaining positive values outside of it.
 We will stick with that notation for the rest of this work.
-A \acrshort{sdf} functions easy to evaluate and compose properties show themselves when used in path-planning for robotic arms \cite{zhu_2025}, autonomous navigation of \acrshort{uav}s \cite{jacquet_2025} or dexterous manipulation \cite{yang_2025}.
+A \acrfull{sdf} functions easy to evaluate and compose properties show themselves when used in path-planning for robotic arms \cite{zhu_2025}, autonomous navigation of \acrshort{uav}s \cite{jacquet_2025} or dexterous manipulation \cite{yang_2025}.
 \\
 An application of such analytically defined solutions is the "Minimum-Offset-To-Touch" (MOTT) constraint from Jaitly et al. \cite{jaitly_2025}.
 It defines the distance between two objects by calculating the minimal offset of an object towards another before they overlap.
-Liu et al. \cite{liu_2023} also showcase the abilities of the \acrfull{sdf}.
+Liu et al. \cite{liu_2023} also showcase the abilities of the \acrshort{sdf}.
 They propose a system that uses neural networks to learn the \acrshort{sdf} of a complex shape.
 With some further adjustments this lands itself well towards embedding it inside a stochastic optimization motion generator.
 Both result in a single level problem formulation, as the distance can be computed directly, without solving a nested separation-distance optimization.
 \par
 As in the case of our optimal object avoidance motion generator, a distance from an arbitary point to a collision hull is required.
 We therefore can a avoid the complex field of shape to shape distance computation, of which DCOL is an example.
-Our work leverages a \acrshort{sdf} for the collision hull of our humanoid robot, it provides the distance between the robot and an approaching object $d(\bm{p}(t))$ for every point in time $t$.
+Our work leverages a \acrshort{sdf} for the collision hull of our humanoid robot.
+It provides the distance between the robot and an approaching object $d(\bm{p}(t))$ for every point in time $t$.
 \\
 The following section presents the collision model for the upper body of our H1-2.
 It is composed of ellipsoid-shaped collision primitives, which are fused together with a smooth transition function.
@@ -77,7 +77,7 @@ John-Löwner Ellipsoids are a well-known solution for such problems \cite{john_1
 Other high-level methods have been found, like ellipsoid decompositions from meshes \cite{bischoff_kobbelt_2009} or optimization-based solutions \cite{elkhoury_2013}.
 \\
 Shapes like boxes, capsules or rounded cones come with non differential functions.
-In contrast the \acrshort{sdf} definition of an ellipsoid
+In contrast, the \acrshort{sdf} definition of an ellipsoid
 \begin{subequations}
   \label{eq:neo:distance:ellipsoid}
   \begin{align}
@@ -87,7 +87,7 @@ In contrast the \acrshort{sdf} definition of an ellipsoid
   \end{align}
 \end{subequations}
 is smooth and differentiable at every point.
-The from Quilez \cite{sdfEllipsoid} presented \cref{eq:neo:distance:ellipsoid}, is a bounded approximation, as there is no exact analytical solution for triaxial ellipsoids.
+\Cref{eq:neo:distance:ellipsoid} presented by Quilez, is a bounded approximation, as there is no exact analytical solution for triaxial ellipsoids.
 However, as the solution is zero bound on the surface, and has a good approximation of the euclidean distance, its differentiable property make it the most suitable primitive for a simple to define \acrshort{sdf}.
 For true high fidelity collision hulls other more complex \acrshort{sdf} construction methods are advised.
 \begin{figure}
@@ -109,7 +109,7 @@ For true high fidelity collision hulls other more complex \acrshort{sdf} constru
   \label{fig:neo:distance}
 \end{figure}
 \\
-In our case fitting ellipsoids like shown in \cref{fig:neo:distance:primitives} is a close enough approximation.
+In our case fitting ellipsoids manually like shown in \cref{fig:neo:distance:primitives} is a close enough approximation.
 Each of the primitives is anchored to a local frame of the robot.
 Three of them are placed on each arm, one on the torso and another one in the head area.
 The result is the coverage of the whole upper body, with individual segments, that adjust to pose changes.
@@ -117,7 +117,7 @@ In our next step we are fusing the singular primitives to a single \acrshort{sdf
 
 \subsubsection{Smooth Transition Function} \label{sec:neo:distance:transition}
 The intuitive solution to compute the minimal distance to a set of objects, like the one displayed in \cref{fig:neo:distance:primitives} is to build a proximity graph, for example a Voroni diagram.
-In order to get the shortest distance between a point in space and the set of objects is to search the structure \cite{toth_2017}.
+In order to get the shortest distance between a point in space and the set of objects is to search the Voroni diagram \cite{toth_2017}.
 Especially for volumes like the ones displayed in \cref{fig:neo:distance:primitives}, the primitives can be fused to a single \acrshort{sdf}, which removes the necessity of the proximity graph.
 To keep the derivative of the distance function smooth, a suitable transition function is required.
 \par
@@ -130,8 +130,7 @@ which was proposed by Quilez for fusing multiple \acrshort{sdf}s to a unified on
   \centering
   \includegraphics[width=0.5\textwidth]{figures/04_neoEvasion/surferBoy.png}
   \caption{
-    The application of \cref{eq:neo:distance:smin} to render a face composed of multiple different shapes.
-    The illustration was taken from Quilez \cite{sdfSmoothMin}.
+    Quilez \cite{sdfSmoothMin} application of \cref{eq:neo:distance:smin} to render a face composed of multiple different shapes.
   }
   \label{fig:neo:sdf:face}
 \end{figure}
@@ -143,9 +142,9 @@ Because each of the ellipsoids is anchored to a local frame of the robot, the co
 The result of this method is a human like skin, that spans from one ellipsoid to another, generating a continuous collision hull (\cref{fig:neo:distance:composed}).
 To visualize \acrshort{sdf}s, like the collision hull in \cref{fig:neo:distance:composed}, we used the marching cube implementation of Lewiner et al. \cite{lewiner_2003}.
 \par
-In this section we derived a closed form formulation for calculating the distance from an artificial point in space to the \acrshort{sdf}-based collision hull.
-The formulations provides a good approximation of the euclidean distance and is smooth in its derivative.
-\\
+% In this section we derived a closed form formulation for calculating the distance from an artificial point in space to the \acrshort{sdf}-based collision hull.
+% The formulations provides a good approximation of the euclidean distance and is smooth in its derivative.
+% \\
 At this point we got all the components necessary to adjust the previous \textit{Morpheus} formulation \cref{eq:morpheus:constraints}.
 
 \subsection{Optimal Control Formulation Adjustments}
@@ -160,8 +159,8 @@ Together with \cref{eq:neo:distance:ellipsoid,eq:neo:distance:smin} the new cons
   \label{eq:neo:constraints:dodge}
 \end{equation}
 estimates the distance between the collision hull and the approaching object.
-As the robot is now tracking the full trajectory of the object we are able to move the robot not only into the evasion pose, but also consider the following recovery.
-To test this new ability, the objects trajectory is considered to pass the robot at around have distance, so that a combined evasion recovery motion is calculated.
+As the robot is now tracking the trajectory of the object we are able to move the robot not only into the evasion pose, but also consider the following recovery.
+To test this new ability, the objects trajectory is considered to pass the robot at around half distance, so that a combined evasion recovery motion is calculated.
 Because of the improved evasion scenario we are also updating the terminal constraint to
 \begin{equation}
   \begin{bmatrix}
@@ -177,22 +176,21 @@ Because of the improved evasion scenario we are also updating the terminal const
 which is based on \cref{eq:morpheus:constraints:terminal}.
 Additionally, to solely requiring a quasi-stable end position, we add the initial joint position to the constraint.
 \\
-Another change is done in the composed objective function:
+The composed objective function is changed to,
 \begin{equation}
   \min_{\bm x(\cdot),\bm u(\cdot)} \quad
-  \int_0^{T_f} \frac 1 2 \left(\omega_q l_q(\bm q)^2 + \omega_r l_r(\bm{u})^2 \right) dt
+  \int_0^{T_f} \frac 1 2 \left(\omega_q l_q(\bm q)^2 + \omega_r l_r(\bm{u})^2 \right) dt.
 \end{equation}
 As the motion has to cover evasion and recovery, and is therefore longer, we need to make sure that the solver does not "park" the robot in an unnatural stability optimum.
-Instead of primarily optimizing the positioning of the \acrshort{zmp}, we hold the robot as long as possible in the initial pose, to mimicking a robot working on a task, and initiating the evasion in the last possible moment.
+Instead of primarily optimizing the positioning of the \acrshort{zmp}, we hold the robot as long as possible in the initial pose, to mimick a robot working on a task, and initiating the evasion in the last possible moment.
 The consequence is the removal of the stability $l_s$ and head term $m_h$ in favor of a new joint pose Lagrange term:
 \begin{equation}
     l_q(\bm x) = \frac{\| \bm q-\bm q_0 \|^2_2}{n_q \cdot \bm{q}_\text{exp}^2}
     \label{eq:neo:obj:joint}
 \end{equation}
-These changes to \cref{eq:morpheus:constraints} form our new \textit{Neo} formulation.
+These changes to \cref{eq:morpheus:constraints} form our new \textit{Neo} formulation:
+\todo[inline]{adding full formulation here}
 For the next section we are taking a look at the resulting motion for an object that is targeted towards the robots head.
-\todo[inline]{@Jonas if you really think it helps to convince Katja not to kill me, I would suggest printing the full formulation here}
-With the full formulation at hand, we are setting up a test problem for the \textit{Neo} motion generator.
 
 % \subsubsection{Initial Values}
 % \todo[inline]{paper results did not use inital values}
@@ -209,15 +207,16 @@ With the full formulation at hand, we are setting up a test problem for the \tex
 % An in-depth evaluation of the now fully presented method can be found in \cref{sec:eval:app}.
 
 \subsection{Resulting Motion} \label{sec:neo:result}
-% original banner position
 \Cref{fig:neo:results:banner} shows a motion that was generated for a head targeted approaching object.
 The object was launched \SI{0.7}{\m} away from the robots head with a velocity of \SI{0.5}{\m \per \s}.
 Its trajectory is not perturbed by gravity and therefore remains horizontal.
 As we want to test the motion generators ability to find a collision avoidance motion containing an evasion and recovering move, the whole duration is raised to $\SI{2.5}{\s}$.
-To provide a dense grid of dodge constraint checks, the high amount of $120$ shooting nodes is used.
+The amount of shooting nodes is raised to $90$.
+This is necessary as the constraints solely apply in between intervals.
+A sparse shooting gird what lead to possibly ignored collisions during the forward simulation.
 \\
 For the terminal pose we define an allowed joint angle offset of $\SI{0.1}{\radian}$.
-The newly introduced pose term (\cref{eq:neo:obj:joint}) of the objective function is weighted with $\omega_q = 1$ to overshadow the regularization term \cref{eq:morpheus:obj:regularization}.
+The newly introduced pose term (\cref{eq:neo:obj:joint}) of the objective function is weighted with $\omega_q = 10^{-6}$ to overshadow the regularization term \cref{eq:morpheus:obj:regularization}.
 \Cref{tab:neo:variables} lists the above described changes to the earlier described \textit{Morpheus} setup (\cref{tab:morpheus:variables}).
 \begin{table}[H]
   \centering
@@ -231,9 +230,9 @@ The newly introduced pose term (\cref{eq:neo:obj:joint}) of the objective functi
     $q_\epsilon$ & \SI{0.1}{\radian} & Terminal Joint Pose Offset \\
   \midrule
     $T_f$ & $\SI{2.5}{\second}$ & Terminal Time \\
-    $N$ & $120$ & Shooting Nodes \\
+    $N$ & $90$ & Shooting Nodes \\
     $l_q$ & \textit{\cref{eq:neo:obj:joint}} & Lagrange Obj. Joint Pose Term \\
-    $\omega_q$ & $1$ & Lagrange Obj. Weight Joint Pose Term \\
+    $\omega_q$ & $10^{-6}$ & Lagrange Obj. Weight Joint Pose Term \\
   \bottomrule
   \end{tabularx}
   \caption{Variables and Parameters}
@@ -298,44 +297,44 @@ The newly introduced pose term (\cref{eq:neo:obj:joint}) of the objective functi
   }
   \label{fig:neo:results:graphs}
 \end{figure}
-\Cref{fig:neo:results:banner} visualizes the resulting motion at every 20th shooting node.
+\Cref{fig:neo:results:banner} visualizes the resulting motion at every eighth shooting node.
 The in \cref{sec:neo:distance} defined collision hull is rendered in blue around the robots upper body.
 The \acrshort{zmp} is marked as a red dot.
 Now that full object tracking is possible the approaching object itself is also displayed as a blue marker in space.
 The generated motion corresponding trajectories can be found in \cref{fig:neo:results:graphs}.
 \par
 Our first step is to walk through the motion sequence and analyze the calculated solution.
-As the generator optimizes for keeping the initial pose as long as possible the robot remains in an upright position until the third image.
-However, if we look at second image and the corresponding joint angles in \cref{fig:neo:results:graphs} at around $\SI{0.5}{\s}$, we find a change in joint angles.
+As the generator optimizes for keeping the initial pose as long as possible the robot remains in an upright position until the fourth image.
+However, if we look at second and third image with the corresponding joint angles in \cref{fig:neo:results:graphs} at around $\SI{0.5}{\s}$, we find a change in joint angles.
 It seems that the robot lowers its torso, to move into a more torque efficient pose and prepare for the following swing up motion.
 \Cref{fig:neo:results:graphs:leftAnkle,fig:neo:results:graphs:leftKnee} show a substantial temporal dip in torques, for the ankle and knee joint.
 To counter this, the hip joint angle needs to be slightly increased (\cref{fig:neo:results:graphs:leftHip}).
 \\
 Shortly before the object reaches the head, the robot is propelled back up and into a lean over pose.
 While the previous torque minimization was likely caused by the objective regularization term \cref{eq:morpheus:obj:regularization}, we did not include any initiative for leaning over.
-The third image in \cref{fig:morpheus:results:banner} displays the lean over part of the motion.
+The fifth image in \cref{fig:morpheus:results:banner} displays the lean over part of the motion.
 The H1-2 is pushed to its limits, regarding the ankle and knee hardware limitations (\cref{fig:neo:results:graphs:leftKnee,fig:neo:results:graphs:leftAnkle}), as well as the \acrshort{zmp} position.
 \\
 At this point the object is approximately above the robots root.
-To avoid the object the robot squats underneath the object, turning its head to bring even more distance between the collision hull and the object.
-This is possible due to the angled placement of the head collision ellipsoid.
-Therefore, the highest collision hull point is above the forehead and so slightly of center.
-The result is a torso rotation at approximately $\SI{1.5}{\s}$, which can be seen in \cref{fig:neo:results:graphs:torso}.
+To avoid the object the robot squats underneath the object.
+It can be seen that \textit{Neo} pushes during the squat to the absolute limit of the H1-2 hardware capabilities, using as much of the allowed hip and ankle torque as possible (\cref{fig:neo:results:graphs:leftKnee,fig:neo:results:graphs:leftAnkle}).
 \\
 Now that the object fully passed the robot, it recovers back into the initial pose.
+The torque profiles show, that most of the torques are coming from the ankle joints (\cref{fig:neo:results:graphs:leftAnkle,fig:neo:results:graphs:rightAnkle}).
+An explanation for the high torques at that point could be the slow recovery motion, as it drags on for roughly $\SI{0.7}{\s}$.
 \par
-Through out the motion it is apparent, that the motion generator explores the capabilities of the H1-2, pushing it to the in \cref{eq:morpheus:constraints:joint} defined hardware limitations.
-The \acrshort{zmp} for example is pushed to the bounds of our reduced \acrshort{pos} during the lean phase at around $\SI{1}{\s}$.
-Interestingly the hip joints range of motion is also fully used for the squatting part of this specific motion.
+Through out the motion it is apparent, that the motion generator successfully explores the capabilities of the H1-2, pushing it to the in \cref{eq:morpheus:constraints:joint} defined hardware limitations.
+The \acrshort{zmp} for example is pushed to the bounds of our reduced \acrshort{pos} during the lean phase at around $\SI{1.4}{\s}$.
+Also, the knee joints range of motion as well as available is also fully used for the squatting part of this specific motion.
 Compared to the previous motion, this one not only uses high torques in the ankles, but also for the knee joints.
 This results in a lower squat and more dynamic motion overall.
 \\
 As the stability constraint was removed from the objective function and substituted by a joint pose goal, the solver is not forced towards solely centered \acrshort{zmp} solutions.
-This possibly allows the \textit{Neo} method to explore more difficult motions, than \textit{Morpheus} could.
+This possibly allows the \textit{Neo} method to explore more difficult motions than \textit{Morpheus} could.
 \par
 We showed that the \textit{Neo} motion generator is capable of finding \acrshort{zmp} stable evasion motions for horizontally approaching objects.
 It uses the abilities of the provided hardware to its maximum, but also cuts corners to optimize motions for torque minimization in phases were this is possible.
-An example is the gathering of momentum for the first $\SI{0.9}{\s}$ of the motion.
+An example is the gathering of momentum for the first seconds of the motion, before the lean up occurs.
 \\
 To further investigate the limitations of this method robot combination, a multitude of different object trajectories has to be tested.
 This will be especially interesting for angled trajectories, which can be avoided by small upper body perturbation.
