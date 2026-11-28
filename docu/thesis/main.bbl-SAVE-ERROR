@@ -341,122 +341,6 @@
       \verb 10.1109/ROBOT.2004.1307969
       \endverb
     \endentry
-    \entry{hofmann_2006}{article}{}{}
-      \name{author}{1}{}{%
-        {{hash=7ebeff8483e6963eba63cdbf8c1ba5e2}{%
-           family={Hofmann},
-           familyi={H\bibinitperiod},
-           given={Andreas},
-           giveni={A\bibinitperiod}}}%
-      }
-      \strng{namehash}{7ebeff8483e6963eba63cdbf8c1ba5e2}
-      \strng{fullhash}{7ebeff8483e6963eba63cdbf8c1ba5e2}
-      \strng{fullhashraw}{7ebeff8483e6963eba63cdbf8c1ba5e2}
-      \strng{bibnamehash}{7ebeff8483e6963eba63cdbf8c1ba5e2}
-      \strng{authorbibnamehash}{7ebeff8483e6963eba63cdbf8c1ba5e2}
-      \strng{authornamehash}{7ebeff8483e6963eba63cdbf8c1ba5e2}
-      \strng{authorfullhash}{7ebeff8483e6963eba63cdbf8c1ba5e2}
-      \strng{authorfullhashraw}{7ebeff8483e6963eba63cdbf8c1ba5e2}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{day}{28}
-      \field{eprinttype}{hdl}
-      \field{langid}{american}
-      \field{month}{4}
-      \field{title}{Robust {{Execution}} of {{Bipedal Walking Tasks From Biomechanical Principles}}}
-      \field{year}{2006}
-      \field{dateera}{ce}
-      \verb{eprint}
-      \verb 1721.1/33229
-      \endverb
-    \endentry
-    \entry{allum_1992}{article}{}{}
-      \name{author}{2}{}{%
-        {{hash=fe795daf55e6b0d18a9cdd9c8c3b6d4b}{%
-           family={Allum},
-           familyi={A\bibinitperiod},
-           given={J.H.J.},
-           giveni={J\bibinitperiod}}}%
-        {{hash=49aae4ea39e65a680f43cbd53121940a}{%
-           family={Honegger},
-           familyi={H\bibinitperiod},
-           given={F.},
-           giveni={F\bibinitperiod}}}%
-      }
-      \list{publisher}{1}{%
-        {SAGE Publications}%
-      }
-      \strng{namehash}{548feddb7d37cee576d0c9d174230a27}
-      \strng{fullhash}{548feddb7d37cee576d0c9d174230a27}
-      \strng{fullhashraw}{548feddb7d37cee576d0c9d174230a27}
-      \strng{bibnamehash}{548feddb7d37cee576d0c9d174230a27}
-      \strng{authorbibnamehash}{548feddb7d37cee576d0c9d174230a27}
-      \strng{authornamehash}{548feddb7d37cee576d0c9d174230a27}
-      \strng{authorfullhash}{548feddb7d37cee576d0c9d174230a27}
-      \strng{authorfullhashraw}{548feddb7d37cee576d0c9d174230a27}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{day}{1}
-      \field{issn}{0957-4271}
-      \field{journaltitle}{Journal of Vestibular Research}
-      \field{langid}{english}
-      \field{month}{10}
-      \field{number}{4}
-      \field{title}{A {{Postural Model}} of {{Balance-Correcting Movement Strategies}}}
-      \field{volume}{2}
-      \field{year}{1992}
-      \field{dateera}{ce}
-      \field{pages}{323\bibrangedash 347}
-      \range{pages}{25}
-      \verb{doi}
-      \verb 10.3233/VES-1992-2406
-      \endverb
-    \endentry
-    \entry{nashner_1985}{article}{}{}
-      \name{author}{2}{}{%
-        {{hash=8564d4b4bbcca0078a2bafcc4e7302e8}{%
-           family={Nashner},
-           familyi={N\bibinitperiod},
-           given={Lewis\bibnamedelima M.},
-           giveni={L\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
-        {{hash=6519bfbc0082fe4986ea53f473367dab}{%
-           family={McCollum},
-           familyi={M\bibinitperiod},
-           given={Gin},
-           giveni={G\bibinitperiod}}}%
-      }
-      \strng{namehash}{9dba494ed4d8c8b67fcf6767a7580c3a}
-      \strng{fullhash}{9dba494ed4d8c8b67fcf6767a7580c3a}
-      \strng{fullhashraw}{9dba494ed4d8c8b67fcf6767a7580c3a}
-      \strng{bibnamehash}{9dba494ed4d8c8b67fcf6767a7580c3a}
-      \strng{authorbibnamehash}{9dba494ed4d8c8b67fcf6767a7580c3a}
-      \strng{authornamehash}{9dba494ed4d8c8b67fcf6767a7580c3a}
-      \strng{authorfullhash}{9dba494ed4d8c8b67fcf6767a7580c3a}
-      \strng{authorfullhashraw}{9dba494ed4d8c8b67fcf6767a7580c3a}
-      \field{sortinit}{8}
-      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{shorttitle}
-      \field{issn}{1469-1825, 0140-525X}
-      \field{journaltitle}{Behavioral and Brain Sciences}
-      \field{langid}{english}
-      \field{month}{3}
-      \field{number}{1}
-      \field{shorttitle}{The Organization of Human Postural Movements}
-      \field{title}{The Organization of Human Postural Movements: {{A}} Formal Basis and Experimental Synthesis}
-      \field{volume}{8}
-      \field{year}{1985}
-      \field{dateera}{ce}
-      \field{pages}{135\bibrangedash 150}
-      \range{pages}{16}
-      \verb{doi}
-      \verb 10.1017/S0140525X00020008
-      \endverb
-    \endentry
     \entry{pratt_2006}{inproceedings}{}{}
       \name{author}{4}{}{%
         {{hash=7aada8d85f6ca72305930b4e798a6c15}{%
@@ -488,8 +372,8 @@
       \strng{authornamehash}{e710f39a17a61ff4b205b779b10d6590}
       \strng{authorfullhash}{bb0f483d5c5365af9dcbe2703e21be32}
       \strng{authorfullhashraw}{bb0f483d5c5365af9dcbe2703e21be32}
-      \field{sortinit}{9}
-      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{shorttitle}
       \field{booktitle}{2006 6th {IEEE}-{RAS} {International} {Conference} on {Humanoid} {Robots}}
@@ -550,8 +434,8 @@
       \strng{authornamehash}{00bf1923f8809f0882dfada92f97dccb}
       \strng{authorfullhash}{e03af19d0f0626f88d01230bd0c689db}
       \strng{authorfullhashraw}{e03af19d0f0626f88d01230bd0c689db}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{issn}{1941-014X}
@@ -589,8 +473,8 @@
       \strng{authornamehash}{2f2b8ad809d66bdcf3c7f736387f0f14}
       \strng{authorfullhash}{2f2b8ad809d66bdcf3c7f736387f0f14}
       \strng{authorfullhashraw}{2f2b8ad809d66bdcf3c7f736387f0f14}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{shorttitle}
       \field{day}{26}
@@ -629,8 +513,8 @@
       \strng{authornamehash}{fa344b67077711bfaa0525254de2977a}
       \strng{authorfullhash}{fa344b67077711bfaa0525254de2977a}
       \strng{authorfullhashraw}{fa344b67077711bfaa0525254de2977a}
-      \field{sortinit}{1}
-      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{title}{The complexity of robot motion planning}
@@ -1263,8 +1147,8 @@
       \strng{authornamehash}{e10b07d399d30e25528664f7853db9ea}
       \strng{authorfullhash}{039b70b99569cd36820457d7be966a93}
       \strng{authorfullhashraw}{039b70b99569cd36820457d7be966a93}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{day}{1}
@@ -1310,8 +1194,8 @@
       \strng{authornamehash}{de7dfe9179cbdc2cf40f3ddfdf99649a}
       \strng{authorfullhash}{de7dfe9179cbdc2cf40f3ddfdf99649a}
       \strng{authorfullhashraw}{de7dfe9179cbdc2cf40f3ddfdf99649a}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{howpublished}{https://stack-of-tasks.github.io/pinocchio}
@@ -1389,6 +1273,180 @@
       \field{title}{acados -- a modular open-source framework for fast embedded optimal control}
       \field{year}{2021}
     \endentry
+    \entry{carpentier2019pinocchio}{inproceedings}{}{}
+      \name{author}{7}{}{%
+        {{hash=492a59b068152d6708bd8335a84eee32}{%
+           family={Carpentier},
+           familyi={C\bibinitperiod},
+           given={Justin},
+           giveni={J\bibinitperiod}}}%
+        {{hash=ee5049b1403748d3187b60e9d685a1d5}{%
+           family={Saurel},
+           familyi={S\bibinitperiod},
+           given={Guilhem},
+           giveni={G\bibinitperiod}}}%
+        {{hash=b57485845bf9c520da76ac1acbd5f5d9}{%
+           family={Buondonno},
+           familyi={B\bibinitperiod},
+           given={Gabriele},
+           giveni={G\bibinitperiod}}}%
+        {{hash=60168270a3c5eefb3591fc4dc8781bcc}{%
+           family={Mirabel},
+           familyi={M\bibinitperiod},
+           given={Joseph},
+           giveni={J\bibinitperiod}}}%
+        {{hash=e912189b158ada9a5662c2620dc49b09}{%
+           family={Lamiraux},
+           familyi={L\bibinitperiod},
+           given={Florent},
+           giveni={F\bibinitperiod}}}%
+        {{hash=d976a252b6fa0efe1839e7c6de032d43}{%
+           family={Stasse},
+           familyi={S\bibinitperiod},
+           given={Olivier},
+           giveni={O\bibinitperiod}}}%
+        {{hash=3f7794b74ff9702f164ae4a90da61243}{%
+           family={Mansard},
+           familyi={M\bibinitperiod},
+           given={Nicolas},
+           giveni={N\bibinitperiod}}}%
+      }
+      \strng{namehash}{396fa96e56ee7349de7afa49959e7027}
+      \strng{fullhash}{b4acd5191d6d8cd1c98edf96efbb0c44}
+      \strng{fullhashraw}{b4acd5191d6d8cd1c98edf96efbb0c44}
+      \strng{bibnamehash}{396fa96e56ee7349de7afa49959e7027}
+      \strng{authorbibnamehash}{396fa96e56ee7349de7afa49959e7027}
+      \strng{authornamehash}{396fa96e56ee7349de7afa49959e7027}
+      \strng{authorfullhash}{b4acd5191d6d8cd1c98edf96efbb0c44}
+      \strng{authorfullhashraw}{b4acd5191d6d8cd1c98edf96efbb0c44}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{IEEE International Symposium on System Integrations (SII)}
+      \field{title}{The Pinocchio C++ library -- A fast and flexible implementation of rigid body dynamics algorithms and their analytical derivatives}
+      \field{year}{2019}
+    \endentry
+    \entry{Felis2016}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=f9bf235afa816e07f0d4a3057e0983a8}{%
+           family={Felis},
+           familyi={F\bibinitperiod},
+           given={Martin\bibnamedelima L.},
+           giveni={M\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+      }
+      \strng{namehash}{f9bf235afa816e07f0d4a3057e0983a8}
+      \strng{fullhash}{f9bf235afa816e07f0d4a3057e0983a8}
+      \strng{fullhashraw}{f9bf235afa816e07f0d4a3057e0983a8}
+      \strng{bibnamehash}{f9bf235afa816e07f0d4a3057e0983a8}
+      \strng{authorbibnamehash}{f9bf235afa816e07f0d4a3057e0983a8}
+      \strng{authornamehash}{f9bf235afa816e07f0d4a3057e0983a8}
+      \strng{authorfullhash}{f9bf235afa816e07f0d4a3057e0983a8}
+      \strng{authorfullhashraw}{f9bf235afa816e07f0d4a3057e0983a8}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1573-7527}
+      \field{journaltitle}{Autonomous Robots}
+      \field{title}{RBDL: an efficient rigid-body dynamics library using recursive algorithms}
+      \field{year}{2016}
+      \field{pages}{1\bibrangedash 17}
+      \range{pages}{17}
+      \verb{doi}
+      \verb 10.1007/s10514-016-9574-0
+      \endverb
+      \verb{urlraw}
+      \verb http://dx.doi.org/10.1007/s10514-016-9574-0
+      \endverb
+      \verb{url}
+      \verb http://dx.doi.org/10.1007/s10514-016-9574-0
+      \endverb
+    \endentry
+    \entry{featherstone_2008}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=fa3cce175250fcafb8ef938e29b16b05}{%
+           family={Featherstone},
+           familyi={F\bibinitperiod},
+           given={Roy},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Boston, MA}%
+      }
+      \list{publisher}{1}{%
+        {Springer US}%
+      }
+      \strng{namehash}{fa3cce175250fcafb8ef938e29b16b05}
+      \strng{fullhash}{fa3cce175250fcafb8ef938e29b16b05}
+      \strng{fullhashraw}{fa3cce175250fcafb8ef938e29b16b05}
+      \strng{bibnamehash}{fa3cce175250fcafb8ef938e29b16b05}
+      \strng{authorbibnamehash}{fa3cce175250fcafb8ef938e29b16b05}
+      \strng{authornamehash}{fa3cce175250fcafb8ef938e29b16b05}
+      \strng{authorfullhash}{fa3cce175250fcafb8ef938e29b16b05}
+      \strng{authorfullhashraw}{fa3cce175250fcafb8ef938e29b16b05}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-0-387-74314-1}
+      \field{langid}{english}
+      \field{title}{Rigid {{Body Dynamics Algorithms}}}
+      \field{year}{2008}
+      \field{dateera}{ce}
+      \verb{doi}
+      \verb 10.1007/978-1-4899-7560-7
+      \endverb
+    \endentry
+    \entry{flores_2010}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=9dd94ae48fc99d2e56706340876d3031}{%
+           family={Flores},
+           familyi={F\bibinitperiod},
+           given={Paulo},
+           giveni={P\bibinitperiod}}}%
+        {{hash=ada809a5974786b0255f80ccb139e042}{%
+           family={Machado},
+           familyi={M\bibinitperiod},
+           given={Margarida},
+           giveni={M\bibinitperiod}}}%
+        {{hash=07637d9037820e728bc7d6394ce11d52}{%
+           family={Seabra},
+           familyi={S\bibinitperiod},
+           given={Eurico},
+           giveni={E\bibinitperiod}}}%
+        {{hash=398bbe4c6408972271ce0a982afff3c2}{%
+           family={Tavares\bibnamedelimb da\bibnamedelima Silva},
+           familyi={T\bibinitperiod\bibinitdelim d\bibinitperiod\bibinitdelim S\bibinitperiod},
+           given={Miguel},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{0742cfddb2bf3f0ec499ddc5da6f6803}
+      \strng{fullhash}{c46a31368df7599480fa39c10ccc574b}
+      \strng{fullhashraw}{c46a31368df7599480fa39c10ccc574b}
+      \strng{bibnamehash}{0742cfddb2bf3f0ec499ddc5da6f6803}
+      \strng{authorbibnamehash}{0742cfddb2bf3f0ec499ddc5da6f6803}
+      \strng{authornamehash}{0742cfddb2bf3f0ec499ddc5da6f6803}
+      \strng{authorfullhash}{c46a31368df7599480fa39c10ccc574b}
+      \strng{authorfullhashraw}{c46a31368df7599480fa39c10ccc574b}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{13}
+      \field{issn}{1555-1415}
+      \field{journaltitle}{Journal of Computational and Nonlinear Dynamics}
+      \field{month}{10}
+      \field{number}{011019}
+      \field{shortjournal}{J. Comput. Nonlinear Dynam}
+      \field{title}{A {{Parametric Study}} on the {{Baumgarte Stabilization Method}} for {{Forward Dynamics}} of {{Constrained Multibody Systems}}}
+      \field{volume}{6}
+      \field{year}{2010}
+      \field{dateera}{ce}
+      \verb{doi}
+      \verb 10.1115/1.4002338
+      \endverb
+    \endentry
     \entry{carpentier_2021}{inproceedings}{}{}
       \name{author}{3}{}{%
         {{hash=492a59b068152d6708bd8335a84eee32}{%
@@ -1449,37 +1507,368 @@
       \strng{authornamehash}{05c18423218cfff8f407fe111419ae33}
       \strng{authorfullhash}{05c18423218cfff8f407fe111419ae33}
       \strng{authorfullhashraw}{05c18423218cfff8f407fe111419ae33}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{abstract}{This monograph is about a class of optimization algorithms called proximal algorithms. Much like Newton’s method is a standard tool for solving unconstrained smooth optimization problems of modest size, proximal algorithms can be viewed as an analogous tool for nonsmooth, constrained, large-scale, or distributed versions of these problems. They are very generally applicable, but are especially well-suited to problems of substantial recent interest involving large or high-dimensional datasets. Proximal methods sit at a higher level of abstraction than classical algorithms like Newton’s method: the base operation is evaluating the proximal operator of a function, which itself involves solving a small convex optimization problem. These subproblems, which generalize the problem of projecting a point onto a convex set, often admit closed-form solutions or can be solved very quickly with standard or simple specialized methods. Here, we discuss the many different interpretations of proximal operators and algorithms, describe their connections to many other topics in optimization and applied mathematics, survey some popular algorithms, and provide a large number of examples of proximal operators that commonly arise in practice.}
       \field{day}{13}
       \field{issn}{2167-3888}
       \field{journaltitle}{Foundations and Trends in Optimization}
       \field{month}{1}
       \field{number}{3}
       \field{title}{Proximal {{Algorithms}}}
-      \field{urlday}{20}
-      \field{urlmonth}{11}
-      \field{urlyear}{2026}
       \field{volume}{1}
       \field{year}{2014}
       \field{dateera}{ce}
-      \field{urldateera}{ce}
       \field{pages}{127\bibrangedash 239}
       \range{pages}{113}
       \verb{doi}
       \verb 10.1561/2400000003
       \endverb
-      \verb{file}
-      \verb /home/dominic/Zotero/storage/FAY45S9A/2400000003.html
+    \endentry
+    \entry{sharbafi_2017}{incollection}{}{}
+      \name{author}{2}{}{%
+        {{hash=52e791655dd0f52f8a6932f4555cc8bf}{%
+           family={Mombaur},
+           familyi={M\bibinitperiod},
+           given={Katja},
+           giveni={K\bibinitperiod}}}%
+        {{hash=ce6eef3ae599d4dbec2dd8f5059db88f}{%
+           family={Vallery},
+           familyi={V\bibinitperiod},
+           given={Heike},
+           giveni={H\bibinitperiod}}}%
+      }
+      \name{editor}{2}{}{%
+        {{hash=7fd37e32eac23223686be173777517ca}{%
+           family={Sharbafi},
+           familyi={S\bibinitperiod},
+           given={Maziar\bibnamedelima Ahmad},
+           giveni={M\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=b5c935b9590f0dde70affeebafed6dc8}{%
+           family={Seyfarth},
+           familyi={S\bibinitperiod},
+           given={André},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Butterworth-Heinemann}%
+      }
+      \strng{namehash}{5ea3369d12c6e9d0775601be3660dbee}
+      \strng{fullhash}{5ea3369d12c6e9d0775601be3660dbee}
+      \strng{fullhashraw}{5ea3369d12c6e9d0775601be3660dbee}
+      \strng{bibnamehash}{5ea3369d12c6e9d0775601be3660dbee}
+      \strng{authorbibnamehash}{5ea3369d12c6e9d0775601be3660dbee}
+      \strng{authornamehash}{5ea3369d12c6e9d0775601be3660dbee}
+      \strng{authorfullhash}{5ea3369d12c6e9d0775601be3660dbee}
+      \strng{authorfullhashraw}{5ea3369d12c6e9d0775601be3660dbee}
+      \strng{editorbibnamehash}{05b63f5c0201bbcda7ead59f5eb6f1d0}
+      \strng{editornamehash}{05b63f5c0201bbcda7ead59f5eb6f1d0}
+      \strng{editorfullhash}{05b63f5c0201bbcda7ead59f5eb6f1d0}
+      \strng{editorfullhashraw}{05b63f5c0201bbcda7ead59f5eb6f1d0}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{booktitle}{Bioinspired {{Legged Locomotion}}: {{Models}}, {{Concepts}}, {{ Control}} and {{Applications}}}
+      \field{day}{21}
+      \field{isbn}{978-0-12-803774-4}
+      \field{langid}{english}
+      \field{month}{11}
+      \field{pagetotal}{698}
+      \field{shorttitle}{Bioinspired {{Legged Locomotion}}}
+      \field{title}{Stability and Robustness of Bipedal Walking}
+      \field{year}{2017}
+      \field{dateera}{ce}
+    \endentry
+    \entry{kajita_2014}{book}{}{}
+      \name{author}{4}{}{%
+        {{hash=26b4b6c6afae0ed0bbba0b59039c7054}{%
+           family={Kajita},
+           familyi={K\bibinitperiod},
+           given={Shuuji},
+           giveni={S\bibinitperiod}}}%
+        {{hash=347a0e00c93f8a61ebd6953fff32b397}{%
+           family={Hirukawa},
+           familyi={H\bibinitperiod},
+           given={Hirohisa},
+           giveni={H\bibinitperiod}}}%
+        {{hash=d745a060a2fb50258544d992d12ae018}{%
+           family={Harada},
+           familyi={H\bibinitperiod},
+           given={Kensuke},
+           giveni={K\bibinitperiod}}}%
+        {{hash=32b460aa32e5b05bcaa8f076a7a794c7}{%
+           family={Yokoi},
+           familyi={Y\bibinitperiod},
+           given={Kazuhito},
+           giveni={K\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berlin, Heidelberg}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{ca9d9e4907f74f3e8af8e4e08c5d144b}
+      \strng{fullhash}{09768ef208679da3cabe87b81446547e}
+      \strng{fullhashraw}{09768ef208679da3cabe87b81446547e}
+      \strng{bibnamehash}{ca9d9e4907f74f3e8af8e4e08c5d144b}
+      \strng{authorbibnamehash}{ca9d9e4907f74f3e8af8e4e08c5d144b}
+      \strng{authornamehash}{ca9d9e4907f74f3e8af8e4e08c5d144b}
+      \strng{authorfullhash}{09768ef208679da3cabe87b81446547e}
+      \strng{authorfullhashraw}{09768ef208679da3cabe87b81446547e}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-3-642-54535-1 978-3-642-54536-8}
+      \field{langid}{english}
+      \field{series}{Springer {{Tracts}} in {{Advanced Robotics}}}
+      \field{title}{Introduction to {{Humanoid Robotics}}}
+      \field{volume}{101}
+      \field{year}{2014}
+      \field{dateera}{ce}
+      \verb{doi}
+      \verb 10.1007/978-3-642-54536-8
       \endverb
+    \endentry
+    \entry{vukobratovic_1990}{incollection}{}{}
+      \name{author}{4}{}{%
+        {{hash=3017fed0bd70f7e281ca13b087336460}{%
+           family={Vukobratović},
+           familyi={V\bibinitperiod},
+           given={Miomir},
+           giveni={M\bibinitperiod}}}%
+        {{hash=9c9cd46184d17e6f7af5a6d02175c128}{%
+           family={Borovac},
+           familyi={B\bibinitperiod},
+           given={Branislav},
+           giveni={B\bibinitperiod}}}%
+        {{hash=a8a0f2bcb121433f3a0518dbcca79d82}{%
+           family={Surla},
+           familyi={S\bibinitperiod},
+           given={Duš\bibnamedelima an},
+           giveni={D\bibinitperiod\bibinitdelim a\bibinitperiod}}}%
+        {{hash=fecda67e2609d201ae5b2ebb8bb44118}{%
+           family={Stokić},
+           familyi={S\bibinitperiod},
+           given={Dragan},
+           giveni={D\bibinitperiod}}}%
+      }
+      \name{editor}{4}{}{%
+        {{hash=3017fed0bd70f7e281ca13b087336460}{%
+           family={Vukobratović},
+           familyi={V\bibinitperiod},
+           given={Miomir},
+           giveni={M\bibinitperiod}}}%
+        {{hash=9c9cd46184d17e6f7af5a6d02175c128}{%
+           family={Borovac},
+           familyi={B\bibinitperiod},
+           given={Branislav},
+           giveni={B\bibinitperiod}}}%
+        {{hash=a8a0f2bcb121433f3a0518dbcca79d82}{%
+           family={Surla},
+           familyi={S\bibinitperiod},
+           given={Duš\bibnamedelima an},
+           giveni={D\bibinitperiod\bibinitdelim a\bibinitperiod}}}%
+        {{hash=fecda67e2609d201ae5b2ebb8bb44118}{%
+           family={Stokić},
+           familyi={S\bibinitperiod},
+           given={Dragan},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berlin, Heidelberg}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{1c13b310d8045622c6f2500edb4f8456}
+      \strng{fullhash}{91fc589eab5b037542a8cf629e111143}
+      \strng{fullhashraw}{91fc589eab5b037542a8cf629e111143}
+      \strng{bibnamehash}{1c13b310d8045622c6f2500edb4f8456}
+      \strng{authorbibnamehash}{1c13b310d8045622c6f2500edb4f8456}
+      \strng{authornamehash}{1c13b310d8045622c6f2500edb4f8456}
+      \strng{authorfullhash}{91fc589eab5b037542a8cf629e111143}
+      \strng{authorfullhashraw}{91fc589eab5b037542a8cf629e111143}
+      \strng{editorbibnamehash}{1c13b310d8045622c6f2500edb4f8456}
+      \strng{editornamehash}{1c13b310d8045622c6f2500edb4f8456}
+      \strng{editorfullhash}{91fc589eab5b037542a8cf629e111143}
+      \strng{editorfullhashraw}{91fc589eab5b037542a8cf629e111143}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Biped {{Locomotion}}: {{Dynamics}}, {{Stability}}, {{Control}} and {{Application}}}
+      \field{isbn}{978-3-642-83006-8}
+      \field{langid}{english}
+      \field{title}{Dynamics of {{Biped Locomotion}}}
+      \field{year}{1990}
+      \field{pages}{1\bibrangedash 52}
+      \range{pages}{52}
+      \verb{doi}
+      \verb 10.1007/978-3-642-83006-8_1
+      \endverb
+    \endentry
+    \entry{lyapunov_1992}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=8a56196788c7a7e4b08fdd72f276a2da}{%
+           family={Lyapunov},
+           familyi={L\bibinitperiod},
+           given={A.\bibnamedelimi M.},
+           giveni={A\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Taylor \& Francis}%
+      }
+      \strng{namehash}{8a56196788c7a7e4b08fdd72f276a2da}
+      \strng{fullhash}{8a56196788c7a7e4b08fdd72f276a2da}
+      \strng{fullhashraw}{8a56196788c7a7e4b08fdd72f276a2da}
+      \strng{bibnamehash}{8a56196788c7a7e4b08fdd72f276a2da}
+      \strng{authorbibnamehash}{8a56196788c7a7e4b08fdd72f276a2da}
+      \strng{authornamehash}{8a56196788c7a7e4b08fdd72f276a2da}
+      \strng{authorfullhash}{8a56196788c7a7e4b08fdd72f276a2da}
+      \strng{authorfullhashraw}{8a56196788c7a7e4b08fdd72f276a2da}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{1}
+      \field{issn}{0020-7179}
+      \field{journaltitle}{International Journal of Control}
+      \field{month}{3}
+      \field{number}{3}
+      \field{title}{The General Problem of the Stability of Motion}
+      \field{volume}{55}
+      \field{year}{1992}
+      \field{dateera}{ce}
+      \field{pages}{531\bibrangedash 534}
+      \range{pages}{4}
+      \verb{doi}
+      \verb 10.1080/00207179208934253
+      \endverb
+    \endentry
+    \entry{bock_1984}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=77eae1b99cbd1ebdb266589388212547}{%
+           family={Bock},
+           familyi={B\bibinitperiod},
+           given={H.\bibnamedelimi G.},
+           giveni={H\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=a6932ff25d05ed872b6ad86812241f22}{%
+           family={Plitt},
+           familyi={P\bibinitperiod},
+           given={K.\bibnamedelimi J.},
+           giveni={K\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+      }
+      \strng{namehash}{7e6cdab759449ba758d7a0b90187c5f1}
+      \strng{fullhash}{7e6cdab759449ba758d7a0b90187c5f1}
+      \strng{fullhashraw}{7e6cdab759449ba758d7a0b90187c5f1}
+      \strng{bibnamehash}{7e6cdab759449ba758d7a0b90187c5f1}
+      \strng{authorbibnamehash}{7e6cdab759449ba758d7a0b90187c5f1}
+      \strng{authornamehash}{7e6cdab759449ba758d7a0b90187c5f1}
+      \strng{authorfullhash}{7e6cdab759449ba758d7a0b90187c5f1}
+      \strng{authorfullhashraw}{7e6cdab759449ba758d7a0b90187c5f1}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{1}
+      \field{issn}{1474-6670}
+      \field{journaltitle}{IFAC Proceedings Volumes}
+      \field{month}{7}
+      \field{number}{2}
+      \field{series}{9th {{IFAC World Congress}}: {{A Bridge Between Control Science}} and {{Technology}}, {{Budapest}}, {{Hungary}}, 2-6 {{July}} 1984}
+      \field{shortjournal}{IFAC Proceedings Volumes}
+      \field{title}{A {{Multiple Shooting Algorithm}} for {{Direct Solution}} of {{ Optimal Control Problems}}*}
+      \field{volume}{17}
+      \field{year}{1984}
+      \field{dateera}{ce}
+      \field{pages}{1603\bibrangedash 1608}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.1016/S1474-6670(17)61205-9
+      \endverb
+    \endentry
+    \entry{gros_}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=ee05ef84f077166368da1d79a7dee18f}{%
+           family={Gros},
+           familyi={G\bibinitperiod},
+           given={Sebastien},
+           giveni={S\bibinitperiod}}}%
+        {{hash=ec732fd9120f390fd38c8132a3079900}{%
+           family={Diehl},
+           familyi={D\bibinitperiod},
+           given={Moritz},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{74a18f35f4b26094d1c8e848ae4abc2b}
+      \strng{fullhash}{74a18f35f4b26094d1c8e848ae4abc2b}
+      \strng{fullhashraw}{74a18f35f4b26094d1c8e848ae4abc2b}
+      \strng{bibnamehash}{74a18f35f4b26094d1c8e848ae4abc2b}
+      \strng{authorbibnamehash}{74a18f35f4b26094d1c8e848ae4abc2b}
+      \strng{authornamehash}{74a18f35f4b26094d1c8e848ae4abc2b}
+      \strng{authorfullhash}{74a18f35f4b26094d1c8e848ae4abc2b}
+      \strng{authorfullhashraw}{74a18f35f4b26094d1c8e848ae4abc2b}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{langid}{english}
+      \field{title}{Numerical {{Optimal Control}} ({{Draft}})}
+      \field{urlday}{26}
+      \field{urlmonth}{11}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
       \verb{urlraw}
-      \verb https://doi.org/10.1561/2400000003
+      \verb https://www.syscop.de/files/2024ws/NOC/book-NOCSE.pdf
       \endverb
       \verb{url}
-      \verb https://doi.org/10.1561/2400000003
+      \verb https://www.syscop.de/files/2024ws/NOC/book-NOCSE.pdf
+      \endverb
+    \endentry
+    \entry{wachter_2006}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=dc724f071bd0fcc1e9eabf5f96209481}{%
+           family={Wächter},
+           familyi={W\bibinitperiod},
+           given={Andreas},
+           giveni={A\bibinitperiod}}}%
+        {{hash=b4cf951e494c45f4de462df04ec3b5df}{%
+           family={Biegler},
+           familyi={B\bibinitperiod},
+           given={Lorenz\bibnamedelima T.},
+           giveni={L\bibinitperiod\bibinitdelim T\bibinitperiod}}}%
+      }
+      \strng{namehash}{842d46b1a24346d113a0e8274fa09dd0}
+      \strng{fullhash}{842d46b1a24346d113a0e8274fa09dd0}
+      \strng{fullhashraw}{842d46b1a24346d113a0e8274fa09dd0}
+      \strng{bibnamehash}{842d46b1a24346d113a0e8274fa09dd0}
+      \strng{authorbibnamehash}{842d46b1a24346d113a0e8274fa09dd0}
+      \strng{authornamehash}{842d46b1a24346d113a0e8274fa09dd0}
+      \strng{authorfullhash}{842d46b1a24346d113a0e8274fa09dd0}
+      \strng{authorfullhashraw}{842d46b1a24346d113a0e8274fa09dd0}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{1}
+      \field{issn}{1436-4646}
+      \field{journaltitle}{Mathematical Programming}
+      \field{langid}{english}
+      \field{month}{3}
+      \field{number}{1}
+      \field{shortjournal}{Math. Program.}
+      \field{title}{On the Implementation of an Interior-Point Filter Line-Search Algorithm for Large-Scale Nonlinear Programming}
+      \field{volume}{106}
+      \field{year}{2006}
+      \field{dateera}{ce}
+      \field{pages}{25\bibrangedash 57}
+      \range{pages}{33}
+      \verb{doi}
+      \verb 10.1007/s10107-004-0559-y
       \endverb
     \endentry
     \entry{mombaur_2005}{article}{}{}
@@ -1513,8 +1902,8 @@
       \strng{authornamehash}{a650b12e0b50e3d29d11ba5dbcd9fd26}
       \strng{authorfullhash}{98adbda9aec89d6ee5c0fa26d3dea305}
       \strng{authorfullhashraw}{98adbda9aec89d6ee5c0fa26d3dea305}
-      \field{sortinit}{3}
-      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{issn}{1941-0468}
@@ -1530,60 +1919,6 @@
       \verb{doi}
       \verb 10.1109/TRO.2005.855990
       \endverb
-    \endentry
-    \entry{carpentier2019pinocchio}{inproceedings}{}{}
-      \name{author}{7}{}{%
-        {{hash=492a59b068152d6708bd8335a84eee32}{%
-           family={Carpentier},
-           familyi={C\bibinitperiod},
-           given={Justin},
-           giveni={J\bibinitperiod}}}%
-        {{hash=ee5049b1403748d3187b60e9d685a1d5}{%
-           family={Saurel},
-           familyi={S\bibinitperiod},
-           given={Guilhem},
-           giveni={G\bibinitperiod}}}%
-        {{hash=b57485845bf9c520da76ac1acbd5f5d9}{%
-           family={Buondonno},
-           familyi={B\bibinitperiod},
-           given={Gabriele},
-           giveni={G\bibinitperiod}}}%
-        {{hash=60168270a3c5eefb3591fc4dc8781bcc}{%
-           family={Mirabel},
-           familyi={M\bibinitperiod},
-           given={Joseph},
-           giveni={J\bibinitperiod}}}%
-        {{hash=e912189b158ada9a5662c2620dc49b09}{%
-           family={Lamiraux},
-           familyi={L\bibinitperiod},
-           given={Florent},
-           giveni={F\bibinitperiod}}}%
-        {{hash=d976a252b6fa0efe1839e7c6de032d43}{%
-           family={Stasse},
-           familyi={S\bibinitperiod},
-           given={Olivier},
-           giveni={O\bibinitperiod}}}%
-        {{hash=3f7794b74ff9702f164ae4a90da61243}{%
-           family={Mansard},
-           familyi={M\bibinitperiod},
-           given={Nicolas},
-           giveni={N\bibinitperiod}}}%
-      }
-      \strng{namehash}{396fa96e56ee7349de7afa49959e7027}
-      \strng{fullhash}{b4acd5191d6d8cd1c98edf96efbb0c44}
-      \strng{fullhashraw}{b4acd5191d6d8cd1c98edf96efbb0c44}
-      \strng{bibnamehash}{396fa96e56ee7349de7afa49959e7027}
-      \strng{authorbibnamehash}{396fa96e56ee7349de7afa49959e7027}
-      \strng{authornamehash}{396fa96e56ee7349de7afa49959e7027}
-      \strng{authorfullhash}{b4acd5191d6d8cd1c98edf96efbb0c44}
-      \strng{authorfullhashraw}{b4acd5191d6d8cd1c98edf96efbb0c44}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{booktitle}{IEEE International Symposium on System Integrations (SII)}
-      \field{title}{The Pinocchio C++ library -- A fast and flexible implementation of rigid body dynamics algorithms and their analytical derivatives}
-      \field{year}{2019}
     \endentry
     \entry{andersson2019}{article}{}{}
       \name{author}{5}{}{%
@@ -1624,8 +1959,8 @@
       \strng{authornamehash}{b04d0d55940f67bd98ae0c9236807a4e}
       \strng{authorfullhash}{d4ec04d8cc225f8dfb9d40f7c454951a}
       \strng{authorfullhashraw}{d4ec04d8cc225f8dfb9d40f7c454951a}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{Mathematical Programming Computation}
@@ -1639,75 +1974,667 @@
       \verb 10.1007/s12532-018-0139-4
       \endverb
     \endentry
-    \entry{Felis2016}{article}{}{}
-      \name{author}{1}{}{%
-        {{hash=f9bf235afa816e07f0d4a3057e0983a8}{%
-           family={Felis},
-           familyi={F\bibinitperiod},
-           given={Martin\bibnamedelima L.},
-           giveni={M\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
-      }
-      \strng{namehash}{f9bf235afa816e07f0d4a3057e0983a8}
-      \strng{fullhash}{f9bf235afa816e07f0d4a3057e0983a8}
-      \strng{fullhashraw}{f9bf235afa816e07f0d4a3057e0983a8}
-      \strng{bibnamehash}{f9bf235afa816e07f0d4a3057e0983a8}
-      \strng{authorbibnamehash}{f9bf235afa816e07f0d4a3057e0983a8}
-      \strng{authornamehash}{f9bf235afa816e07f0d4a3057e0983a8}
-      \strng{authorfullhash}{f9bf235afa816e07f0d4a3057e0983a8}
-      \strng{authorfullhashraw}{f9bf235afa816e07f0d4a3057e0983a8}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
-      \field{labelnamesource}{author}
+    \entry{unitreeH1-2}{misc}{}{}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labeltitlesource}{title}
-      \field{issn}{1573-7527}
-      \field{journaltitle}{Autonomous Robots}
-      \field{title}{RBDL: an efficient rigid-body dynamics library using recursive algorithms}
-      \field{year}{2016}
-      \field{pages}{1\bibrangedash 17}
-      \range{pages}{17}
-      \verb{doi}
-      \verb 10.1007/s10514-016-9574-0
-      \endverb
-      \verb{urlraw}
-      \verb http://dx.doi.org/10.1007/s10514-016-9574-0
-      \endverb
-      \verb{url}
-      \verb http://dx.doi.org/10.1007/s10514-016-9574-0
-      \endverb
+      \field{howpublished}{https://www.unitree.com/h1}
+      \field{title}{Universal Humanoid Robot {{H1}}\_{{Bipedal Robot}}\_{{Humanoid Intelligent Robot Company}} |{} {{Unitree Robotics}}}
+      \field{urlday}{5}
+      \field{urlmonth}{9}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
     \endentry
-    \entry{featherstone_2008}{book}{}{}
-      \name{author}{1}{}{%
-        {{hash=fa3cce175250fcafb8ef938e29b16b05}{%
-           family={Featherstone},
+    \entry{frison_hpipm_2020}{misc}{}{}
+      \name{author}{2}{}{%
+        {{hash=655f2fe78711c1720070739d183b435d}{%
+           family={Frison},
            familyi={F\bibinitperiod},
-           given={Roy},
-           giveni={R\bibinitperiod}}}%
-      }
-      \list{location}{1}{%
-        {Boston, MA}%
+           given={Gianluca},
+           giveni={G\bibinitperiod}}}%
+        {{hash=ec732fd9120f390fd38c8132a3079900}{%
+           family={Diehl},
+           familyi={D\bibinitperiod},
+           given={Moritz},
+           giveni={M\bibinitperiod}}}%
       }
       \list{publisher}{1}{%
-        {Springer US}%
+        {arXiv}%
       }
-      \strng{namehash}{fa3cce175250fcafb8ef938e29b16b05}
-      \strng{fullhash}{fa3cce175250fcafb8ef938e29b16b05}
-      \strng{fullhashraw}{fa3cce175250fcafb8ef938e29b16b05}
-      \strng{bibnamehash}{fa3cce175250fcafb8ef938e29b16b05}
-      \strng{authorbibnamehash}{fa3cce175250fcafb8ef938e29b16b05}
-      \strng{authornamehash}{fa3cce175250fcafb8ef938e29b16b05}
-      \strng{authorfullhash}{fa3cce175250fcafb8ef938e29b16b05}
-      \strng{authorfullhashraw}{fa3cce175250fcafb8ef938e29b16b05}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \strng{namehash}{16a3a76a9c7f259153a361292fb9d819}
+      \strng{fullhash}{16a3a76a9c7f259153a361292fb9d819}
+      \strng{fullhashraw}{16a3a76a9c7f259153a361292fb9d819}
+      \strng{bibnamehash}{16a3a76a9c7f259153a361292fb9d819}
+      \strng{authorbibnamehash}{16a3a76a9c7f259153a361292fb9d819}
+      \strng{authornamehash}{16a3a76a9c7f259153a361292fb9d819}
+      \strng{authorfullhash}{16a3a76a9c7f259153a361292fb9d819}
+      \strng{authorfullhashraw}{16a3a76a9c7f259153a361292fb9d819}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
       \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{isbn}{978-0-387-74314-1}
-      \field{langid}{english}
-      \field{title}{Rigid {{Body Dynamics Algorithms}}}
-      \field{year}{2008}
+      \field{labeltitlesource}{shorttitle}
+      \field{day}{6}
+      \field{month}{6}
+      \field{number}{{arXiv}:2003.02547}
+      \field{shorttitle}{{HPIPM}}
+      \field{title}{{HPIPM}: a high-performance quadratic programming framework for model predictive control}
+      \field{year}{2020}
       \field{dateera}{ce}
       \verb{doi}
-      \verb 10.1007/978-1-4899-7560-7
+      \verb 10.48550/arXiv.2003.02547
+      \endverb
+    \endentry
+    \entry{kiessling_2025}{thesis}{}{}
+      \name{author}{1}{}{%
+        {{hash=273cf53242e844bd0eeaa7a384a3c8cd}{%
+           family={Kiessling},
+           familyi={K\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {KU Leuven}%
+      }
+      \strng{namehash}{273cf53242e844bd0eeaa7a384a3c8cd}
+      \strng{fullhash}{273cf53242e844bd0eeaa7a384a3c8cd}
+      \strng{fullhashraw}{273cf53242e844bd0eeaa7a384a3c8cd}
+      \strng{bibnamehash}{273cf53242e844bd0eeaa7a384a3c8cd}
+      \strng{authorbibnamehash}{273cf53242e844bd0eeaa7a384a3c8cd}
+      \strng{authornamehash}{273cf53242e844bd0eeaa7a384a3c8cd}
+      \strng{authorfullhash}{273cf53242e844bd0eeaa7a384a3c8cd}
+      \strng{authorfullhashraw}{273cf53242e844bd0eeaa7a384a3c8cd}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Algorithmic Advances in Feasible-Iterate and SQP Methods for Direct Optimal Control}
+      \field{type}{phdthesis}
+      \field{year}{2025}
+    \endentry
+    \entry{hahn_2011}{article}{}{}
+      \name{author}{5}{}{%
+        {{hash=526fe5ecc4d7700e805a5ecde06c75eb}{%
+           family={Hahn},
+           familyi={H\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+        {{hash=7c8ff599892f4a1d73e86ff4853fab64}{%
+           family={Olvermann},
+           familyi={O\bibinitperiod},
+           given={Matthias},
+           giveni={M\bibinitperiod}}}%
+        {{hash=64e79177a1e6007138edad1015eeb15a}{%
+           family={Richtberg},
+           familyi={R\bibinitperiod},
+           given={Jan},
+           giveni={J\bibinitperiod}}}%
+        {{hash=a477d756b5833094e6c8827ee46dff58}{%
+           family={Seiberl},
+           familyi={S\bibinitperiod},
+           given={Wolfgang},
+           giveni={W\bibinitperiod}}}%
+        {{hash=d97418b5e0e3760aab11ceb3f544f403}{%
+           family={Schwirtz},
+           familyi={S\bibinitperiod},
+           given={Ansgar},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{0d3a986ff099982c0b998428391868b6}
+      \strng{fullhash}{60f1deb574fa5a173500ac7eb2c647b1}
+      \strng{fullhashraw}{60f1deb574fa5a173500ac7eb2c647b1}
+      \strng{bibnamehash}{0d3a986ff099982c0b998428391868b6}
+      \strng{authorbibnamehash}{0d3a986ff099982c0b998428391868b6}
+      \strng{authornamehash}{0d3a986ff099982c0b998428391868b6}
+      \strng{authorfullhash}{60f1deb574fa5a173500ac7eb2c647b1}
+      \strng{authorfullhashraw}{60f1deb574fa5a173500ac7eb2c647b1}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{28}
+      \field{issn}{0021-9290}
+      \field{journaltitle}{Journal of Biomechanics}
+      \field{month}{7}
+      \field{number}{11}
+      \field{title}{Knee and Ankle Joint Torque–Angle Relationships of Multi-Joint Leg Extension}
+      \field{volume}{44}
+      \field{year}{2011}
+      \field{dateera}{ce}
+      \field{pages}{2059\bibrangedash 2065}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1016/j.jbiomech.2011.05.011
+      \endverb
+    \endentry
+    \entry{toth_2017}{book}{}{}
+      \name{author}{3}{}{%
+        {{hash=9c20b027fe3b53bf957d6c6af26e72aa}{%
+           family={Toth},
+           familyi={T\bibinitperiod},
+           given={Csaba\bibnamedelima D.},
+           giveni={C\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=94607fb5cb3c98eadac461e99116b5e0}{%
+           family={O'Rourke},
+           familyi={O\bibinitperiod},
+           given={Joseph},
+           giveni={J\bibinitperiod}}}%
+        {{hash=55b50ffcd234c0c68e946c2df619c264}{%
+           family={Goodman},
+           familyi={G\bibinitperiod},
+           given={Jacob\bibnamedelima E.},
+           giveni={J\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {CRC Press}%
+      }
+      \strng{namehash}{125014e1c17208f3eece60433fcc3e53}
+      \strng{fullhash}{125014e1c17208f3eece60433fcc3e53}
+      \strng{fullhashraw}{125014e1c17208f3eece60433fcc3e53}
+      \strng{bibnamehash}{125014e1c17208f3eece60433fcc3e53}
+      \strng{authorbibnamehash}{125014e1c17208f3eece60433fcc3e53}
+      \strng{authornamehash}{125014e1c17208f3eece60433fcc3e53}
+      \strng{authorfullhash}{125014e1c17208f3eece60433fcc3e53}
+      \strng{authorfullhashraw}{125014e1c17208f3eece60433fcc3e53}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{22}
+      \field{isbn}{978-1-4987-1142-5}
+      \field{langid}{english}
+      \field{month}{11}
+      \field{title}{Handbook of {{Discrete}} and {{Computational Geometry}}}
+      \field{year}{2017}
+      \field{dateera}{ce}
+    \endentry
+    \entry{tracy_2023}{online}{}{}
+      \name{author}{3}{}{%
+        {{hash=786e635a410ab7ed376b86609752c398}{%
+           family={Tracy},
+           familyi={T\bibinitperiod},
+           given={Kevin},
+           giveni={K\bibinitperiod}}}%
+        {{hash=2277e386ab16e1d6af63d6d52686edad}{%
+           family={Howell},
+           familyi={H\bibinitperiod},
+           given={Taylor\bibnamedelima A.},
+           giveni={T\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=80368904822b04c7e38316bb5a9dfd29}{%
+           family={Manchester},
+           familyi={M\bibinitperiod},
+           given={Zachary},
+           giveni={Z\bibinitperiod}}}%
+      }
+      \strng{namehash}{2e9e7bee2ca4820383936429d5b59155}
+      \strng{fullhash}{2e9e7bee2ca4820383936429d5b59155}
+      \strng{fullhashraw}{2e9e7bee2ca4820383936429d5b59155}
+      \strng{bibnamehash}{2e9e7bee2ca4820383936429d5b59155}
+      \strng{authorbibnamehash}{2e9e7bee2ca4820383936429d5b59155}
+      \strng{authornamehash}{2e9e7bee2ca4820383936429d5b59155}
+      \strng{authorfullhash}{2e9e7bee2ca4820383936429d5b59155}
+      \strng{authorfullhashraw}{2e9e7bee2ca4820383936429d5b59155}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{day}{18}
+      \field{eprintclass}{cs.RO}
+      \field{eprinttype}{arXiv}
+      \field{month}{5}
+      \field{pubstate}{prepublished}
+      \field{title}{Differentiable {{Collision Detection}} for a {{Set}} of {{Convex Primitives}}}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \verb{doi}
+      \verb 10.48550/arXiv.2207.00669
+      \endverb
+      \verb{eprint}
+      \verb 2207.00669
+      \endverb
+    \endentry
+    \entry{jones_2006}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=3348267a6b2fe079df2a2399ff0bbc0d}{%
+           family={Jones},
+           familyi={J\bibinitperiod},
+           given={M.W.},
+           giveni={M\bibinitperiod}}}%
+        {{hash=a8a4d32900bf84678c2f45cce594b14e}{%
+           family={Baerentzen},
+           familyi={B\bibinitperiod},
+           given={J.A.},
+           giveni={J\bibinitperiod}}}%
+        {{hash=d15d85327ec9299e0fb8ecef32f605db}{%
+           family={Sramek},
+           familyi={S\bibinitperiod},
+           given={M.},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{5953ac78b258e4c116ffffa861d22e23}
+      \strng{fullhash}{5953ac78b258e4c116ffffa861d22e23}
+      \strng{fullhashraw}{5953ac78b258e4c116ffffa861d22e23}
+      \strng{bibnamehash}{5953ac78b258e4c116ffffa861d22e23}
+      \strng{authorbibnamehash}{5953ac78b258e4c116ffffa861d22e23}
+      \strng{authornamehash}{5953ac78b258e4c116ffffa861d22e23}
+      \strng{authorfullhash}{5953ac78b258e4c116ffffa861d22e23}
+      \strng{authorfullhashraw}{5953ac78b258e4c116ffffa861d22e23}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{issn}{1941-0506}
+      \field{journaltitle}{IEEE Transactions on Visualization and Computer Graphics}
+      \field{month}{7}
+      \field{number}{4}
+      \field{shorttitle}{{{3D}} Distance Fields}
+      \field{title}{{{3D}} Distance Fields: A Survey of Techniques and Applications}
+      \field{volume}{12}
+      \field{year}{2006}
+      \field{dateera}{ce}
+      \field{pages}{581\bibrangedash 599}
+      \range{pages}{19}
+      \verb{doi}
+      \verb 10.1109/TVCG.2006.56
+      \endverb
+    \endentry
+    \entry{zhu_2025}{inproceedings}{}{}
+      \name{author}{6}{}{%
+        {{hash=ea12a8f79c50560f55d827a1f1bef730}{%
+           family={Zhu},
+           familyi={Z\bibinitperiod},
+           given={Xiankun},
+           giveni={X\bibinitperiod}}}%
+        {{hash=27825add635e404916113a7436f4e916}{%
+           family={Xin},
+           familyi={X\bibinitperiod},
+           given={Yucheng},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=df274dc69d494116ec6e6e8b97ca88b7}{%
+           family={Li},
+           familyi={L\bibinitperiod},
+           given={Shoujie},
+           giveni={S\bibinitperiod}}}%
+        {{hash=1ae40da41d42fc582b3884d3de244e68}{%
+           family={Liu},
+           familyi={L\bibinitperiod},
+           given={Houde},
+           giveni={H\bibinitperiod}}}%
+        {{hash=12587ab9a8f9c4ab35a84cc809f8ca1e}{%
+           family={Xia},
+           familyi={X\bibinitperiod},
+           given={Chongkun},
+           giveni={C\bibinitperiod}}}%
+        {{hash=b8c614392e8a78a44ca4763ed2f70c6a}{%
+           family={Liang},
+           familyi={L\bibinitperiod},
+           given={Bin},
+           giveni={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{7cab1ce873458fb09fd78ba834cf7cff}
+      \strng{fullhash}{1595b61e08af48932765eb982464ccdd}
+      \strng{fullhashraw}{1595b61e08af48932765eb982464ccdd}
+      \strng{bibnamehash}{7cab1ce873458fb09fd78ba834cf7cff}
+      \strng{authorbibnamehash}{7cab1ce873458fb09fd78ba834cf7cff}
+      \strng{authornamehash}{7cab1ce873458fb09fd78ba834cf7cff}
+      \strng{authorfullhash}{1595b61e08af48932765eb982464ccdd}
+      \strng{authorfullhashraw}{1595b61e08af48932765eb982464ccdd}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2025 {{IEEE International Conference}} on {{Robotics}} and {{ Automation}} ({{ICRA}})}
+      \field{month}{5}
+      \field{title}{Efficient {{Collision Detection Framework}} for {{Enhancing Collision-Free Robot Motion}}}
+      \field{year}{2025}
+      \field{pages}{16162\bibrangedash 16168}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1109/ICRA55743.2025.11128733
+      \endverb
+    \endentry
+    \entry{yang_2025}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=9c245130418606dd988ed12a97044d62}{%
+           family={Yang},
+           familyi={Y\bibinitperiod},
+           given={Wen},
+           giveni={W\bibinitperiod}}}%
+        {{hash=629bf29eee20fa3c6b0d2d5df66a766b}{%
+           family={Jin},
+           familyi={J\bibinitperiod},
+           given={Wanxin},
+           giveni={W\bibinitperiod}}}%
+      }
+      \strng{namehash}{255f36e2647ac98ea740581604aeb49a}
+      \strng{fullhash}{255f36e2647ac98ea740581604aeb49a}
+      \strng{fullhashraw}{255f36e2647ac98ea740581604aeb49a}
+      \strng{bibnamehash}{255f36e2647ac98ea740581604aeb49a}
+      \strng{authorbibnamehash}{255f36e2647ac98ea740581604aeb49a}
+      \strng{authornamehash}{255f36e2647ac98ea740581604aeb49a}
+      \strng{authorfullhash}{255f36e2647ac98ea740581604aeb49a}
+      \strng{authorfullhashraw}{255f36e2647ac98ea740581604aeb49a}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{issn}{2377-3766}
+      \field{journaltitle}{IEEE Robotics and Automation Letters}
+      \field{month}{5}
+      \field{number}{5}
+      \field{shorttitle}{{{ContactSDF}}}
+      \field{title}{{{ContactSDF}}: {{Signed Distance Functions}} as {{Multi-Contact Models}} for {{Dexterous Manipulation}}}
+      \field{volume}{10}
+      \field{year}{2025}
+      \field{pages}{4212\bibrangedash 4219}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1109/LRA.2025.3548503
+      \endverb
+    \endentry
+    \entry{jaitly_2025}{inproceedings}{}{}
+      \name{author}{4}{}{%
+        {{hash=18e5e489aa64f6d4ccaa22daeaee7565}{%
+           family={Jaitly},
+           familyi={J\bibinitperiod},
+           given={Akshay},
+           giveni={A\bibinitperiod}}}%
+        {{hash=2d312e146ed32dd4d1419f3f7e6c2d62}{%
+           family={Jha},
+           familyi={J\bibinitperiod},
+           given={Devesh\bibnamedelima K.},
+           giveni={D\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+        {{hash=89bb6311673d8087a30c41f22bfac607}{%
+           family={Ota},
+           familyi={O\bibinitperiod},
+           given={Kei},
+           giveni={K\bibinitperiod}}}%
+        {{hash=4bdb15aad0eefb9798e324f4110d5c41}{%
+           family={Shirai},
+           familyi={S\bibinitperiod},
+           given={Yuki},
+           giveni={Y\bibinitperiod}}}%
+      }
+      \strng{namehash}{e4153777384edbf61d021287d198d0de}
+      \strng{fullhash}{4066ad1bb828659f27f4c3a56b71e1c6}
+      \strng{fullhashraw}{4066ad1bb828659f27f4c3a56b71e1c6}
+      \strng{bibnamehash}{e4153777384edbf61d021287d198d0de}
+      \strng{authorbibnamehash}{e4153777384edbf61d021287d198d0de}
+      \strng{authornamehash}{e4153777384edbf61d021287d198d0de}
+      \strng{authorfullhash}{4066ad1bb828659f27f4c3a56b71e1c6}
+      \strng{authorfullhashraw}{4066ad1bb828659f27f4c3a56b71e1c6}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2025 {{IEEE}}/{{RSJ International Conference}} on {{Intelligent Robots}} and {{Systems}} ({{IROS}})}
+      \field{issn}{2153-0866}
+      \field{month}{10}
+      \field{title}{Analytic {{Conditions}} for {{Differentiable Collision Detection}} in {{Trajectory Optimization}}}
+      \field{year}{2025}
+      \field{dateera}{ce}
+      \field{pages}{6659\bibrangedash 6666}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1109/IROS60139.2025.11246568
+      \endverb
+    \endentry
+    \entry{liu_2023}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=95029785aad9da9ab69c7194c8ac7415}{%
+           family={Liu},
+           familyi={L\bibinitperiod},
+           given={Baolin},
+           giveni={B\bibinitperiod}}}%
+        {{hash=e1b76a718961fb9bfa565a71da55a1e2}{%
+           family={Jiang},
+           familyi={J\bibinitperiod},
+           given={Gedong},
+           giveni={G\bibinitperiod}}}%
+        {{hash=5a1e2acca0780a5de1b37e9469e6c888}{%
+           family={Zhao},
+           familyi={Z\bibinitperiod},
+           given={Fei},
+           giveni={F\bibinitperiod}}}%
+        {{hash=b838b472b69d4408918e01b83c33f0d1}{%
+           family={Mei},
+           familyi={M\bibinitperiod},
+           given={Xuesong},
+           giveni={X\bibinitperiod}}}%
+      }
+      \strng{namehash}{6eec5c402d0300d55a8eda0fba9531ac}
+      \strng{fullhash}{1e8e79434842779c67026eeefbc2f12d}
+      \strng{fullhashraw}{1e8e79434842779c67026eeefbc2f12d}
+      \strng{bibnamehash}{6eec5c402d0300d55a8eda0fba9531ac}
+      \strng{authorbibnamehash}{6eec5c402d0300d55a8eda0fba9531ac}
+      \strng{authornamehash}{6eec5c402d0300d55a8eda0fba9531ac}
+      \strng{authorfullhash}{1e8e79434842779c67026eeefbc2f12d}
+      \strng{authorfullhashraw}{1e8e79434842779c67026eeefbc2f12d}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{2377-3766}
+      \field{journaltitle}{IEEE Robotics and Automation Letters}
+      \field{month}{11}
+      \field{number}{11}
+      \field{title}{Collision-{{Free Motion Generation Based}} on {{Stochastic Optimization}} and {{Composite Signed Distance Field Networks}} of {{ Articulated Robot}}}
+      \field{volume}{8}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \field{pages}{7082\bibrangedash 7089}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1109/LRA.2023.3311357
+      \endverb
+    \endentry
+    \entry{john_1985}{incollection}{}{}
+      \name{author}{1}{}{%
+        {{hash=d3e6821d953dbcb3c23b14cf8d8cf171}{%
+           family={John},
+           familyi={J\bibinitperiod},
+           given={Fritz},
+           giveni={F\bibinitperiod}}}%
+      }
+      \name{editor}{2}{}{%
+        {{hash=e8c0a53be2ecdb425986f260de8d6132}{%
+           family={Giorgi},
+           familyi={G\bibinitperiod},
+           given={Giorgio},
+           giveni={G\bibinitperiod}}}%
+        {{hash=2a1096c0b2739f1333b68878044e5adb}{%
+           family={Kjeldsen},
+           familyi={K\bibinitperiod},
+           given={Tinne\bibnamedelima Hoff},
+           giveni={T\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Basel}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{d3e6821d953dbcb3c23b14cf8d8cf171}
+      \strng{fullhash}{d3e6821d953dbcb3c23b14cf8d8cf171}
+      \strng{fullhashraw}{d3e6821d953dbcb3c23b14cf8d8cf171}
+      \strng{bibnamehash}{d3e6821d953dbcb3c23b14cf8d8cf171}
+      \strng{authorbibnamehash}{d3e6821d953dbcb3c23b14cf8d8cf171}
+      \strng{authornamehash}{d3e6821d953dbcb3c23b14cf8d8cf171}
+      \strng{authorfullhash}{d3e6821d953dbcb3c23b14cf8d8cf171}
+      \strng{authorfullhashraw}{d3e6821d953dbcb3c23b14cf8d8cf171}
+      \strng{editorbibnamehash}{47de810e2ac2fdd131f44b5729241626}
+      \strng{editornamehash}{47de810e2ac2fdd131f44b5729241626}
+      \strng{editorfullhash}{47de810e2ac2fdd131f44b5729241626}
+      \strng{editorfullhashraw}{47de810e2ac2fdd131f44b5729241626}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Traces and {{Emergence}} of {{Nonlinear Programming}}}
+      \field{isbn}{978-3-0348-0439-4}
+      \field{langid}{english}
+      \field{title}{Extremum {{Problems}} with {{Inequalities}} as {{Subsidiary Conditions}}}
+      \field{year}{1985}
+      \field{pages}{197\bibrangedash 215}
+      \range{pages}{19}
+      \verb{doi}
+      \verb 10.1007/978-3-0348-0439-4_9
+      \endverb
+    \endentry
+    \entry{bischoff_kobbelt_2009}{inproceedings}{}{}
+      \name{author}{2}{}{%
+        {{hash=cf1c2102c543cdb4272df4b81aca6419}{%
+           family={Bischoff},
+           familyi={B\bibinitperiod},
+           given={S.},
+           giveni={S\bibinitperiod}}}%
+        {{hash=a3ed6aa1f94f87b38cb4e67e9a520c81}{%
+           family={Kobbelt},
+           familyi={K\bibinitperiod},
+           given={L.},
+           giveni={L\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Padova, Italy}%
+      }
+      \list{publisher}{1}{%
+        {{IEEE} Comput. Soc}%
+      }
+      \strng{namehash}{80871652e4fe407c16030210631a53d9}
+      \strng{fullhash}{80871652e4fe407c16030210631a53d9}
+      \strng{fullhashraw}{80871652e4fe407c16030210631a53d9}
+      \strng{bibnamehash}{80871652e4fe407c16030210631a53d9}
+      \strng{authorbibnamehash}{80871652e4fe407c16030210631a53d9}
+      \strng{authornamehash}{80871652e4fe407c16030210631a53d9}
+      \strng{authorfullhash}{80871652e4fe407c16030210631a53d9}
+      \strng{authorfullhashraw}{80871652e4fe407c16030210631a53d9}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings. First International Symposium on 3D Data Processing Visualization and Transmission}
+      \field{isbn}{978-0-7695-1521-2}
+      \field{langid}{english}
+      \field{title}{Ellipsoid decomposition of 3D-models}
+      \field{year}{2002}
+      \field{dateera}{ce}
+      \field{pages}{480\bibrangedash 488}
+      \range{pages}{9}
+      \verb{doi}
+      \verb 10.1109/TDPVT.2002.1024103
+      \endverb
+    \endentry
+    \entry{elkhoury_2013}{inproceedings}{}{}
+      \name{author}{3}{}{%
+        {{hash=e6ae4fc241f1ee64df068531e86f49fb}{%
+           family={El\bibnamedelima Khoury},
+           familyi={E\bibinitperiod\bibinitdelim K\bibinitperiod},
+           given={Antonio},
+           giveni={A\bibinitperiod}}}%
+        {{hash=e912189b158ada9a5662c2620dc49b09}{%
+           family={Lamiraux},
+           familyi={L\bibinitperiod},
+           given={Florent},
+           giveni={F\bibinitperiod}}}%
+        {{hash=2e752323056b283fab2709ae40eabda5}{%
+           family={Taïx},
+           familyi={T\bibinitperiod},
+           given={Michel},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{4afabcdda3f75860eb6011918cd8476f}
+      \strng{fullhash}{4afabcdda3f75860eb6011918cd8476f}
+      \strng{fullhashraw}{4afabcdda3f75860eb6011918cd8476f}
+      \strng{bibnamehash}{4afabcdda3f75860eb6011918cd8476f}
+      \strng{authorbibnamehash}{4afabcdda3f75860eb6011918cd8476f}
+      \strng{authornamehash}{4afabcdda3f75860eb6011918cd8476f}
+      \strng{authorfullhash}{4afabcdda3f75860eb6011918cd8476f}
+      \strng{authorfullhashraw}{4afabcdda3f75860eb6011918cd8476f}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{2013 {{IEEE International Conference}} on {{Robotics}} and {{ Automation}}}
+      \field{issn}{1050-4729}
+      \field{month}{5}
+      \field{title}{Optimal Motion Planning for Humanoid Robots}
+      \field{year}{2013}
+      \field{pages}{3136\bibrangedash 3141}
+      \range{pages}{6}
+      \verb{doi}
+      \verb 10.1109/ICRA.2013.6631013
+      \endverb
+    \endentry
+    \entry{sdfEllipsoid}{misc}{}{}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{https://iquilezles.org/articles/ellipsoids/}
+      \field{title}{Inigo {{Quilez}} :: Computer Graphics, Maths, Shaders, Fractals, Demoscene}
+      \field{urlday}{5}
+      \field{urlmonth}{9}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+    \endentry
+    \entry{sdfSmoothMin}{misc}{}{}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labeltitlesource}{title}
+      \field{howpublished}{https://iquilezles.org/articles/smin/}
+      \field{title}{Inigo {{Quilez}} :: Computer Graphics, Maths, Shaders, Fractals, Demoscene}
+      \field{urlday}{5}
+      \field{urlmonth}{9}
+      \field{urlyear}{2026}
+      \field{urldateera}{ce}
+    \endentry
+    \entry{lewiner_2003}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=fd0625bd4191406f07749d5665d240bf}{%
+           family={Lewiner},
+           familyi={L\bibinitperiod},
+           given={Thomas},
+           giveni={T\bibinitperiod}}}%
+        {{hash=f41bf3c31f6a165cb14cd952d76e7a99}{%
+           family={Lopes},
+           familyi={L\bibinitperiod},
+           given={Hélio},
+           giveni={H\bibinitperiod}}}%
+        {{hash=9c3b3228db46870cf3b2d8b2a87c94f2}{%
+           family={Vieira},
+           familyi={V\bibinitperiod},
+           given={Antônio\bibnamedelima Wilson},
+           giveni={A\bibinitperiod\bibinitdelim W\bibinitperiod}}}%
+        {{hash=e316284811a410743240797917044d89}{%
+           family={Tavares},
+           familyi={T\bibinitperiod},
+           given={Geovan},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{a0c0eae72acaa2b87706a6c3f6dcc6f3}
+      \strng{fullhash}{39c92544662d6f1414ad9844de79dd41}
+      \strng{fullhashraw}{39c92544662d6f1414ad9844de79dd41}
+      \strng{bibnamehash}{a0c0eae72acaa2b87706a6c3f6dcc6f3}
+      \strng{authorbibnamehash}{a0c0eae72acaa2b87706a6c3f6dcc6f3}
+      \strng{authornamehash}{a0c0eae72acaa2b87706a6c3f6dcc6f3}
+      \strng{authorfullhash}{39c92544662d6f1414ad9844de79dd41}
+      \strng{authorfullhashraw}{39c92544662d6f1414ad9844de79dd41}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{issn}{1086-7651}
+      \field{journaltitle}{Journal of Graphics Tools}
+      \field{langid}{english}
+      \field{month}{1}
+      \field{number}{2}
+      \field{shortjournal}{Journal of Graphics Tools}
+      \field{title}{Efficient {{Implementation}} of {{Marching Cubes}}' {{Cases}} with {{ Topological Guarantees}}}
+      \field{volume}{8}
+      \field{year}{2003}
+      \field{dateera}{ce}
+      \field{pages}{1\bibrangedash 15}
+      \range{pages}{15}
+      \verb{doi}
+      \verb 10.1080/10867651.2003.10487582
       \endverb
     \endentry
     \entry{koenig_2004}{inproceedings}{}{}
@@ -1731,8 +2658,8 @@
       \strng{authornamehash}{b03e6b2085497da7c20890ba74ee3d19}
       \strng{authorfullhash}{b03e6b2085497da7c20890ba74ee3d19}
       \strng{authorfullhashraw}{b03e6b2085497da7c20890ba74ee3d19}
-      \field{sortinit}{4}
-      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{2004 {{IEEE}}/{{RSJ International Conference}} on {{Intelligent Robots}} and {{Systems}} ({{IROS}})}
@@ -1777,8 +2704,8 @@
       \strng{authornamehash}{abe7dc5f7371f04e3c8e93075cd4d474}
       \strng{authorfullhash}{abe7dc5f7371f04e3c8e93075cd4d474}
       \strng{authorfullhashraw}{abe7dc5f7371f04e3c8e93075cd4d474}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{2012 IEEE/RSJ International Conference on Intelligent Robots and Systems}
@@ -1846,8 +2773,8 @@
       \strng{authornamehash}{e5ab1d3d9f2538a16c067199988e0324}
       \strng{authorfullhash}{94186b349187d5f0993a32cff4fdc2c3}
       \strng{authorfullhashraw}{94186b349187d5f0993a32cff4fdc2c3}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{9}
+      \field{sortinithash}{0a5ebc79d83c96b6579069544c73c7d4}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{shorttitle}
       \field{day}{6}
@@ -1905,8 +2832,8 @@
       \strng{editornamehash}{16aa0479093bf0f4b000a20136e6484d}
       \strng{editorfullhash}{16aa0479093bf0f4b000a20136e6484d}
       \strng{editorfullhashraw}{16aa0479093bf0f4b000a20136e6484d}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{Performance {{Evaluation}} and {{Benchmarking}}}
@@ -1937,8 +2864,8 @@
       \strng{authornamehash}{3b594ffd3e16520446970bf8b4a4ad24}
       \strng{authorfullhash}{3b594ffd3e16520446970bf8b4a4ad24}
       \strng{authorfullhashraw}{3b594ffd3e16520446970bf8b4a4ad24}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{day}{1}
@@ -1974,8 +2901,8 @@
       \strng{authornamehash}{e4c2149aa24c2e62abfca2ce95992f9c}
       \strng{authorfullhash}{e4c2149aa24c2e62abfca2ce95992f9c}
       \strng{authorfullhashraw}{e4c2149aa24c2e62abfca2ce95992f9c}
-      \field{sortinit}{5}
-      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{issn}{1874-8953}
@@ -2013,8 +2940,8 @@
       \strng{authornamehash}{1854fbbd3d568d8e3b1a80caa3ec7cd0}
       \strng{authorfullhash}{1854fbbd3d568d8e3b1a80caa3ec7cd0}
       \strng{authorfullhashraw}{1854fbbd3d568d8e3b1a80caa3ec7cd0}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{day}{1}
@@ -2050,8 +2977,8 @@
       \strng{authornamehash}{3933405ccdeb7025933f78a7b253e7ce}
       \strng{authorfullhash}{3933405ccdeb7025933f78a7b253e7ce}
       \strng{authorfullhashraw}{3933405ccdeb7025933f78a7b253e7ce}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{issn}{0031-9155}
@@ -2094,8 +3021,8 @@
       \strng{authornamehash}{2de0d44126ff79f98222f62173563b2b}
       \strng{authorfullhash}{2de0d44126ff79f98222f62173563b2b}
       \strng{authorfullhashraw}{2de0d44126ff79f98222f62173563b2b}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{booktitle}{XLII Riunione Scientifica della Società Italiana di Statistica}
@@ -2123,8 +3050,8 @@
       \strng{authornamehash}{51752128b7be2a840dffff2523d634d4}
       \strng{authorfullhash}{51752128b7be2a840dffff2523d634d4}
       \strng{authorfullhashraw}{51752128b7be2a840dffff2523d634d4}
-      \field{sortinit}{6}
-      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{shorttitle}
       \field{day}{1}
@@ -2159,8 +3086,8 @@
       \strng{authornamehash}{91445b1dede0fc6cce3585e4ba475c93}
       \strng{authorfullhash}{91445b1dede0fc6cce3585e4ba475c93}
       \strng{authorfullhashraw}{91445b1dede0fc6cce3585e4ba475c93}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{issn}{0025-5564}
@@ -2205,8 +3132,8 @@
       \strng{authornamehash}{894e1cd2b91005a2c7ea1060a2c6a097}
       \strng{authorfullhash}{894e1cd2b91005a2c7ea1060a2c6a097}
       \strng{authorfullhashraw}{894e1cd2b91005a2c7ea1060a2c6a097}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{day}{24}
@@ -2236,8 +3163,8 @@
       \strng{authornamehash}{f271cef1e5ae0aff0d07deccf21fd368}
       \strng{authorfullhash}{f271cef1e5ae0aff0d07deccf21fd368}
       \strng{authorfullhashraw}{f271cef1e5ae0aff0d07deccf21fd368}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{howpublished}{\url{https://github.com/stevengj/nlopt}}
@@ -2260,8 +3187,8 @@
       \strng{authornamehash}{1b8969ea21b1ab928b992d82a573d33e}
       \strng{authorfullhash}{1b8969ea21b1ab928b992d82a573d33e}
       \strng{authorfullhashraw}{1b8969ea21b1ab928b992d82a573d33e}
-      \field{sortinit}{7}
-      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{shorttitle}
       \field{day}{1}
