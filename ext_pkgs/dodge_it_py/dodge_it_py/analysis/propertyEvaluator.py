@@ -345,6 +345,6 @@ def main(path : Path) -> int:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path", type=Path, required=True)
+    parser.add_argument("--path", "-p", type=Path, required=True)
     args = parser.parse_args()
     sys.exit(main(args.path))
