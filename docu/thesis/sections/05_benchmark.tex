@@ -342,11 +342,13 @@ The benchmark results from 500 individual test runs shown earlier are visualized
 The figure displays the starting position of each object, as well as the impact locations of trajectories that could not be evaded.
 Green marks a successfully generated avoidance trajectory, while orange shows occasions where the solver could not find an optimal motion.
 These failed runs originate from different causes, ranging from significantly exceeding the typical iteration count to divergence in the \acrfull{qp} problem.
-Overall, our optimal trajectory generator achieved an 81.2\% (406) success rate.
+Overall, our optimal trajectory generator achieved an 85.0\% (425) success rate.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/05_benchmark/ZZ_results/plots/torqueJoint_original.pdf}
+  \makebox[\textwidth]{
+  \includegraphics[width=1.45\textwidth]{figures/05_benchmark/ZZ_results/plots/torqueJoint.pdf}
+  }
   \caption{
     Joint angles $\bm{q}$ and torques $\bm{\tau}$ for all successful dodging motions.
     We can clearly see that some of those trajectories require the robot to operate at its limits.
