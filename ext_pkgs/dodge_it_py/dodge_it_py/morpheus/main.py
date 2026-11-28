@@ -41,8 +41,8 @@ DYNAMIC_JOINT_NAMES = [
     # 'right_elbow_joint',
 ]
 
-Tf = 2.0
-N = 60
+Tf = 1.5
+N = 48
 # ------------------------------- HELPER FUNCS --------------------------------------
 @staticmethod
 def extractVarsFromSolver(ocp : OCP) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
@@ -88,10 +88,10 @@ def mainInteractive(h_diff : float,
     if visualize == "interactive": vis = True
     elif visualize == "headless" : vis = HeadlessData(
         dir="/home/robot/ws/_tmp/",
-        camPos=np.array([1.42, 1.18, 1.26]),
-        camLookAt=np.array([-0.34, -0.30, 0.88]),
+        camPos=np.array([0.919, 1.579, 2.521]),
+        camLookAt=np.array([0., 0., 0.8]),
         camFov=1.31,
-        resolution=(1080,1920))
+        resolution=(1080,1080))
     else: vis = False
 
     h1 = H1Wrapper_v2(
@@ -101,7 +101,7 @@ def mainInteractive(h_diff : float,
         visualization=vis)
     h1.setCollision(
         projectile.linear(h1.t,
-                          c.SX([3.0, 0.0, 1.2]),
+                          c.SX([10.0, 0.0, 1.2]),
                           c.SX([0.0, 0.0, 0.0])))
 
     assert(h1.model.nq)
@@ -156,7 +156,7 @@ def main():
                         required=False)
     parser.add_argument("--diff",
                         type=float,
-                        default=0.4,
+                        default=0.5,
                         required=False)
     args = parser.parse_args()
 

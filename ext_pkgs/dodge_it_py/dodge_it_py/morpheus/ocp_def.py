@@ -98,8 +98,9 @@ class OCP:
         # ---------------------------------------------------------------------
 
         # Lagrange
-        wStab = 1.0
-        wTau = 1e-4
+        # wStab = 1.0
+        wStab = 1e-2
+        wTau = 1e-8
         cost.cost_type = 'NONLINEAR_LS'
         cost.cost_discretization = 'INTEGRATOR'
         x = self.ocp.model.x
